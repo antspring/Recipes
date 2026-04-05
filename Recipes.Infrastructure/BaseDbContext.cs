@@ -35,7 +35,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_RecipeIngredients_Weight_AlternativeWeight",
-                "(Weight IS NOT NULL OR AlternativeWeight IS NOT NULL)"
+                "\"Weight\" IS NOT NULL OR \"AlternativeWeight\" IS NOT NULL"
             ));
         });
     }
