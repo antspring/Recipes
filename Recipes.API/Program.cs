@@ -2,6 +2,8 @@ using Recipes.API.ServiceCollectionExtension;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext(builder.Configuration);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
