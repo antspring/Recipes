@@ -1,7 +1,11 @@
+using Recipes.API.ServiceCollectionExtension;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddConfigure(builder.Configuration);
 
 var app = builder.Build();
 
