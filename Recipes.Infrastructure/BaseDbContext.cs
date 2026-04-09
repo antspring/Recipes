@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Recipes.Application.Auth;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
 using Recipes.Domain.Models.UserRelations;
@@ -16,6 +17,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
     public DbSet<Image> Images { get; set; }
     public DbSet<RecipeImage> RecipeImages { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,15 +30,17 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                     v => BCrypt.Net.BCrypt.HashPassword(v),
                     v => v);
         });
-        
+
         modelBuilder.Entity<RecipeIngredient>(entity =>
         {
             entity.ToTable("RecipeIngredients");
-        
+
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_RecipeIngredients_Weight_AlternativeWeight",
                 "\"Weight\" IS NOT NULL OR \"AlternativeWeight\" IS NOT NULL"
             ));
         });
+
+        modelBuilder.Entity<RefreshToken>(entity => { entity.HasIndex(e => e.Token).IsUnique(); });
     }
 }
