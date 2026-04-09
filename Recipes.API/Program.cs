@@ -10,6 +10,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddConfigure(builder.Configuration);
 builder.Services.AddDependencyInjections();
 
+builder.Services.AddJwtAuthentication();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
