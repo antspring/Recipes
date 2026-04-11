@@ -40,9 +40,30 @@ public class AuthService : IAuthService
         return new UserAuthDto(user, accessToken, refreshToken.Token);
     }
 
-    public Task<UserAuthDto> Login(string emailOrUserName, string password)
+    public async Task<UserAuthDto> Login(LoginUserDto loginUserDto)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(loginUserDto.UserName) && string.IsNullOrWhiteSpace(loginUserDto.Email))
+        {
+            throw new ArgumentException("Either UserName or Email must be provided");
+        }
+
+        var user = await _unitOfWork.Users.GetByUserNameOrEmailAsync(loginUserDto.UserName, loginUserDto.Email);
+        if (user is null)
+        {
+            throw new ArgumentException("Invalid username or email");
+        }
+        
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.Password);
+        if (!isPasswordValid)
+        {
+            throw new ArgumentException("Invalid password");
+        }
+
+        var (accessToken, refreshToken) = GetTokens(user, loginUserDto.UserAgent);
+        await _unitOfWork.RefreshTokens.CreateAsync(refreshToken);
+        await _unitOfWork.SaveChangesAsync();
+        
+        return new UserAuthDto(user, accessToken, refreshToken.Token);
     }
 
     public string UpdateToken(string token)

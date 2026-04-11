@@ -4,6 +4,6 @@ namespace Recipes.Application.Repositories.Interfaces;
 
 public interface IUserRepository
 {
-    public Task<User?> GetAsync(string username);
     public Task<User> CreateAsync(User user);
+    public Task<User?> GetByUserNameOrEmailAsync(string? userName, string? email);
 }

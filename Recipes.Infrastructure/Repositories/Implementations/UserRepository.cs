@@ -13,15 +13,17 @@ public class UserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
-    public Task<User?> GetAsync(string username)
-    {
-        return _dbContext.Users.Where(u => u.UserName == username).FirstOrDefaultAsync();
-    }
-
     public async Task<User> CreateAsync(User user)
     {
         await _dbContext.Users.AddAsync(user);
 
         return user;
+    }
+
+    public Task<User?> GetByUserNameOrEmailAsync(string? userName, string? email)
+    {
+        return _dbContext.Users
+            .Where(u => (userName != null && u.UserName == userName) || (email != null && u.Email == email))
+            .FirstOrDefaultAsync();
     }
 }

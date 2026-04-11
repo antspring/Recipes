@@ -5,6 +5,6 @@ namespace Recipes.Application.Services.Interfaces;
 public interface IAuthService
 {
     public Task<UserAuthDto> Register(CreateUserDto createUserDto, string userAgent);
-    public Task<UserAuthDto> Login(string emailOrUserName, string password);
+    public Task<UserAuthDto> Login(LoginUserDto loginUserDto);
     public string UpdateToken(string token);
 }
