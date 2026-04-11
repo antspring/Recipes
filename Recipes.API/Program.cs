@@ -1,4 +1,6 @@
+using Recipes.API.Endpoints;
 using Recipes.API.ServiceCollectionExtension;
+using Recipes.Application.Mappings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,10 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddConfigure(builder.Configuration);
 builder.Services.AddDependencyInjections();
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<UserProfile>();
+}, typeof(Program).Assembly);
 
 builder.Services.AddJwtAuthentication();
 
@@ -20,6 +26,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/", () => "Hello World!");
+app.MapAuthEndpoints();
 
 app.Run();

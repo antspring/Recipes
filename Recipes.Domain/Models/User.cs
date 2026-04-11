@@ -31,8 +31,8 @@ public class User
     [Column(TypeName = "varchar(100)")]
     public string Password { get; set; } = null!;
 
-    public DateTime CreatedAt { get; init; }
-    public DateTime UpdatedAt { get; private set; }
+    public DateTime CreatedAt { get; init; } = DateTime.Now.ToUniversalTime();
+    public DateTime UpdatedAt { get; private set; } = DateTime.Now.ToUniversalTime();
 
     public List<Recipe>? Recipes { get; init; }
     public List<Like>? Likes { get; init; }

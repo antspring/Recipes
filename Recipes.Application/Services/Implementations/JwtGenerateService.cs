@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Recipes.Application.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
+using Recipes.Application.Auth;
 using Recipes.Application.Options.Interfaces;
 
 namespace Recipes.Application.Services.Implementations;
@@ -27,8 +28,8 @@ public class JwtGenerateService : IJwtGenerateService
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             Subject = new ClaimsIdentity(claims),
-            NotBefore = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.ExpirationMinutes),
+            NotBefore = DateTime.Now,
+            Expires = DateTime.Now.AddMinutes(_jwtOptions.AccessExpirationMinutes),
             SigningCredentials = new SigningCredentials(
                 securityKey,
                 SecurityAlgorithms.HmacSha256Signature)
@@ -37,11 +38,17 @@ public class JwtGenerateService : IJwtGenerateService
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 
-    public string GenerateRefreshToken()
+    public RefreshToken GenerateRefreshToken(Guid userId, string userAgent)
     {
         var randomNumber = new byte[32];
         using var rnd = RandomNumberGenerator.Create();
         rnd.GetBytes(randomNumber);
-        return Convert.ToBase64String(randomNumber);
+        var toke = Convert.ToBase64String(randomNumber);
+
+        return new RefreshToken(
+            userId,
+            toke,
+            DateTime.Now.AddDays(_jwtOptions.RefreshExpirationDays).ToUniversalTime(),
+            userAgent);
     }
 }
