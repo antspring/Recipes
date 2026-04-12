@@ -38,7 +38,7 @@ public class JwtGenerateService : IJwtGenerateService
         return new JsonWebTokenHandler().CreateToken(descriptor);
     }
 
-    public RefreshToken GenerateRefreshToken(Guid userId, string userAgent)
+    public RefreshToken GenerateRefreshToken(Guid userId, string? userAgent)
     {
         var randomNumber = new byte[32];
         using var rnd = RandomNumberGenerator.Create();

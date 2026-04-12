@@ -26,4 +26,9 @@ public class UserRepository : IUserRepository
             .Where(u => (userName != null && u.UserName == userName) || (email != null && u.Email == email))
             .FirstOrDefaultAsync();
     }
+
+    public Task<User?> GetByIdAsync(Guid id)
+    {
+        return _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
+    }
 }

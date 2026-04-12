@@ -8,7 +8,7 @@ public class RefreshToken
     public RefreshToken(Guid userId,
         string token,
         DateTime expiresAt,
-        string userAgent)
+        string? userAgent)
     {
         UserId = userId;
         Token = token;
@@ -20,7 +20,7 @@ public class RefreshToken
     public Guid UserId { get; init; }
     public string Token { get; init; }
     public DateTime ExpiresAt { get; init; }
-    public string UserAgent { get; init; }
+    public string? UserAgent { get; init; }
 
     public User User { get; init; } = null!;
 }

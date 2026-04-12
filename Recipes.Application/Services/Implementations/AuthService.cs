@@ -27,7 +27,7 @@ public class AuthService : IAuthService
         _claimsProvider = claimsProvider;
     }
 
-    public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string userAgent)
+    public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
         var user = _mapper.Map<User>(createUserDto);
         user = await _unitOfWork.Users.CreateAsync(user);
@@ -66,12 +66,36 @@ public class AuthService : IAuthService
         return new UserAuthDto(user, accessToken, refreshToken.Token);
     }
 
-    public string UpdateToken(string token)
+    public async Task<UserAuthDto> UpdateToken(string refreshToken, string? userAgent)
     {
-        throw new NotImplementedException();
+        var storedRefreshToken = await _unitOfWork.RefreshTokens.GetAsync(refreshToken);
+        if (storedRefreshToken == null)
+        {
+            throw new ArgumentException("Invalid refresh token");
+        }
+
+        if (storedRefreshToken.ExpiresAt < DateTime.Now)
+        {
+            throw new ArgumentException("Refresh token expired");
+        }
+
+        // Удаляем старый refresh token
+        await _unitOfWork.RefreshTokens.RemoveAsync(storedRefreshToken.Id);
+
+        var user = await _unitOfWork.Users.GetByIdAsync(storedRefreshToken.UserId);
+        if (user == null)
+        {
+            throw new ArgumentException("User not found");
+        }
+
+        var (accessToken, newRefreshToken) = GetTokens(user, userAgent);
+        await _unitOfWork.RefreshTokens.CreateAsync(newRefreshToken);
+        await _unitOfWork.SaveChangesAsync();
+
+        return new UserAuthDto(user, accessToken, newRefreshToken.Token);
     }
 
-    private (string, RefreshToken) GetTokens(User user, string userAgent)
+    private (string, RefreshToken) GetTokens(User user, string? userAgent)
     {
         var claims = _claimsProvider.GetClaims(user);
         var accessToken = _jwtGenerateService.GenerateAccessToken(claims);

@@ -26,7 +26,6 @@ public static class AuthEndpoints
             IAuthService authService,
             HttpContext httpContext) =>
         {
-            // Проверка: эндпоинт доступен только для анонимных пользователей
             var anonymousCheck = CheckAnonymousAccess(httpContext);
             if (anonymousCheck != null) return anonymousCheck;
 
@@ -91,6 +90,41 @@ public static class AuthEndpoints
             catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
             {
                 return Results.BadRequest(new { error = "Invalid credentials" });
+            }
+        });
+
+        authEndpoints.MapPost("/refresh", async Task<IResult> (
+            IAuthService authService,
+            HttpContext httpContext) =>
+        {
+            var anonymousCheck = CheckAnonymousAccess(httpContext);
+            if (anonymousCheck != null) return anonymousCheck;
+
+            var refreshToken = httpContext.Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                return Results.BadRequest(new { error = "Refresh token not provided" });
+            }
+
+            var userAgent = httpContext.Request.Headers["User-Agent"];
+
+            try
+            {
+                var userAuthDto = await authService.UpdateToken(refreshToken, userAgent);
+                var userResponse = new UserResponse(userAuthDto);
+
+                httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
+
+                return Results.Ok(userResponse);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
             }
         });
     }
