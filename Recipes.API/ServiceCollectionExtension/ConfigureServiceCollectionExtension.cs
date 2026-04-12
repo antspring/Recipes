@@ -9,5 +9,8 @@ public static class ConfigureServiceCollectionExtension
     {
         services.Configure<JwtOptions>(
             configuration.GetSection("Jwt"));
+
+        services.Configure<ObjectStorageOptions>(
+            configuration.GetSection("ObjectStorage"));
     }
 }

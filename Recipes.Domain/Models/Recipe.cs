@@ -25,9 +25,11 @@ public class Recipe
     public User Creator { get; init; } = null!;
 
     public DateTime CreatedAt { get; init; }
-    public DateTime UpdatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; }
 
     public List<Like>? Likes { get; init; }
     public List<Comment>? Comments { get; init; }
-    // public List<Image>? Images { get; init; }
+    public List<Image>? Images { get; init; }
+    public List<RecipeIngredient>? RecipeIngredients { get; set; }
+    public List<RecipeImage>? RecipeImages { get; set; }
 }
