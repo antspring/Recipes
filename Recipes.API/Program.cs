@@ -1,5 +1,3 @@
-using Microsoft.OpenApi;
-using Recipes.API;
 using Recipes.API.Endpoints;
 using Recipes.API.ServiceCollectionExtension;
 using Recipes.Application.Mappings;
@@ -16,6 +14,11 @@ builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<UserProfile>(); }, typeof
 
 builder.Services.AddJwtAuthentication();
 
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 52428800;
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -28,5 +31,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAuthEndpoints();
+app.MapRecipeEndpoints();
 
 app.Run();

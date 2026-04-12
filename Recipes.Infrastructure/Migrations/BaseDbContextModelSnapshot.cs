@@ -17,7 +17,7 @@ namespace Recipes.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("ProductVersion", "10.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -36,7 +36,6 @@ namespace Recipes.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("UserAgent")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
@@ -49,7 +48,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Comment", b =>
@@ -81,7 +80,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Image", b =>
@@ -93,13 +92,18 @@ namespace Recipes.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Url")
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("RecipeId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Images");
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("Images", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Ingredient", b =>
@@ -115,7 +119,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Ingredients");
+                    b.ToTable("Ingredients", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Recipe", b =>
@@ -159,7 +163,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Recipes");
+                    b.ToTable("Recipes", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.RecipesRelations.Like", b =>
@@ -177,7 +181,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.RecipesRelations.RecipeImage", b =>
@@ -195,7 +199,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.ToTable("RecipeImages");
+                    b.ToTable("RecipeImages", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.RecipesRelations.RecipeIngredient", b =>
@@ -267,7 +271,7 @@ namespace Recipes.Infrastructure.Migrations
                     b.HasIndex("UserName", "Email")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Favorite", b =>
@@ -285,7 +289,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favorites");
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Application.Auth.RefreshToken", b =>
@@ -316,6 +320,13 @@ namespace Recipes.Infrastructure.Migrations
                     b.Navigation("Commentator");
 
                     b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("Recipes.Domain.Models.Image", b =>
+                {
+                    b.HasOne("Recipes.Domain.Models.Recipe", null)
+                        .WithMany("Images")
+                        .HasForeignKey("RecipeId");
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Recipe", b =>
@@ -357,7 +368,7 @@ namespace Recipes.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Recipes.Domain.Models.Recipe", "Recipe")
-                        .WithMany()
+                        .WithMany("RecipeImages")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -376,7 +387,7 @@ namespace Recipes.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Recipes.Domain.Models.Recipe", "Recipe")
-                        .WithMany()
+                        .WithMany("RecipeIngredients")
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -409,7 +420,13 @@ namespace Recipes.Infrastructure.Migrations
                 {
                     b.Navigation("Comments");
 
+                    b.Navigation("Images");
+
                     b.Navigation("Likes");
+
+                    b.Navigation("RecipeImages");
+
+                    b.Navigation("RecipeIngredients");
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.User", b =>

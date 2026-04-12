@@ -39,6 +39,31 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 "CK_RecipeIngredients_Weight_AlternativeWeight",
                 "\"Weight\" IS NOT NULL OR \"AlternativeWeight\" IS NOT NULL"
             ));
+
+            // При удалении Recipe удалить все RecipeIngredient
+            entity.HasOne(ri => ri.Recipe)
+                .WithMany(r => r.RecipeIngredients)
+                .HasForeignKey(ri => ri.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // При удалении Ingredient не удалять RecipeIngredient (Restrict по умолчанию)
+        });
+
+        modelBuilder.Entity<RecipeImage>(entity =>
+        {
+            entity.ToTable("RecipeImages");
+
+            // При удалении Recipe удалить все RecipeImage
+            entity.HasOne(ri => ri.Recipe)
+                .WithMany(r => r.RecipeImages)
+                .HasForeignKey(ri => ri.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // При удалении RecipeImage удалить Image (поскольку Image уникальны для рецептов)
+            entity.HasOne(ri => ri.Image)
+                .WithMany()
+                .HasForeignKey(ri => ri.ImageId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<RefreshToken>(entity => { entity.HasIndex(e => e.Token).IsUnique(); });

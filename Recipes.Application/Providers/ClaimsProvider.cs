@@ -11,7 +11,8 @@ public class ClaimsProvider
         {
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.UserData, user.UserName)
+            new(ClaimTypes.UserData, user.UserName),
+            new(ClaimTypes.NameIdentifier, user.Id.ToString())
         };
 
         return claims;

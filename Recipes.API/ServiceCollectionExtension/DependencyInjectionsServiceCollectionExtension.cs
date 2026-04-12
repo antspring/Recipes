@@ -16,13 +16,23 @@ public static class DependencyInjectionsServiceCollectionExtension
     public static void AddDependencyInjections(this IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRecipeService, RecipeService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<IImageRepository, ImageRepository>();
+        services.AddScoped<IRecipeImageRepository, RecipeImageRepository>();
+        services.AddScoped<IRecipeIngredientRepository, RecipeIngredientRepository>();
+        services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ClaimsProvider>();
+
+        services.AddScoped<IImageStorageService, ImageStorageService>();
 
         services.AddSingleton<IJwtOptions>(sp =>
             sp.GetRequiredService<IOptions<JwtOptions>>().Value);
         services.AddSingleton<IJwtGenerateService, JwtGenerateService>();
+        services.AddSingleton<IObjectStorageOptions>(sp =>
+            sp.GetRequiredService<IOptions<ObjectStorageOptions>>().Value);
     }
 }

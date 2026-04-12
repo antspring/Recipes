@@ -10,15 +10,30 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(
         BaseDbContext dbContext,
         IRefreshTokenRepository refreshTokens,
-        IUserRepository users)
+        IUserRepository users,
+        IRecipeRepository recipes,
+        IImageRepository images,
+        IRecipeImageRepository recipeImages,
+        IRecipeIngredientRepository recipeIngredients,
+        IIngredientRepository ingredients)
     {
         _dbContext = dbContext;
         RefreshTokens = refreshTokens;
         Users = users;
+        Recipes = recipes;
+        Images = images;
+        RecipeImages = recipeImages;
+        RecipeIngredients = recipeIngredients;
+        Ingredients = ingredients;
     }
 
     public IRefreshTokenRepository RefreshTokens { get; }
     public IUserRepository Users { get; }
+    public IRecipeRepository Recipes { get; }
+    public IImageRepository Images { get; }
+    public IRecipeImageRepository RecipeImages { get; }
+    public IRecipeIngredientRepository RecipeIngredients { get; }
+    public IIngredientRepository Ingredients { get; }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
