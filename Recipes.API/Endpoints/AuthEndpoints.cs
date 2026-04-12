@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Responses;
 using Recipes.Application.Services.Interfaces;
+using MiniValidation;
 
 namespace Recipes.API.Endpoints;
 
@@ -26,6 +27,11 @@ public static class AuthEndpoints
             IAuthService authService,
             HttpContext httpContext) =>
         {
+            if (!MiniValidator.TryValidate(request, out var errors))
+            {
+                return Results.ValidationProblem(errors);
+            }
+
             var anonymousCheck = CheckAnonymousAccess(httpContext);
             if (anonymousCheck != null) return anonymousCheck;
 
@@ -64,6 +70,11 @@ public static class AuthEndpoints
             IAuthService authService,
             HttpContext httpContext) =>
         {
+            if (!MiniValidator.TryValidate(request, out var errors))
+            {
+                return Results.ValidationProblem(errors);
+            }
+
             var anonymousCheck = CheckAnonymousAccess(httpContext);
             if (anonymousCheck != null) return anonymousCheck;
 
