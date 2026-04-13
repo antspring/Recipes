@@ -15,7 +15,8 @@ public class UnitOfWork : IUnitOfWork
         IImageRepository images,
         IRecipeImageRepository recipeImages,
         IRecipeIngredientRepository recipeIngredients,
-        IIngredientRepository ingredients)
+        IIngredientRepository ingredients,
+        IUnwantedIngredientsRepository unwantedIngredients)
     {
         _dbContext = dbContext;
         RefreshTokens = refreshTokens;
@@ -25,6 +26,7 @@ public class UnitOfWork : IUnitOfWork
         RecipeImages = recipeImages;
         RecipeIngredients = recipeIngredients;
         Ingredients = ingredients;
+        UnwantedIngredients = unwantedIngredients;
     }
 
     public IRefreshTokenRepository RefreshTokens { get; }
@@ -34,6 +36,7 @@ public class UnitOfWork : IUnitOfWork
     public IRecipeImageRepository RecipeImages { get; }
     public IRecipeIngredientRepository RecipeIngredients { get; }
     public IIngredientRepository Ingredients { get; }
+    public IUnwantedIngredientsRepository UnwantedIngredients { get; }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

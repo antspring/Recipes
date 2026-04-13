@@ -11,6 +11,7 @@ public interface IUnitOfWork
     public IRecipeImageRepository RecipeImages { get; }
     public IRecipeIngredientRepository RecipeIngredients { get; }
     public IIngredientRepository Ingredients { get; }
+    public IUnwantedIngredientsRepository UnwantedIngredients { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
