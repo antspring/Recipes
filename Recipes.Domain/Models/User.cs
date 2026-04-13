@@ -39,4 +39,6 @@ public class User
     public List<Favorite>? Favorites { get; init; }
     public List<Comment>? Comments { get; init; }
     public List<UnwantedIngredients>? UnwantedIngredients { get; init; }
+    public List<Allergens>? Allergens { get; init; }
+    
 }

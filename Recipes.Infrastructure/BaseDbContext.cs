@@ -19,6 +19,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<RecipeImage> RecipeImages { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UnwantedIngredients> UnwantedIngredients { get; set; }
+    public DbSet<Allergens> Allergens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +77,21 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
             entity.HasOne(uui => uui.Ingredient)
                 .WithMany(i => i.UsersUnwantedIngredients)
                 .HasForeignKey(uui => uui.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Allergens>(entity =>
+        {
+            entity.ToTable("Allergens");
+
+            entity.HasOne(al => al.User)
+                .WithMany(u => u.Allergens)
+                .HasForeignKey(al => al.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(al => al.Ingredient)
+                .WithMany(i => i.UsersAllergens)
+                .HasForeignKey(al => al.IngredientId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
