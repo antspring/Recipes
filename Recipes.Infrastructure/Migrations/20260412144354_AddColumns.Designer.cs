@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Recipes.Infrastructure;
@@ -11,9 +12,11 @@ using Recipes.Infrastructure;
 namespace Recipes.Infrastructure.Migrations
 {
     [DbContext(typeof(BaseDbContext))]
-    partial class BaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260412144354_AddColumns")]
+    partial class AddColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -199,7 +202,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.ToTable("RecipeImages", (string)null);
+                    b.ToTable("RecipeImages");
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.RecipesRelations.RecipeIngredient", b =>
@@ -290,21 +293,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Favorites");
-                });
-
-            modelBuilder.Entity("Recipes.Domain.Models.UserRelations.UnwantedIngredients", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("IngredientId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserId", "IngredientId");
-
-                    b.HasIndex("IngredientId");
-
-                    b.ToTable("UnwantedIngredients", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Application.Auth.RefreshToken", b =>
@@ -431,30 +419,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Recipes.Domain.Models.UserRelations.UnwantedIngredients", b =>
-                {
-                    b.HasOne("Recipes.Domain.Models.Ingredient", "Ingredient")
-                        .WithMany("UsersUnwantedIngredients")
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Recipes.Domain.Models.User", "User")
-                        .WithMany("UnwantedIngredients")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Recipes.Domain.Models.Ingredient", b =>
-                {
-                    b.Navigation("UsersUnwantedIngredients");
-                });
-
             modelBuilder.Entity("Recipes.Domain.Models.Recipe", b =>
                 {
                     b.Navigation("Comments");
@@ -477,8 +441,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.Navigation("Likes");
 
                     b.Navigation("Recipes");
-
-                    b.Navigation("UnwantedIngredients");
                 });
 #pragma warning restore 612, 618
         }

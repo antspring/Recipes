@@ -18,6 +18,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<Image> Images { get; set; }
     public DbSet<RecipeImage> RecipeImages { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<UnwantedIngredients> UnwantedIngredients { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,26 +41,21 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 "\"Weight\" IS NOT NULL OR \"AlternativeWeight\" IS NOT NULL"
             ));
 
-            // При удалении Recipe удалить все RecipeIngredient
             entity.HasOne(ri => ri.Recipe)
                 .WithMany(r => r.RecipeIngredients)
                 .HasForeignKey(ri => ri.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            // При удалении Ingredient не удалять RecipeIngredient (Restrict по умолчанию)
         });
 
         modelBuilder.Entity<RecipeImage>(entity =>
         {
             entity.ToTable("RecipeImages");
 
-            // При удалении Recipe удалить все RecipeImage
             entity.HasOne(ri => ri.Recipe)
                 .WithMany(r => r.RecipeImages)
                 .HasForeignKey(ri => ri.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // При удалении RecipeImage удалить Image (поскольку Image уникальны для рецептов)
             entity.HasOne(ri => ri.Image)
                 .WithMany()
                 .HasForeignKey(ri => ri.ImageId)
@@ -67,5 +63,20 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         });
 
         modelBuilder.Entity<RefreshToken>(entity => { entity.HasIndex(e => e.Token).IsUnique(); });
+
+        modelBuilder.Entity<UnwantedIngredients>(entity =>
+        {
+            entity.ToTable("UnwantedIngredients");
+
+            entity.HasOne(uui => uui.User)
+                .WithMany(u => u.UnwantedIngredients)
+                .HasForeignKey(uui => uui.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(uui => uui.Ingredient)
+                .WithMany(i => i.UsersUnwantedIngredients)
+                .HasForeignKey(uui => uui.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
