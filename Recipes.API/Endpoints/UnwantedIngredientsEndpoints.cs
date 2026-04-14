@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests;
 using Recipes.Application.Services.Interfaces;
+using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.API.Endpoints;
 
@@ -12,19 +13,19 @@ public static class UnwantedIngredientsEndpoints
         var endpoints = app.MapGroup("/api/unwanted-ingredients").RequireAuthorization();
 
         endpoints.MapGet("/", async Task<IResult> (
-            IUnwantedIngredientsService unwantedIngredientsService,
+            IUserIngredientRelationService<UnwantedIngredients> service,
             ClaimsPrincipal user
         ) =>
         {
             var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
             Guid.TryParse(userIdClaim, out var userId);
             return
-                Results.Ok(await unwantedIngredientsService.GetUnwantedIngredientsAsync(userId));
+                Results.Ok(await service.GetUserIngredientRelationAsync(userId));
         });
 
         endpoints.MapPost("/", async Task<IResult> (
             [FromBody] UnwantedIngredientRequest request,
-            IUnwantedIngredientsService unwantedIngredientsService,
+            IUserIngredientRelationService<UnwantedIngredients> service,
             ClaimsPrincipal user
         ) =>
         {
@@ -33,11 +34,11 @@ public static class UnwantedIngredientsEndpoints
 
             try
             {
-                await unwantedIngredientsService.SetUnwantedIngredientsAsync(userId, request.IngredientIds);
+                await service.SetUserIngredientRelationAsync(userId, request.IngredientIds);
             }
             catch (KeyNotFoundException e)
             {
-                return Results.BadRequest(e.Message);
+                return Results.NotFound(new { Error = e.Message });
             }
 
             return Results.Ok();
@@ -45,7 +46,7 @@ public static class UnwantedIngredientsEndpoints
 
         endpoints.MapPut("/", async Task<IResult> (
             [FromBody] UnwantedIngredientRequest request,
-            IUnwantedIngredientsService unwantedIngredientsService,
+            IUserIngredientRelationService<UnwantedIngredients> service,
             ClaimsPrincipal user) =>
         {
             var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -53,11 +54,11 @@ public static class UnwantedIngredientsEndpoints
 
             try
             {
-                await unwantedIngredientsService.AddUnwantedIngredientsAsync(userId, request.IngredientIds);
+                await service.AddUserIngredientRelationAsync(userId, request.IngredientIds);
             }
             catch (KeyNotFoundException e)
             {
-                return Results.NotFound(e.Message);
+                return Results.NotFound(new { Error = e.Message });
             }
 
             return Results.Ok();
@@ -65,7 +66,7 @@ public static class UnwantedIngredientsEndpoints
 
         endpoints.MapDelete("/", async Task<IResult> (
             [FromBody] UnwantedIngredientRequest request,
-            IUnwantedIngredientsService unwantedIngredientsService,
+            IUserIngredientRelationService<UnwantedIngredients> service,
             ClaimsPrincipal user) =>
         {
             var userIdClaim = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -73,11 +74,11 @@ public static class UnwantedIngredientsEndpoints
 
             try
             {
-                await unwantedIngredientsService.RemoveUnwantedIngredientsAsync(userId, request.IngredientIds);
+                await service.RemoveUserIngredientRelationAsync(userId, request.IngredientIds);
             }
             catch (KeyNotFoundException e)
             {
-                return Results.NotFound(e.Message);
+                return Results.NotFound(new { Error = e.Message });
             }
 
             return Results.Ok();

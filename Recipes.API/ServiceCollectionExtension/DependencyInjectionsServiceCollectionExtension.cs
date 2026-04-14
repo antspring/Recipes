@@ -6,6 +6,7 @@ using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Implementations;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
+using Recipes.Domain.Models.UserRelations;
 using Recipes.Infrastructure.Repositories.Implementations;
 using Recipes.Infrastructure.UnitOfWork.Implementations;
 
@@ -26,8 +27,12 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ClaimsProvider>();
-        services.AddScoped<IUnwantedIngredientsRepository, UnwantedIngredientsRepository>();
-        services.AddScoped<IUnwantedIngredientsService, UnwantedIngredientsService>();
+        services
+            .AddScoped<IUserIngredientRelationService<UnwantedIngredients>,
+                UserIngredientRelationService<UnwantedIngredients>>();
+        services
+            .AddScoped<IUserIngredientRelationService<Allergens>,
+                UserIngredientRelationService<Allergens>>();
 
         services.AddScoped<IImageStorageService, ImageStorageService>();
 
