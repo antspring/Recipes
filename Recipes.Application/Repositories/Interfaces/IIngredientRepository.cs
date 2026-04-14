@@ -9,4 +9,5 @@ public interface IIngredientRepository
     Task AddAsync(Ingredient ingredient);
     Task UpdateAsync(Ingredient ingredient);
     Task DeleteAsync(Ingredient ingredient);
+    Task<List<Guid>> GetExistingIdsAsync(IEnumerable<Guid> ids);
 }
