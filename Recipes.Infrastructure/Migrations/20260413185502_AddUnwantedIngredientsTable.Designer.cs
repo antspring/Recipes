@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Recipes.Infrastructure;
@@ -11,9 +12,11 @@ using Recipes.Infrastructure;
 namespace Recipes.Infrastructure.Migrations
 {
     [DbContext(typeof(BaseDbContext))]
-    partial class BaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260413185502_AddUnwantedIngredientsTable")]
+    partial class AddUnwantedIngredientsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -274,21 +277,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Allergens", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("IngredientId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserId", "IngredientId");
-
-                    b.HasIndex("IngredientId");
-
-                    b.ToTable("Allergens", (string)null);
-                });
-
             modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Favorite", b =>
                 {
                     b.Property<Guid>("RecipeId")
@@ -427,25 +415,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.Navigation("Recipe");
                 });
 
-            modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Allergens", b =>
-                {
-                    b.HasOne("Recipes.Domain.Models.Ingredient", "Ingredient")
-                        .WithMany("UsersAllergens")
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Recipes.Domain.Models.User", "User")
-                        .WithMany("Allergens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Favorite", b =>
                 {
                     b.HasOne("Recipes.Domain.Models.Recipe", "Recipe")
@@ -486,8 +455,6 @@ namespace Recipes.Infrastructure.Migrations
 
             modelBuilder.Entity("Recipes.Domain.Models.Ingredient", b =>
                 {
-                    b.Navigation("UsersAllergens");
-
                     b.Navigation("UsersUnwantedIngredients");
                 });
 
@@ -506,8 +473,6 @@ namespace Recipes.Infrastructure.Migrations
 
             modelBuilder.Entity("Recipes.Domain.Models.User", b =>
                 {
-                    b.Navigation("Allergens");
-
                     b.Navigation("Comments");
 
                     b.Navigation("Favorites");

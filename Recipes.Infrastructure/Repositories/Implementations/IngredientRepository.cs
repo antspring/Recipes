@@ -30,4 +30,11 @@ public class IngredientRepository(BaseDbContext context) : IIngredientRepository
     {
         context.Ingredients.Remove(ingredient);
     }
+
+    public async Task<List<Guid>> GetExistingIdsAsync(IEnumerable<Guid> ids)
+    {
+        return await context.Ingredients
+            .Where(i => ids.Contains(i.Id))
+            .Select(i => i.Id).ToListAsync();
+    }
 }

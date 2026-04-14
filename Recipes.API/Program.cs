@@ -10,7 +10,11 @@ builder.Services.AddSwagger();
 
 builder.Services.AddConfigure(builder.Configuration);
 builder.Services.AddDependencyInjections();
-builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<UserProfile>(); }, typeof(Program).Assembly);
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<IngredientProfile>();
+}, typeof(Program).Assembly);
 
 builder.Services.AddJwtAuthentication();
 
@@ -32,5 +36,7 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 app.MapRecipeEndpoints();
+app.MapUnwantedIngredientsEndpoints();
+app.MapAllergenEndpoints();
 
 app.Run();
