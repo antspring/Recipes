@@ -32,7 +32,7 @@ public class User
     public string Password { get; set; } = null!;
 
     public DateTime CreatedAt { get; init; } = DateTime.Now.ToUniversalTime();
-    public DateTime UpdatedAt { get; private set; } = DateTime.Now.ToUniversalTime();
+    public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 
     public List<Recipe>? Recipes { get; init; }
     public List<Like>? Likes { get; init; }

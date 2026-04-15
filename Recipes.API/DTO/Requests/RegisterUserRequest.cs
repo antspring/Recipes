@@ -20,6 +20,9 @@ public class RegisterUserRequest
     [StringLength(500, ErrorMessage = "Description must not exceed 500 characters")]
     public string? Description { get; set; }
 
+    [AvatarFile(ErrorMessage = "Invalid avatar file")]
+    public IFormFile? Avatar { get; set; }
+
     [Required(ErrorMessage = "Password is required")]
     [MinLength(6, ErrorMessage = "Password must be at least 6 characters long")]
     public string Password { get; set; } = null!;
@@ -30,14 +33,21 @@ public class RegisterUserRequest
 
     public CreateUserDto ToCreateUserDto()
     {
-
         return new CreateUserDto
         {
             UserName = UserName,
             Email = Email,
             Name = Name,
             Description = Description,
+            Avatar = Avatar != null ? ReadAllBytes(Avatar) : null,
             Password = Password
         };
+    }
+
+    private static byte[] ReadAllBytes(IFormFile formFile)
+    {
+        using var memoryStream = new MemoryStream();
+        formFile.CopyTo(memoryStream);
+        return memoryStream.ToArray();
     }
 }
