@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Domain.Models;
+using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
@@ -65,5 +66,37 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
     public async Task<bool> ExistsAsync(Guid id)
     {
         return await context.Recipes.AnyAsync(r => r.Id == id);
+    }
+
+    public async Task<Like?> GetLikeAsync(Guid recipeId, Guid userId)
+    {
+        return await context.Likes
+            .FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);
+    }
+
+    public async Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked)
+    {
+        var existingLike = recipe.Likes?.FirstOrDefault(l => l.UserId == userId);
+
+        if (isLiked)
+        {
+            if (existingLike == null)
+            {
+                var like = new Like
+                {
+                    RecipeId = recipe.Id,
+                    UserId = userId,
+                    CreatedAt = DateTime.Now.ToUniversalTime()
+                };
+                await context.Likes.AddAsync(like);
+            }
+        }
+        else
+        {
+            if (existingLike != null)
+            {
+                context.Likes.Remove(existingLike);
+            }
+        }
     }
 }
