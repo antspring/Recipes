@@ -12,6 +12,7 @@ public interface IUnitOfWork
     public IRecipeImageRepository RecipeImages { get; }
     public IRecipeIngredientRepository RecipeIngredients { get; }
     public IIngredientRepository Ingredients { get; }
+    public ICommentRepository Comments { get; }
 
     IUserIngredientRelationRepository<T> GetUserIngredientRelationRepository<T>()
         where T : class, IUserIngredientRelation;

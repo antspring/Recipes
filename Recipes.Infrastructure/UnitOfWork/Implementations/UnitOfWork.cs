@@ -18,7 +18,8 @@ public class UnitOfWork : IUnitOfWork
         IImageRepository images,
         IRecipeImageRepository recipeImages,
         IRecipeIngredientRepository recipeIngredients,
-        IIngredientRepository ingredients)
+        IIngredientRepository ingredients,
+        ICommentRepository comments)
     {
         _dbContext = dbContext;
         RefreshTokens = refreshTokens;
@@ -28,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
         RecipeImages = recipeImages;
         RecipeIngredients = recipeIngredients;
         Ingredients = ingredients;
+        Comments = comments;
     }
 
     public IRefreshTokenRepository RefreshTokens { get; }
@@ -37,6 +39,7 @@ public class UnitOfWork : IUnitOfWork
     public IRecipeImageRepository RecipeImages { get; }
     public IRecipeIngredientRepository RecipeIngredients { get; }
     public IIngredientRepository Ingredients { get; }
+    public ICommentRepository Comments { get; }
 
     public IUserIngredientRelationRepository<T> GetUserIngredientRelationRepository<T>()
         where T : class, IUserIngredientRelation
