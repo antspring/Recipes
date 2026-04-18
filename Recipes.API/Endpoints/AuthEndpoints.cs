@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Recipes.API.DTO.Requests;
@@ -9,149 +10,131 @@ namespace Recipes.API.Endpoints;
 
 public static class AuthEndpoints
 {
-    private static IResult? CheckAnonymousAccess(HttpContext httpContext)
-    {
-        if (httpContext.User.Identity?.IsAuthenticated == true)
-        {
-            return Results.BadRequest(new { error = "User is already authenticated" });
-        }
-        return null;
-    }
-
     public static void MapAuthEndpoints(this WebApplication app)
     {
         var authEndpoints = app.MapGroup("/auth");
 
         authEndpoints.MapPost("/register", async Task<IResult> (
-            [FromForm] RegisterUserRequest request,
-            IAuthService authService,
-            HttpContext httpContext) =>
-        {
-            if (!MiniValidator.TryValidate(request, out var errors))
+                [FromForm] RegisterUserRequest request,
+                IAuthService authService,
+                HttpContext httpContext) =>
             {
-                return Results.ValidationProblem(errors);
-            }
-
-            var anonymousCheck = CheckAnonymousAccess(httpContext);
-            if (anonymousCheck != null) return anonymousCheck;
-
-            var userAgent = httpContext.Request.Headers["User-Agent"];
-
-            try
-            {
-                var userAuthDto = await authService.Register(request.ToCreateUserDto(), userAgent);
-                var userResponse = new UserResponse(userAuthDto);
-
-                httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                if (!MiniValidator.TryValidate(request, out var errors))
                 {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
+                    return Results.ValidationProblem(errors);
+                }
 
-                return Results.Ok(userResponse);
-            }
-            catch (ArgumentException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
-            {
-                return Results.BadRequest(
-                    new
+                var userAgent = httpContext.Request.Headers["User-Agent"];
+
+                try
+                {
+                    var userAuthDto = await authService.Register(request.ToCreateUserDto(), userAgent);
+                    var userResponse = new UserResponse(userAuthDto);
+
+                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
                     {
-                        error = "User with this email or username already exists"
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Secure = true
                     });
-            }
-        })
-        .DisableAntiforgery();
+
+                    return Results.Ok(userResponse);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
+                {
+                    return Results.BadRequest(
+                        new
+                        {
+                            error = "User with this email or username already exists"
+                        });
+                }
+            })
+            .DisableAntiforgery()
+            .AllowAnonymous();
 
         authEndpoints.MapPost("/login", async Task<IResult> (
-            [FromBody] LoginUserRequest request,
-            IAuthService authService,
-            HttpContext httpContext) =>
-        {
-            if (!MiniValidator.TryValidate(request, out var errors))
+                [FromBody] LoginUserRequest request,
+                IAuthService authService,
+                HttpContext httpContext) =>
             {
-                return Results.ValidationProblem(errors);
-            }
-
-            var anonymousCheck = CheckAnonymousAccess(httpContext);
-            if (anonymousCheck != null) return anonymousCheck;
-
-            try
-            {
-                var userAgent = httpContext.Request.Headers["User-Agent"];
-                
-                var userAuthDto = await authService.Login(request.ToLoginUserDto(userAgent));
-                var userResponse = new UserResponse(userAuthDto);
-
-                httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                if (!MiniValidator.TryValidate(request, out var errors))
                 {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
+                    return Results.ValidationProblem(errors);
+                }
 
-                return Results.Ok(userResponse);
-            }
-            catch (ArgumentException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
-            catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
-            {
-                return Results.BadRequest(new { error = "Invalid credentials" });
-            }
-        });
+                try
+                {
+                    var userAgent = httpContext.Request.Headers["User-Agent"];
+
+                    var userAuthDto = await authService.Login(request.ToLoginUserDto(userAgent));
+                    var userResponse = new UserResponse(userAuthDto);
+
+                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Secure = true
+                    });
+
+                    return Results.Ok(userResponse);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
+                {
+                    return Results.BadRequest(new { error = "Invalid credentials" });
+                }
+            })
+            .AllowAnonymous();
 
         authEndpoints.MapPost("/refresh", async Task<IResult> (
-            IAuthService authService,
-            HttpContext httpContext) =>
-        {
-            var anonymousCheck = CheckAnonymousAccess(httpContext);
-            if (anonymousCheck != null) return anonymousCheck;
-
-            var refreshToken = httpContext.Request.Cookies["refreshToken"];
-            if (string.IsNullOrEmpty(refreshToken))
+                IAuthService authService,
+                HttpContext httpContext) =>
             {
-                return Results.BadRequest(new { error = "Refresh token not provided" });
-            }
-
-            var userAgent = httpContext.Request.Headers["User-Agent"];
-
-            try
-            {
-                var userAuthDto = await authService.UpdateToken(refreshToken, userAgent);
-                var userResponse = new UserResponse(userAuthDto);
-
-                httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                var refreshToken = httpContext.Request.Cookies["refreshToken"];
+                if (string.IsNullOrEmpty(refreshToken))
                 {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
+                    return Results.BadRequest(new { error = "Refresh token not provided" });
+                }
 
-                return Results.Ok(userResponse);
-            }
-            catch (ArgumentException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
-        });
+                var userAgent = httpContext.Request.Headers["User-Agent"];
+
+                try
+                {
+                    var userAuthDto = await authService.UpdateToken(refreshToken, userAgent);
+                    var userResponse = new UserResponse(userAuthDto);
+
+                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Secure = true
+                    });
+
+                    return Results.Ok(userResponse);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+            })
+            .AllowAnonymous();
 
         authEndpoints.MapPatch("/profile", async Task<IResult> (
                 [FromForm] UpdateUserRequest request,
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                var anonymousCheck = CheckAnonymousAccess(httpContext);
-                if (anonymousCheck != null) return anonymousCheck;
-
-                var userId = httpContext.User.FindFirst("userId")?.Value;
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
                 {
-                    return Results.BadRequest(new { error = "User ID not found" });
+                    return Results.Unauthorized();
                 }
 
                 var userAgent = httpContext.Request.Headers["User-Agent"];
@@ -176,32 +159,31 @@ public static class AuthEndpoints
                     return Results.BadRequest(new { error = ex.Message });
                 }
             })
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .RequireAuthorization();
 
         authEndpoints.MapDelete("/avatar", async Task<IResult> (
-            IAuthService authService,
-            HttpContext httpContext) =>
-        {
-            var anonymousCheck = CheckAnonymousAccess(httpContext);
-            if (anonymousCheck != null) return anonymousCheck;
-
-            var userId = httpContext.User.FindFirst("userId")?.Value;
-            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+                IAuthService authService,
+                HttpContext httpContext) =>
             {
-                return Results.BadRequest(new { error = "User ID not found" });
-            }
+                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+                {
+                    return Results.Unauthorized();
+                }
 
-            try
-            {
-                var userAuthDto = await authService.DeleteAvatarAsync(userIdGuid);
-                var userResponse = new UserResponse(userAuthDto);
+                try
+                {
+                    var userAuthDto = await authService.DeleteAvatarAsync(userIdGuid);
+                    var userResponse = new UserResponse(userAuthDto);
 
-                return Results.Ok(userResponse);
-            }
-            catch (ArgumentException ex)
-            {
-                return Results.BadRequest(new { error = ex.Message });
-            }
-        });
+                    return Results.Ok(userResponse);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+            })
+            .RequireAuthorization();
     }
 }
