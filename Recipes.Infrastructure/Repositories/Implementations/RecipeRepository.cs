@@ -83,14 +83,14 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
                     UserId = userId,
                     CreatedAt = DateTime.Now.ToUniversalTime()
                 };
-                await context.Likes.AddAsync(like);
+                recipe.Likes?.Add(like);
             }
         }
         else
         {
             if (existingLike != null)
             {
-                context.Likes.Remove(existingLike);
+                recipe.Likes?.Remove(existingLike);
             }
         }
     }
