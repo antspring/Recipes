@@ -222,4 +222,15 @@ public class RecipeService(
 
         await unitOfWork.SaveChangesAsync();
     }
+
+    public async Task ToggleFavoriteAsync(Guid recipeId, Guid userId, bool isFavorite)
+    {
+        var recipe = await unitOfWork.Recipes.GetByIdAsync(recipeId);
+        if (recipe == null)
+            throw new ArgumentException("Recipe not found");
+
+        await unitOfWork.Recipes.ToggleFavoriteAsync(recipe, userId, isFavorite);
+
+        await unitOfWork.SaveChangesAsync();
+    }
 }

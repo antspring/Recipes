@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
+using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
@@ -12,9 +13,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return await context.Recipes
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient)
+            .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
-                .ThenInclude(ri => ri.Image)
+            .ThenInclude(ri => ri.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -25,9 +26,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return await context.Recipes
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient)
+            .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
-                .ThenInclude(ri => ri.Image)
+            .ThenInclude(ri => ri.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .ToListAsync();
@@ -39,9 +40,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .Where(r => r.CreatorId == creatorId)
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient)
+            .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
-                .ThenInclude(ri => ri.Image)
+            .ThenInclude(ri => ri.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .ToListAsync();
@@ -68,12 +69,6 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return await context.Recipes.AnyAsync(r => r.Id == id);
     }
 
-    public async Task<Like?> GetLikeAsync(Guid recipeId, Guid userId)
-    {
-        return await context.Likes
-            .FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);
-    }
-
     public async Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked)
     {
         var existingLike = recipe.Likes?.FirstOrDefault(l => l.UserId == userId);
@@ -96,6 +91,33 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             if (existingLike != null)
             {
                 context.Likes.Remove(existingLike);
+            }
+        }
+    }
+
+    public async Task ToggleFavoriteAsync(Recipe recipe, Guid userId, bool isFavorite)
+    {
+        var existingFavorite = await context.Favorites
+            .FirstOrDefaultAsync(f => f.RecipeId == recipe.Id && f.UserId == userId);
+
+        if (isFavorite)
+        {
+            if (existingFavorite == null)
+            {
+                var favorite = new Favorite
+                {
+                    RecipeId = recipe.Id,
+                    UserId = userId,
+                    CreatedAt = DateTime.Now.ToUniversalTime()
+                };
+                await context.Favorites.AddAsync(favorite);
+            }
+        }
+        else
+        {
+            if (existingFavorite != null)
+            {
+                context.Favorites.Remove(existingFavorite);
             }
         }
     }
