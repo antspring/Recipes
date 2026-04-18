@@ -23,7 +23,7 @@ public static class AuthEndpoints
         var authEndpoints = app.MapGroup("/auth");
 
         authEndpoints.MapPost("/register", async Task<IResult> (
-            [FromBody] RegisterUserRequest request,
+            [FromForm] RegisterUserRequest request,
             IAuthService authService,
             HttpContext httpContext) =>
         {
@@ -63,7 +63,8 @@ public static class AuthEndpoints
                         error = "User with this email or username already exists"
                     });
             }
-        });
+        })
+        .DisableAntiforgery();
 
         authEndpoints.MapPost("/login", async Task<IResult> (
             [FromBody] LoginUserRequest request,
@@ -130,6 +131,70 @@ public static class AuthEndpoints
                     SameSite = SameSiteMode.None,
                     Secure = true
                 });
+
+                return Results.Ok(userResponse);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.BadRequest(new { error = ex.Message });
+            }
+        });
+
+        authEndpoints.MapPatch("/profile", async Task<IResult> (
+                [FromForm] UpdateUserRequest request,
+                IAuthService authService,
+                HttpContext httpContext) =>
+            {
+                var anonymousCheck = CheckAnonymousAccess(httpContext);
+                if (anonymousCheck != null) return anonymousCheck;
+
+                var userId = httpContext.User.FindFirst("userId")?.Value;
+                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+                {
+                    return Results.BadRequest(new { error = "User ID not found" });
+                }
+
+                var userAgent = httpContext.Request.Headers["User-Agent"];
+
+                try
+                {
+                    var updateUserDto = request.ToUpdateUserDto();
+                    var userAuthDto = await authService.UpdateUserAsync(userIdGuid, updateUserDto, userAgent);
+                    var userResponse = new UserResponse(userAuthDto);
+
+                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Secure = true
+                    });
+
+                    return Results.Ok(userResponse);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { error = ex.Message });
+                }
+            })
+            .DisableAntiforgery();
+
+        authEndpoints.MapDelete("/avatar", async Task<IResult> (
+            IAuthService authService,
+            HttpContext httpContext) =>
+        {
+            var anonymousCheck = CheckAnonymousAccess(httpContext);
+            if (anonymousCheck != null) return anonymousCheck;
+
+            var userId = httpContext.User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+            {
+                return Results.BadRequest(new { error = "User ID not found" });
+            }
+
+            try
+            {
+                var userAuthDto = await authService.DeleteAvatarAsync(userIdGuid);
+                var userResponse = new UserResponse(userAuthDto);
 
                 return Results.Ok(userResponse);
             }
