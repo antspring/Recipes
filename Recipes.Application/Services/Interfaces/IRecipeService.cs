@@ -10,4 +10,5 @@ public interface IRecipeService
     Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId);
     Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto);
     Task DeleteRecipeAsync(Guid id);
+    Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked);
 }

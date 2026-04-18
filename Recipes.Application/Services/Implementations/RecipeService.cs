@@ -127,44 +127,29 @@ public class RecipeService(
         recipe.Fats = updateRecipeDto.Fats;
         recipe.Carbohydrates = updateRecipeDto.Carbohydrates;
 
-        await unitOfWork.RecipeIngredients.DeleteByRecipeIdAsync(recipe.Id);
-
-        var recipeIngredients = new List<RecipeIngredient>();
-        foreach (var ingredientDto in updateRecipeDto.Ingredients)
+        if (updateRecipeDto.Ingredients != null)
         {
-            var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
-            if (ingredient == null)
-                throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
-
-            recipeIngredients.Add(new RecipeIngredient
+            var recipeIngredients = new List<RecipeIngredient>();
+            foreach (var ingredientDto in updateRecipeDto.Ingredients)
             {
-                RecipeId = recipe.Id,
-                IngredientId = ingredientDto.IngredientId,
-                Weight = ingredientDto.Weight,
-                AlternativeWeight = ingredientDto.AlternativeWeight
-            });
+                var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
+                if (ingredient == null)
+                    throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
+
+                recipeIngredients.Add(new RecipeIngredient
+                {
+                    RecipeId = recipe.Id,
+                    IngredientId = ingredientDto.IngredientId,
+                    Weight = ingredientDto.Weight,
+                    AlternativeWeight = ingredientDto.AlternativeWeight
+                });
+            }
+            recipe.RecipeIngredients = recipeIngredients;
         }
 
-        await unitOfWork.RecipeIngredients.AddRangeAsync(recipeIngredients);
-
-        if (updateRecipeDto.ImageUploads.Count != 0)
+        if (updateRecipeDto.ImageUploads != null && updateRecipeDto.ImageUploads.Count > 0)
         {
-            var oldRecipeImages = await unitOfWork.RecipeImages.GetByRecipeIdAsync(recipe.Id);
-            foreach (var oldRecipeImage in oldRecipeImages)
-            {
-                try
-                {
-                    await imageStorageService.DeleteImageAsync(oldRecipeImage.Image.FileName);
-                    await unitOfWork.Images.DeleteAsync(oldRecipeImage.Image);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to delete old image from Object Storage: {FileName}",
-                        oldRecipeImage.Image.FileName);
-                }
-            }
-
-            var newRecipeImages = new List<RecipeImage>();
+            var recipeImages = new List<RecipeImage>();
             var order = 0;
             foreach (var imageUpload in updateRecipeDto.ImageUploads)
             {
@@ -181,20 +166,17 @@ public class RecipeService(
                 };
                 await unitOfWork.Images.AddAsync(image);
 
-                newRecipeImages.Add(new RecipeImage
+                recipeImages.Add(new RecipeImage
                 {
                     RecipeId = recipe.Id,
                     ImageId = image.Id,
                     Order = order++
                 });
             }
-
-            await unitOfWork.RecipeImages.AddRangeAsync(newRecipeImages);
-            recipe.RecipeImages = newRecipeImages;
+            recipe.RecipeImages = recipeImages;
         }
 
         await unitOfWork.Recipes.UpdateAsync(recipe);
-
         await unitOfWork.SaveChangesAsync();
 
         var updatedRecipe = await unitOfWork.Recipes.GetByIdAsync(recipe.Id);
@@ -227,6 +209,17 @@ public class RecipeService(
         }
 
         await unitOfWork.Recipes.DeleteAsync(recipe);
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked)
+    {
+        var recipe = await unitOfWork.Recipes.GetByIdAsync(recipeId);
+        if (recipe == null)
+            throw new ArgumentException("Recipe not found");
+
+        await unitOfWork.Recipes.ToggleLikeAsync(recipe, userId, isLiked);
+
         await unitOfWork.SaveChangesAsync();
     }
 }

@@ -201,5 +201,33 @@ public static class RecipeEndpoints
                 }
             })
             .RequireAuthorization();
+
+        app.MapPut("/api/recipes/{recipeId:guid}/like", async (
+            Guid recipeId,
+            [FromBody] ToggleLikeRequest request,
+            ClaimsPrincipal user,
+            IRecipeService recipeService) =>
+        {
+            try
+            {
+                var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                await recipeService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
+                return Results.NoContent();
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+        })
+        .RequireAuthorization();
     }
 }
