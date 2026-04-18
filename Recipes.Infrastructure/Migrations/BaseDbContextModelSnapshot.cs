@@ -80,7 +80,7 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.Image", b =>
