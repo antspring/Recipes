@@ -1,5 +1,6 @@
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
+using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Application.Repositories.Interfaces;
 
@@ -12,6 +13,6 @@ public interface IRecipeRepository
     Task UpdateAsync(Recipe recipe);
     Task DeleteAsync(Recipe recipe);
     Task<bool> ExistsAsync(Guid id);
-    Task<Like?> GetLikeAsync(Guid recipeId, Guid userId);
     Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked);
+    Task ToggleFavoriteAsync(Recipe recipe, Guid userId, bool isFavorite);
 }

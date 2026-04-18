@@ -229,5 +229,33 @@ public static class RecipeEndpoints
             }
         })
         .RequireAuthorization();
+        
+        app.MapPut("/api/recipes/{recipeId:guid}/favorite", async (
+                Guid recipeId,
+                [FromBody] ToggleFavoriteRequest request,
+                ClaimsPrincipal user,
+                IRecipeService recipeService) =>
+            {
+                try
+                {
+                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    await recipeService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
+                    return Results.NoContent();
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.NotFound(ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+            })
+            .RequireAuthorization();
     }
 }
