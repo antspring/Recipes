@@ -1,7 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using Recipes.API.DTO.Requests.Attributes;
 using Recipes.Application.DTO.User;
 
-namespace Recipes.API.DTO.Requests;
+namespace Recipes.API.DTO.Requests.User;
 
 public class RegisterUserRequest
 {

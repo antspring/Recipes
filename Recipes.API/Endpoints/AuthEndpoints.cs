@@ -5,6 +5,8 @@ using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Responses;
 using Recipes.Application.Services.Interfaces;
 using MiniValidation;
+using Recipes.API.DTO.Requests.User;
+using Recipes.API.DTO.Responses.User;
 
 namespace Recipes.API.Endpoints;
 

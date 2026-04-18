@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests;
+using Recipes.API.DTO.Requests.Recipe;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 
