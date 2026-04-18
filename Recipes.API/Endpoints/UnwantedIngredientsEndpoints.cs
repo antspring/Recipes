@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests;
+using Recipes.API.DTO.Requests.UserIngredient;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Domain.Models.UserRelations;
 

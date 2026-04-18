@@ -1,4 +1,4 @@
-namespace Recipes.API.DTO.Requests;
+namespace Recipes.API.DTO.Requests.UserIngredient;
 
 public class UnwantedIngredientRequest
 {

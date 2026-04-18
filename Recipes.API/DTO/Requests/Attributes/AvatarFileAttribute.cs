@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Recipes.API.DTO.Requests;
+namespace Recipes.API.DTO.Requests.Attributes;
 
 public class AvatarFileAttribute : ValidationAttribute
 {

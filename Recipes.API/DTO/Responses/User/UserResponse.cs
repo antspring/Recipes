@@ -1,4 +1,4 @@
-namespace Recipes.API.DTO.Responses;
+namespace Recipes.API.DTO.Responses.User;
 
 public class UserResponse
 {

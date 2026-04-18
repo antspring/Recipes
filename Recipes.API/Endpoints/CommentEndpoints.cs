@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests;
+using Recipes.API.DTO.Requests.Comment;
 using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.API.Endpoints;
