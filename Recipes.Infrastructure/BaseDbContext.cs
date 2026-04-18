@@ -94,5 +94,20 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 .HasForeignKey(al => al.IngredientId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<Comment>(entity =>
+        {
+            entity.ToTable("Comments");
+
+            entity.HasOne(c => c.Commentator)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.CommentatorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.Recipe)
+                .WithMany(r => r.Comments)
+                .HasForeignKey(c => c.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }
