@@ -60,18 +60,15 @@ public class RecipeImageService(
 
     private async Task DeleteRecipeImagesAsync(List<RecipeImage> recipeImagesToDelete, Recipe recipe)
     {
+        if (recipeImagesToDelete.Count == 0)
+            return;
+
+        var fileNames = recipeImagesToDelete.Select(ri => ri.Image.FileName);
+        await imageStorageService.DeleteImagesAsync(fileNames);
+
         foreach (var recipeImage in recipeImagesToDelete)
         {
-            try
-            {
-                await imageStorageService.DeleteImageAsync(recipeImage.Image.FileName);
-                await unitOfWork.Images.DeleteAsync(recipeImage.Image);
-                recipe.RecipeImages.Remove(recipeImage);
-            }
-            catch (Exception ex)
-            {
-                logger?.LogWarning(ex, "Failed to delete image: {ImageId}", recipeImage.ImageId);
-            }
+            recipe.RecipeImages.Remove(recipeImage);
         }
     }
 }

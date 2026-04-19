@@ -1,6 +1,5 @@
 using System.Text.Json;
 using AutoMapper;
-using AutoMapper.Configuration;
 using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
