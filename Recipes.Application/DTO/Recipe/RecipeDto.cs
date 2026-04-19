@@ -61,12 +61,9 @@ public class RecipeDto
 
     public void ApplyImageUrls(IImageStorageService imageStorageService)
     {
-        if (Images != null)
+        foreach (var image in Images)
         {
-            foreach (var image in Images)
-            {
-                image.Url = imageStorageService.GetImageUrl(image.FileName);
-            }
+            image.Url = imageStorageService.GetImageUrl(image.FileName);
         }
     }
 }

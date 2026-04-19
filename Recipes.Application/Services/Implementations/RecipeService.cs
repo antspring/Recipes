@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.Configuration;
 using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
@@ -10,71 +12,15 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeService(
     IUnitOfWork unitOfWork,
     IImageStorageService imageStorageService,
-    ILogger<RecipeService> logger) : IRecipeService
+    ILogger<RecipeService> logger,
+    IMapper mapper) : IRecipeService
 {
     public async Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto)
     {
-        var recipe = new Recipe
-        {
-            Id = Guid.NewGuid(),
-            Title = createRecipeDto.Title,
-            Description = createRecipeDto.Description,
-            CaloricValue = createRecipeDto.CaloricValue,
-            Proteins = createRecipeDto.Proteins,
-            Fats = createRecipeDto.Fats,
-            Carbohydrates = createRecipeDto.Carbohydrates,
-            CreatorId = createRecipeDto.CreatorId,
-            CreatedAt = DateTime.Now.ToUniversalTime(),
-            UpdatedAt = DateTime.Now.ToUniversalTime(),
-            CookingTime = createRecipeDto.CookingTime,
-            DishType = createRecipeDto.DishType,
-            MealType = createRecipeDto.MealType
-        };
+        var recipe = mapper.Map<Recipe>(createRecipeDto);
 
-        var recipeIngredients = new List<RecipeIngredient>();
-        foreach (var ingredientDto in createRecipeDto.Ingredients)
-        {
-            var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
-            if (ingredient == null)
-                throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
-
-            recipeIngredients.Add(new RecipeIngredient
-            {
-                RecipeId = recipe.Id,
-                IngredientId = ingredientDto.IngredientId,
-                Weight = ingredientDto.Weight,
-                AlternativeWeight = ingredientDto.AlternativeWeight
-            });
-        }
-
-        recipe.RecipeIngredients = recipeIngredients;
-
-        var recipeImages = new List<RecipeImage>();
-        var order = 0;
-        foreach (var imageUpload in createRecipeDto.ImageUploads)
-        {
-            var fileName = await imageStorageService.UploadImageAsync(
-                imageUpload.Stream,
-                imageUpload.FileName,
-                imageUpload.ContentType);
-
-            var image = new Image
-            {
-                Id = Guid.NewGuid(),
-                FileName = fileName,
-                CreatedAt = DateTime.Now.ToUniversalTime(),
-            };
-            await unitOfWork.Images.AddAsync(image);
-
-            recipeImages.Add(new RecipeImage
-            {
-                RecipeId = recipe.Id,
-                ImageId = image.Id,
-                Order = order++
-            });
-        }
-
-        recipe.RecipeImages = recipeImages;
+        recipe.RecipeIngredients = await SaveRecipeIngredientsAsync(createRecipeDto, recipe.Id);
+        recipe.RecipeImages = await SaveImagesAsync(createRecipeDto, recipe.Id);
 
         await unitOfWork.Recipes.AddAsync(recipe);
         await unitOfWork.SaveChangesAsync();
@@ -123,15 +69,7 @@ public class RecipeService(
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
-        recipe.Title = updateRecipeDto.Title;
-        recipe.Description = updateRecipeDto.Description;
-        recipe.CaloricValue = updateRecipeDto.CaloricValue;
-        recipe.Proteins = updateRecipeDto.Proteins;
-        recipe.Fats = updateRecipeDto.Fats;
-        recipe.Carbohydrates = updateRecipeDto.Carbohydrates;
-        recipe.CookingTime = updateRecipeDto.CookingTime;
-        recipe.DishType = updateRecipeDto.DishType;
-        recipe.MealType = updateRecipeDto.MealType;
+        mapper.Map(updateRecipeDto, recipe);
 
         if (updateRecipeDto.Ingredients != null)
         {
@@ -142,18 +80,13 @@ public class RecipeService(
                 if (ingredient == null)
                     throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
 
-                recipeIngredients.Add(new RecipeIngredient
-                {
-                    RecipeId = recipe.Id,
-                    IngredientId = ingredientDto.IngredientId,
-                    Weight = ingredientDto.Weight,
-                    AlternativeWeight = ingredientDto.AlternativeWeight
-                });
+                var recipeIngredient = mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipe.Id));
+                recipeIngredients.Add(recipeIngredient);
             }
             recipe.RecipeIngredients = recipeIngredients;
         }
 
-        if (updateRecipeDto.ImageUploads != null && updateRecipeDto.ImageUploads.Count > 0)
+        if (updateRecipeDto.ImageUploads is { Count: > 0 })
         {
             var recipeImages = new List<RecipeImage>();
             var order = 0;
@@ -238,5 +171,50 @@ public class RecipeService(
         await unitOfWork.Recipes.ToggleFavoriteAsync(recipe, userId, isFavorite);
 
         await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<List<RecipeImage>> SaveImagesAsync(CreateRecipeDto createRecipeDto, Guid recipeId)
+    {
+        var recipeImages = new List<RecipeImage>();
+        var order = 0;
+        foreach (var imageUpload in createRecipeDto.ImageUploads)
+        {
+            var fileName = await imageStorageService.UploadImageAsync(
+                imageUpload.Stream,
+                imageUpload.FileName,
+                imageUpload.ContentType);
+
+            var image = new Image
+            {
+                FileName = fileName,
+                CreatedAt = DateTime.Now.ToUniversalTime(),
+            };
+            await unitOfWork.Images.AddAsync(image);
+
+            recipeImages.Add(new RecipeImage
+            {
+                RecipeId = recipeId,
+                ImageId = image.Id,
+                Order = order++
+            });
+        }
+
+        return recipeImages;
+    }
+
+    private async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(CreateRecipeDto createRecipeDto, Guid recipeId)
+    {
+        var recipeIngredients = new List<RecipeIngredient>();
+        foreach (var ingredientDto in createRecipeDto.Ingredients)
+        {
+            var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
+            if (ingredient == null)
+                throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
+
+            var recipeIngredient = mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId));
+            recipeIngredients.Add(recipeIngredient);
+        }
+
+        return recipeIngredients;
     }
 }
