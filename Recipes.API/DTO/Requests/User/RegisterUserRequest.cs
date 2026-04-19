@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Recipes.API.DTO.Requests.Attributes;
 using Recipes.Application.DTO.User;
+using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.DTO.Requests.User;
 
@@ -40,15 +41,8 @@ public class RegisterUserRequest
             Email = Email,
             Name = Name,
             Description = Description,
-            Avatar = Avatar != null ? ReadAllBytes(Avatar) : null,
+            Avatar = Avatar != null ? new FormFileWrapper(Avatar) : null,
             Password = Password
         };
-    }
-
-    private static byte[] ReadAllBytes(IFormFile formFile)
-    {
-        using var memoryStream = new MemoryStream();
-        formFile.CopyTo(memoryStream);
-        return memoryStream.ToArray();
     }
 }

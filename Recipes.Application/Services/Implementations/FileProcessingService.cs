@@ -11,19 +11,24 @@ public class FileProcessingService : IFileProcessingService
         
         foreach (var uploadedFile in uploadedFiles)
         {
-            await using var stream = uploadedFile.OpenReadStream();
-            var memoryStream = new MemoryStream();
-            await stream.CopyToAsync(memoryStream);
-            memoryStream.Position = 0;
-
-            imageUploads.Add(new ImageUpload
-            {
-                Stream = memoryStream,
-                FileName = uploadedFile.FileName,
-                ContentType = uploadedFile.ContentType
-            });
+            imageUploads.Add(await ProcessUploadedFileAsync(uploadedFile));
         }
         
         return imageUploads;
+    }
+
+    public async Task<ImageUpload> ProcessUploadedFileAsync(IUploadedFile uploadedFile)
+    {
+        await using var stream = uploadedFile.OpenReadStream();
+        var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Position = 0;
+
+        return new ImageUpload
+        {
+            Stream = memoryStream,
+            FileName = uploadedFile.FileName,
+            ContentType = uploadedFile.ContentType
+        };
     }
 }
