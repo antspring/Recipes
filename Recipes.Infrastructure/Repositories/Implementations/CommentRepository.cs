@@ -24,7 +24,8 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
             .ToListAsync();
     }
 
-    public async Task<PagedResult<Comment>> GetByRecipeIdPagedAsync(Guid recipeId, int page, int pageSize, DateTime? from, DateTime? to)
+    public async Task<PagedResult<Comment>> GetByRecipeIdPagedAsync(Guid recipeId, int page, int pageSize,
+        DateTime? from, DateTime? to)
     {
         var query = context.Comments
             .Include(c => c.Commentator)

@@ -21,5 +21,3 @@ public class UserResponse
         RefreshToken = userAuthDto.RefreshToken;
     }
 }
-
-

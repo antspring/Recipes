@@ -46,15 +46,15 @@ public class RecipeImageService(
         var recipeImagesToDelete = recipe.RecipeImages
             .Where(ri => imageIds.Contains(ri.ImageId))
             .ToList();
-    
+
         await DeleteRecipeImagesAsync(recipeImagesToDelete, recipe);
     }
-    
+
     public async Task DeleteImagesAsync(List<RecipeImage> recipeImages, Recipe recipe)
     {
         if (recipeImages.Count == 0)
             return;
-    
+
         await DeleteRecipeImagesAsync(recipeImages, recipe);
     }
 

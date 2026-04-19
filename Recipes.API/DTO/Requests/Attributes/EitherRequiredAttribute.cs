@@ -15,12 +15,12 @@ public class EitherRequiredAttribute : ValidationAttribute
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
         var currentValue = value as string;
-        
+
         if (!string.IsNullOrWhiteSpace(currentValue))
         {
             return ValidationResult.Success;
         }
-        
+
         foreach (var propertyName in _otherProperties)
         {
             var property = validationContext.ObjectType.GetProperty(propertyName);

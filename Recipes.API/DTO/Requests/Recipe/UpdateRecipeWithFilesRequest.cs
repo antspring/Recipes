@@ -28,7 +28,8 @@ public class UpdateRecipeWithFilesRequest
     [Range(0, double.MaxValue, ErrorMessage = "Carbohydrates must be non-negative")]
     public double Carbohydrates { get; set; }
 
-    [Range(typeof(TimeSpan), "00:00:00", "23:59:59", ErrorMessage = "CookingTime must be between 00:00:00 and 23:59:59")]
+    [Range(typeof(TimeSpan), "00:00:00", "23:59:59",
+        ErrorMessage = "CookingTime must be between 00:00:00 and 23:59:59")]
     public TimeSpan? CookingTime { get; set; }
 
     [StringLength(100, ErrorMessage = "DishType must be between 0 and 100 characters")]

@@ -40,5 +40,4 @@ public class User
     public List<Comment>? Comments { get; init; }
     public List<UnwantedIngredients>? UnwantedIngredients { get; init; }
     public List<Allergens>? Allergens { get; init; }
-    
 }

@@ -8,12 +8,12 @@ public class FileProcessingService : IFileProcessingService
     public async Task<List<ImageUpload>> ProcessUploadedFilesAsync(IEnumerable<IUploadedFile> uploadedFiles)
     {
         var imageUploads = new List<ImageUpload>();
-        
+
         foreach (var uploadedFile in uploadedFiles)
         {
             imageUploads.Add(await ProcessUploadedFileAsync(uploadedFile));
         }
-        
+
         return imageUploads;
     }
 

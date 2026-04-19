@@ -15,4 +15,3 @@ public class CreateRecipeDto
     public List<RecipeIngredientInputDto> Ingredients { get; set; } = new();
     public List<ImageUpload> ImageUploads { get; set; } = new();
 }
-

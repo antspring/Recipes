@@ -8,6 +8,7 @@ public interface IImageStorageService
     Task DeleteImagesAsync(IEnumerable<string> fileNames);
     Task<bool> ImageExistsAsync(string fileName);
     string GetImageUrl(string fileName);
+
     List<string> GetImageUrls(IEnumerable<string> fileNames)
         => fileNames.Select(GetImageUrl).ToList();
 }

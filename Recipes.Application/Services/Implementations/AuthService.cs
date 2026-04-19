@@ -36,14 +36,15 @@ public class AuthService : IAuthService
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
         var user = _mapper.Map<User>(createUserDto);
-    
+
         if (createUserDto.Avatar != null)
         {
             var imageUpload = await _fileProcessingService.ProcessUploadedFileAsync(createUserDto.Avatar);
-            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName, imageUpload.ContentType);
+            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName,
+                imageUpload.ContentType);
             user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
         }
-    
+
         user = await _unitOfWork.Users.CreateAsync(user);
 
         var (accessToken, refreshToken) = GetTokens(user, userAgent);
@@ -66,7 +67,7 @@ public class AuthService : IAuthService
         {
             throw new ArgumentException("Invalid username or email");
         }
-        
+
         var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.Password);
         if (!isPasswordValid)
         {
@@ -76,7 +77,7 @@ public class AuthService : IAuthService
         var (accessToken, refreshToken) = GetTokens(user, loginUserDto.UserAgent);
         await _unitOfWork.RefreshTokens.CreateAsync(refreshToken);
         await _unitOfWork.SaveChangesAsync();
-        
+
         return new UserAuthDto(user, accessToken, refreshToken.Token);
     }
 
@@ -128,7 +129,8 @@ public class AuthService : IAuthService
         if (updateUserDto.Avatar != null)
         {
             var imageUpload = await _fileProcessingService.ProcessUploadedFileAsync(updateUserDto.Avatar);
-            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName, imageUpload.ContentType);
+            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName,
+                imageUpload.ContentType);
             user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
         }
 

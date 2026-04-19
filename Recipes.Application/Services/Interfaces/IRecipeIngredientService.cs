@@ -5,5 +5,6 @@ namespace Recipes.Application.Services.Interfaces;
 
 public interface IRecipeIngredientService
 {
-    Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto, Guid recipeId);
+    Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
+        Guid recipeId);
 }
