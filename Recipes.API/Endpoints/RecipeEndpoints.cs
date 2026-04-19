@@ -1,10 +1,11 @@
 using System.Security.Claims;
 using System.Text.Json;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Requests.Recipe;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
+using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -15,7 +16,8 @@ public static class RecipeEndpoints
         app.MapPost("/api/recipes", async (
                 [FromForm] CreateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
-                IRecipeService recipeService) =>
+                IRecipeService recipeService,
+                IMapper mapper) =>
             {
                 try
                 {
@@ -29,39 +31,15 @@ public static class RecipeEndpoints
                         JsonSerializer.Deserialize<List<CreateRecipeIngredientRequest>>(request.IngredientsJson)
                         ?? throw new InvalidOperationException("Invalid ingredients JSON");
 
-                    var createRecipeDto = new CreateRecipeDto
-                    {
-                        Title = request.Title,
-                        Description = request.Description,
-                        CaloricValue = request.CaloricValue,
-                        Proteins = request.Proteins,
-                        Fats = request.Fats,
-                        Carbohydrates = request.Carbohydrates,
-                        CreatorId = userId,
-                        Ingredients = ingredients.Select(i => new CreateRecipeIngredientDto
-                        {
-                            IngredientId = i.IngredientId,
-                            Weight = i.Weight,
-                            AlternativeWeight = i.AlternativeWeight
-                        }).ToList()
-                    };
+                    var createRecipeDto = mapper.Map<CreateRecipeDto>(request);
+                    createRecipeDto.CreatorId = userId;
+                    createRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
 
                     if (request.Images != null)
                     {
-                        foreach (var image in request.Images)
-                        {
-                            await using var stream = image.OpenReadStream();
-                            var memoryStream = new MemoryStream();
-                            await stream.CopyToAsync(memoryStream);
-                            memoryStream.Position = 0;
-
-                            createRecipeDto.ImageUploads.Add(new ImageUpload
-                            {
-                                Stream = memoryStream,
-                                FileName = image.FileName,
-                                ContentType = image.ContentType
-                            });
-                        }
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        createRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
                     var recipe = await recipeService.CreateRecipeAsync(createRecipeDto);
@@ -104,7 +82,8 @@ public static class RecipeEndpoints
                 Guid id,
                 [FromForm] UpdateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
-                IRecipeService recipeService) =>
+                IRecipeService recipeService,
+                IMapper mapper) =>
             {
                 try
                 {
@@ -125,39 +104,15 @@ public static class RecipeEndpoints
                         JsonSerializer.Deserialize<List<UpdateRecipeIngredientRequest>>(request.IngredientsJson)
                         ?? throw new InvalidOperationException("Invalid ingredients JSON");
 
-                    var updateRecipeDto = new UpdateRecipeDto
-                    {
-                        Id = id,
-                        Title = request.Title,
-                        Description = request.Description,
-                        CaloricValue = request.CaloricValue,
-                        Proteins = request.Proteins,
-                        Fats = request.Fats,
-                        Carbohydrates = request.Carbohydrates,
-                        Ingredients = ingredients.Select(i => new UpdateRecipeIngredientDto
-                        {
-                            IngredientId = i.IngredientId,
-                            Weight = i.Weight,
-                            AlternativeWeight = i.AlternativeWeight
-                        }).ToList()
-                    };
+                    var updateRecipeDto = mapper.Map<UpdateRecipeDto>(request);
+                    updateRecipeDto.Id = id;
+                    updateRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
 
                     if (request.Images != null)
                     {
-                        foreach (var image in request.Images)
-                        {
-                            await using var stream = image.OpenReadStream();
-                            var memoryStream = new MemoryStream();
-                            await stream.CopyToAsync(memoryStream);
-                            memoryStream.Position = 0;
-
-                            updateRecipeDto.ImageUploads.Add(new ImageUpload
-                            {
-                                Stream = memoryStream,
-                                FileName = image.FileName,
-                                ContentType = image.ContentType
-                            });
-                        }
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        updateRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
                     var recipe = await recipeService.UpdateRecipeAsync(updateRecipeDto);

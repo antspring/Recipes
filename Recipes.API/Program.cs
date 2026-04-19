@@ -1,4 +1,5 @@
 using Recipes.API.Endpoints;
+using Recipes.API.Mappings;
 using Recipes.API.ServiceCollectionExtension;
 using Recipes.Application.Mappings;
 
@@ -14,6 +15,10 @@ builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<UserProfile>();
     cfg.AddProfile<IngredientProfile>();
+    cfg.AddProfile<RecipeProfile>();
+    cfg.AddProfile<RecipeIngredientProfile>();
+    cfg.AddProfile<RecipeRequestProfile>();
+    cfg.AddProfile<RecipeIngredientRequestProfile>();
 }, typeof(Program).Assembly);
 
 builder.Services.AddJwtAuthentication();

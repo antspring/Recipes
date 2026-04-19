@@ -27,6 +27,10 @@ public class Recipe
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; set; }
 
+    public TimeSpan? CookingTime { get; set; }
+    public string? DishType { get; set; }
+    public string? MealType { get; set; }
+
     public List<Like>? Likes { get; init; }
     public List<Comment>? Comments { get; init; }
     public List<Image>? Images { get; init; }
