@@ -110,9 +110,9 @@ public static class RecipeEndpoints
                     updateRecipeDto.Id = id;
                     updateRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
 
-                    if (!string.IsNullOrEmpty(request.ImageIdsToDeleteJson))
+                    if (!string.IsNullOrEmpty(request.ImageIdsToDelete))
                     {
-                        var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDeleteJson);
+                        var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDelete);
                         if (imageIdsToDelete != null && imageIdsToDelete.Count > 0)
                         {
                             var existingImageIds = existingRecipe.Images.Select(i => i.Id).ToList();
@@ -125,7 +125,7 @@ public static class RecipeEndpoints
                                 throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
                             }
 
-                            updateRecipeDto.ImageIdsToDeleteJson = request.ImageIdsToDeleteJson;
+                            updateRecipeDto.ImageIdsToDelete = imageIdsToDelete;
                         }
                     }
 

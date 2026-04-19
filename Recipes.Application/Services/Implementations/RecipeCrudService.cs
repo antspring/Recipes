@@ -1,4 +1,3 @@
-using System.Text.Json;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
@@ -85,13 +84,9 @@ public class RecipeCrudService(
             recipe.RecipeImages.AddRange(newRecipeImages);
         }
     
-        if (!string.IsNullOrEmpty(updateRecipeDto.ImageIdsToDeleteJson))
+        if (updateRecipeDto.ImageIdsToDelete != null)
         {
-            var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(updateRecipeDto.ImageIdsToDeleteJson);
-            if (imageIdsToDelete != null && imageIdsToDelete.Count > 0)
-            {
-                await imageService.DeleteImagesAsync(imageIdsToDelete, recipe);
-            }
+            await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
         }
     
         await unitOfWork.Recipes.UpdateAsync(recipe);

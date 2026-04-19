@@ -43,7 +43,7 @@ public class UpdateRecipeWithFilesRequest
 
     public IFormFileCollection? Images { get; set; }
 
-    public string? ImageIdsToDeleteJson { get; set; }
+    public string? ImageIdsToDelete { get; set; }
 }
 
 public class UpdateRecipeIngredientRequest
