@@ -19,8 +19,8 @@ public class RecipeService(
     {
         var recipe = mapper.Map<Recipe>(createRecipeDto);
 
-        recipe.RecipeIngredients = await SaveRecipeIngredientsAsync(createRecipeDto, recipe.Id);
-        recipe.RecipeImages = await SaveImagesAsync(createRecipeDto, recipe.Id);
+        recipe.RecipeIngredients = await SaveRecipeIngredientsAsync(createRecipeDto.Ingredients, recipe.Id);
+        recipe.RecipeImages = await SaveImagesAsync(createRecipeDto.ImageUploads, recipe.Id);
 
         await unitOfWork.Recipes.AddAsync(recipe);
         await unitOfWork.SaveChangesAsync();
@@ -73,46 +73,12 @@ public class RecipeService(
 
         if (updateRecipeDto.Ingredients != null)
         {
-            var recipeIngredients = new List<RecipeIngredient>();
-            foreach (var ingredientDto in updateRecipeDto.Ingredients)
-            {
-                var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
-                if (ingredient == null)
-                    throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
-
-                var recipeIngredient = mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipe.Id));
-                recipeIngredients.Add(recipeIngredient);
-            }
-            recipe.RecipeIngredients = recipeIngredients;
+            recipe.RecipeIngredients = await SaveRecipeIngredientsAsync(updateRecipeDto.Ingredients, recipe.Id);
         }
 
         if (updateRecipeDto.ImageUploads is { Count: > 0 })
         {
-            var recipeImages = new List<RecipeImage>();
-            var order = 0;
-            foreach (var imageUpload in updateRecipeDto.ImageUploads)
-            {
-                var fileName = await imageStorageService.UploadImageAsync(
-                    imageUpload.Stream,
-                    imageUpload.FileName,
-                    imageUpload.ContentType);
-
-                var image = new Image
-                {
-                    Id = Guid.NewGuid(),
-                    FileName = fileName,
-                    CreatedAt = DateTime.Now.ToUniversalTime(),
-                };
-                await unitOfWork.Images.AddAsync(image);
-
-                recipeImages.Add(new RecipeImage
-                {
-                    RecipeId = recipe.Id,
-                    ImageId = image.Id,
-                    Order = order++
-                });
-            }
-            recipe.RecipeImages = recipeImages;
+            recipe.RecipeImages = await SaveImagesAsync(updateRecipeDto.ImageUploads, recipe.Id);
         }
 
         await unitOfWork.Recipes.UpdateAsync(recipe);
@@ -173,11 +139,11 @@ public class RecipeService(
         await unitOfWork.SaveChangesAsync();
     }
 
-    private async Task<List<RecipeImage>> SaveImagesAsync(CreateRecipeDto createRecipeDto, Guid recipeId)
+    private async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
     {
         var recipeImages = new List<RecipeImage>();
         var order = 0;
-        foreach (var imageUpload in createRecipeDto.ImageUploads)
+        foreach (var imageUpload in imageUploads)
         {
             var fileName = await imageStorageService.UploadImageAsync(
                 imageUpload.Stream,
@@ -202,10 +168,10 @@ public class RecipeService(
         return recipeImages;
     }
 
-    private async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(CreateRecipeDto createRecipeDto, Guid recipeId)
+    private async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto, Guid recipeId)
     {
         var recipeIngredients = new List<RecipeIngredient>();
-        foreach (var ingredientDto in createRecipeDto.Ingredients)
+        foreach (var ingredientDto in ingredientsDto)
         {
             var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
             if (ingredient == null)

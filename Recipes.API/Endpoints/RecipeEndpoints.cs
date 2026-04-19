@@ -37,7 +37,7 @@ public static class RecipeEndpoints
                         Fats = request.Fats,
                         Carbohydrates = request.Carbohydrates,
                         CreatorId = userId,
-                        Ingredients = ingredients.Select(i => new CreateRecipeIngredientDto
+                        Ingredients = ingredients.Select(i => new RecipeIngredientInputDto
                         {
                             IngredientId = i.IngredientId,
                             Weight = i.Weight,
@@ -133,7 +133,7 @@ public static class RecipeEndpoints
                         Proteins = request.Proteins,
                         Fats = request.Fats,
                         Carbohydrates = request.Carbohydrates,
-                        Ingredients = ingredients.Select(i => new UpdateRecipeIngredientDto
+                        Ingredients = ingredients.Select(i => new RecipeIngredientInputDto
                         {
                             IngredientId = i.IngredientId,
                             Weight = i.Weight,

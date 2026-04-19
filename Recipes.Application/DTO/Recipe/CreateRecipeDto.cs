@@ -12,7 +12,7 @@ public class CreateRecipeDto
     public TimeSpan? CookingTime { get; set; }
     public string? DishType { get; set; }
     public string? MealType { get; set; }
-    public List<CreateRecipeIngredientDto> Ingredients { get; set; } = new();
+    public List<RecipeIngredientInputDto> Ingredients { get; set; } = new();
     public List<ImageUpload> ImageUploads { get; set; } = new();
 }
 

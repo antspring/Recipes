@@ -8,7 +8,7 @@ public class RecipeIngredientProfile : Profile
 {
     public RecipeIngredientProfile()
     {
-        CreateMap<CreateRecipeIngredientDto, RecipeIngredient>()
+        CreateMap<RecipeIngredientInputDto, RecipeIngredient>()
             .ConstructUsing((src, context) => new RecipeIngredient
             {
                 RecipeId = (Guid)context.Items["RecipeId"],
@@ -16,11 +16,6 @@ public class RecipeIngredientProfile : Profile
                 Weight = src.Weight,
                 AlternativeWeight = src.AlternativeWeight
             })
-            .ForMember(d => d.Ingredient, opt => opt.Ignore())
-            .ForMember(d => d.Recipe, opt => opt.Ignore());
-
-        CreateMap<UpdateRecipeIngredientDto, RecipeIngredient>()
-            .ForMember(d => d.RecipeId, opt => opt.Ignore())
             .ForMember(d => d.Ingredient, opt => opt.Ignore())
             .ForMember(d => d.Recipe, opt => opt.Ignore());
     }

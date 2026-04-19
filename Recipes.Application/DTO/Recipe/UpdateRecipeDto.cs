@@ -12,6 +12,6 @@ public class UpdateRecipeDto
     public TimeSpan? CookingTime { get; set; }
     public string? DishType { get; set; }
     public string? MealType { get; set; }
-    public List<UpdateRecipeIngredientDto>? Ingredients { get; set; }
-    public List<ImageUpload>? ImageUploads { get; set; }
+    public List<RecipeIngredientInputDto>? Ingredients { get; set; }
+    public List<ImageUpload> ImageUploads { get; set; } = new();
 }
