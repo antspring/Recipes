@@ -16,7 +16,8 @@ public static class RecipeEndpoints
         app.MapPost("/api/recipes", async (
                 [FromForm] CreateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
-                IRecipeService recipeService,
+                IRecipeCrudService recipeCrudService,
+                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -38,11 +39,11 @@ public static class RecipeEndpoints
                     if (request.Images != null)
                     {
                         var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
                         createRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
-                    var recipe = await recipeService.CreateRecipeAsync(createRecipeDto);
+                    var recipe = await recipeCrudService.CreateRecipeAsync(createRecipeDto);
 
                     return Results.Created($"/api/recipes/{recipe.Id}", recipe);
                 }
@@ -56,25 +57,25 @@ public static class RecipeEndpoints
 
         app.MapGet("/api/recipes/{id:guid}", async (
             Guid id,
-            IRecipeService recipeService) =>
+            IRecipeCrudService recipeCrudService) =>
         {
-            var recipe = await recipeService.GetRecipeByIdAsync(id);
+            var recipe = await recipeCrudService.GetRecipeByIdAsync(id);
             if (recipe == null) return Results.NotFound();
 
             return Results.Ok(recipe);
         });
 
-        app.MapGet("/api/recipes", async (IRecipeService recipeService) =>
+        app.MapGet("/api/recipes", async (IRecipeCrudService recipeCrudService) =>
         {
-            var recipes = await recipeService.GetAllRecipesAsync();
+            var recipes = await recipeCrudService.GetAllRecipesAsync();
             return Results.Ok(recipes);
         });
 
         app.MapGet("/api/recipes/creator/{creatorId:guid}", async (
             Guid creatorId,
-            IRecipeService recipeService) =>
+            IRecipeCrudService recipeCrudService) =>
         {
-            var recipes = await recipeService.GetRecipesByCreatorIdAsync(creatorId);
+            var recipes = await recipeCrudService.GetRecipesByCreatorIdAsync(creatorId);
             return Results.Ok(recipes);
         });
 
@@ -82,7 +83,8 @@ public static class RecipeEndpoints
                 Guid id,
                 [FromForm] UpdateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
-                IRecipeService recipeService,
+                IRecipeCrudService recipeCrudService,
+                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -93,7 +95,7 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeService.GetRecipeByIdAsync(id);
+                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
                     if (existingRecipe == null)
                         return Results.NotFound();
 
@@ -111,11 +113,11 @@ public static class RecipeEndpoints
                     if (request.Images != null)
                     {
                         var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
                         updateRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
-                    var recipe = await recipeService.UpdateRecipeAsync(updateRecipeDto);
+                    var recipe = await recipeCrudService.UpdateRecipeAsync(updateRecipeDto);
 
                     return Results.Ok(recipe);
                 }
@@ -130,7 +132,7 @@ public static class RecipeEndpoints
         app.MapDelete("/api/recipes/{id:guid}", async (
                 Guid id,
                 ClaimsPrincipal user,
-                IRecipeService recipeService) =>
+                IRecipeCrudService recipeCrudService) =>
             {
                 try
                 {
@@ -140,14 +142,14 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeService.GetRecipeByIdAsync(id);
+                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
                     if (existingRecipe == null)
                         return Results.NotFound();
 
                     if (existingRecipe.CreatorId != userId)
                         return Results.Forbid();
 
-                    await recipeService.DeleteRecipeAsync(id);
+                    await recipeCrudService.DeleteRecipeAsync(id);
                     return Results.NoContent();
                 }
                 catch (Exception ex)
@@ -161,7 +163,7 @@ public static class RecipeEndpoints
             Guid recipeId,
             [FromBody] ToggleLikeRequest request,
             ClaimsPrincipal user,
-            IRecipeService recipeService) =>
+            IRecipeInteractionService recipeInteractionService) =>
         {
             try
             {
@@ -171,7 +173,7 @@ public static class RecipeEndpoints
                     return Results.Unauthorized();
                 }
 
-                await recipeService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
+                await recipeInteractionService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
                 return Results.NoContent();
             }
             catch (ArgumentException ex)
@@ -189,7 +191,7 @@ public static class RecipeEndpoints
                 Guid recipeId,
                 [FromBody] ToggleFavoriteRequest request,
                 ClaimsPrincipal user,
-                IRecipeService recipeService) =>
+                IRecipeInteractionService recipeInteractionService) =>
             {
                 try
                 {
@@ -199,7 +201,7 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    await recipeService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
+                    await recipeInteractionService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
                     return Results.NoContent();
                 }
                 catch (ArgumentException ex)
