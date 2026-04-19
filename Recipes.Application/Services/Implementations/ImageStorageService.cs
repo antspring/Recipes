@@ -100,6 +100,14 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         }
     }
 
+    public async Task DeleteImagesAsync(IEnumerable<string> fileNames)
+    {
+        foreach (var fileName in fileNames)
+        {
+            await DeleteImageAsync(fileName);
+        }
+    }
+
     public async Task<bool> ImageExistsAsync(string fileName)
     {
         try

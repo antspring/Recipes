@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
@@ -8,7 +9,8 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeImageService(
     IUnitOfWork unitOfWork,
-    IImageStorageService imageStorageService) : IRecipeImageService
+    IImageStorageService imageStorageService,
+    ILogger<RecipeImageService> logger) : IRecipeImageService
 {
     public async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
     {
@@ -37,5 +39,36 @@ public class RecipeImageService(
         }
 
         return recipeImages;
+    }
+
+    public async Task DeleteImagesAsync(List<Guid> imageIds, Recipe recipe)
+    {
+        var recipeImagesToDelete = recipe.RecipeImages
+            .Where(ri => imageIds.Contains(ri.ImageId))
+            .ToList();
+    
+        await DeleteRecipeImagesAsync(recipeImagesToDelete, recipe);
+    }
+    
+    public async Task DeleteImagesAsync(List<RecipeImage> recipeImages, Recipe recipe)
+    {
+        if (recipeImages.Count == 0)
+            return;
+    
+        await DeleteRecipeImagesAsync(recipeImages, recipe);
+    }
+
+    private async Task DeleteRecipeImagesAsync(List<RecipeImage> recipeImagesToDelete, Recipe recipe)
+    {
+        if (recipeImagesToDelete.Count == 0)
+            return;
+
+        var fileNames = recipeImagesToDelete.Select(ri => ri.Image.FileName);
+        await imageStorageService.DeleteImagesAsync(fileNames);
+
+        foreach (var recipeImage in recipeImagesToDelete)
+        {
+            recipe.RecipeImages.Remove(recipeImage);
+        }
     }
 }

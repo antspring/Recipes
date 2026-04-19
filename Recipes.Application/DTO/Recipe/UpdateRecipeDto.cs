@@ -14,4 +14,5 @@ public class UpdateRecipeDto
     public string? MealType { get; set; }
     public List<RecipeIngredientInputDto>? Ingredients { get; set; }
     public List<ImageUpload> ImageUploads { get; set; } = new();
+    public List<Guid>? ImageIdsToDelete { get; set; }
 }

@@ -42,6 +42,8 @@ public class UpdateRecipeWithFilesRequest
     public string IngredientsJson { get; set; } = null!; // JSON string of UpdateRecipeIngredientRequest[]
 
     public IFormFileCollection? Images { get; set; }
+
+    public string? ImageIdsToDelete { get; set; }
 }
 
 public class UpdateRecipeIngredientRequest
