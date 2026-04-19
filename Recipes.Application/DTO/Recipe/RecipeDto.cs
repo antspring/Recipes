@@ -15,6 +15,9 @@ public class RecipeDto
     public string CreatorName { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public TimeSpan? CookingTime { get; set; }
+    public string? DishType { get; set; }
+    public string? MealType { get; set; }
     public List<RecipeIngredientDto> Ingredients { get; set; } = new();
     public List<ImageDto> Images { get; set; } = new();
     public int LikesCount { get; set; }
@@ -35,6 +38,9 @@ public class RecipeDto
             CreatorName = recipe.Creator.Name,
             CreatedAt = recipe.CreatedAt,
             UpdatedAt = recipe.UpdatedAt,
+            CookingTime = recipe.CookingTime,
+            DishType = recipe.DishType,
+            MealType = recipe.MealType,
             Ingredients = recipe.RecipeIngredients?.Select(ri => new RecipeIngredientDto
             {
                 IngredientId = ri.IngredientId,

@@ -28,6 +28,15 @@ public class UpdateRecipeWithFilesRequest
     [Range(0, double.MaxValue, ErrorMessage = "Carbohydrates must be non-negative")]
     public double Carbohydrates { get; set; }
 
+    [Range(typeof(TimeSpan), "00:00:00", "23:59:59", ErrorMessage = "CookingTime must be between 00:00:00 and 23:59:59")]
+    public TimeSpan? CookingTime { get; set; }
+
+    [StringLength(100, ErrorMessage = "DishType must be between 0 and 100 characters")]
+    public string? DishType { get; set; }
+
+    [StringLength(100, ErrorMessage = "MealType must be between 0 and 100 characters")]
+    public string? MealType { get; set; }
+
     [Required(ErrorMessage = "Ingredients are required")]
     [MinLength(1, ErrorMessage = "At least one ingredient is required")]
     public string IngredientsJson { get; set; } = null!; // JSON string of UpdateRecipeIngredientRequest[]

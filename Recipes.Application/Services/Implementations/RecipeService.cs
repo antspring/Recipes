@@ -25,7 +25,10 @@ public class RecipeService(
             Carbohydrates = createRecipeDto.Carbohydrates,
             CreatorId = createRecipeDto.CreatorId,
             CreatedAt = DateTime.Now.ToUniversalTime(),
-            UpdatedAt = DateTime.Now.ToUniversalTime()
+            UpdatedAt = DateTime.Now.ToUniversalTime(),
+            CookingTime = createRecipeDto.CookingTime,
+            DishType = createRecipeDto.DishType,
+            MealType = createRecipeDto.MealType
         };
 
         var recipeIngredients = new List<RecipeIngredient>();
@@ -126,6 +129,9 @@ public class RecipeService(
         recipe.Proteins = updateRecipeDto.Proteins;
         recipe.Fats = updateRecipeDto.Fats;
         recipe.Carbohydrates = updateRecipeDto.Carbohydrates;
+        recipe.CookingTime = updateRecipeDto.CookingTime;
+        recipe.DishType = updateRecipeDto.DishType;
+        recipe.MealType = updateRecipeDto.MealType;
 
         if (updateRecipeDto.Ingredients != null)
         {

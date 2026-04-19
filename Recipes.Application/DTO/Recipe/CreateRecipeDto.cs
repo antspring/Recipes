@@ -9,6 +9,9 @@ public class CreateRecipeDto
     public double Fats { get; set; }
     public double Carbohydrates { get; set; }
     public Guid CreatorId { get; set; }
+    public TimeSpan? CookingTime { get; set; }
+    public string? DishType { get; set; }
+    public string? MealType { get; set; }
     public List<CreateRecipeIngredientDto> Ingredients { get; set; } = new();
     public List<ImageUpload> ImageUploads { get; set; } = new();
 }
