@@ -2,7 +2,7 @@ using Recipes.Application.DTO.Recipe;
 
 namespace Recipes.Application.Services.Interfaces;
 
-public interface IRecipeService
+public interface IRecipeCrudService
 {
     Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto);
     Task<RecipeDto?> GetRecipeByIdAsync(Guid id);
@@ -10,7 +10,4 @@ public interface IRecipeService
     Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId);
     Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto);
     Task DeleteRecipeAsync(Guid id);
-    Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked);
-    Task ToggleFavoriteAsync(Guid recipeId, Guid userId, bool isFavorite);
-    Task<List<ImageUpload>> ProcessUploadedFilesAsync(IEnumerable<IUploadedFile> uploadedFiles);
 }
