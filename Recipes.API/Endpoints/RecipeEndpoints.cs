@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests.Recipe;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
+using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -36,20 +37,9 @@ public static class RecipeEndpoints
 
                     if (request.Images != null)
                     {
-                        foreach (var image in request.Images)
-                        {
-                            await using var stream = image.OpenReadStream();
-                            var memoryStream = new MemoryStream();
-                            await stream.CopyToAsync(memoryStream);
-                            memoryStream.Position = 0;
-
-                            createRecipeDto.ImageUploads.Add(new ImageUpload
-                            {
-                                Stream = memoryStream,
-                                FileName = image.FileName,
-                                ContentType = image.ContentType
-                            });
-                        }
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        createRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
                     var recipe = await recipeService.CreateRecipeAsync(createRecipeDto);
@@ -120,20 +110,9 @@ public static class RecipeEndpoints
 
                     if (request.Images != null)
                     {
-                        foreach (var image in request.Images)
-                        {
-                            await using var stream = image.OpenReadStream();
-                            var memoryStream = new MemoryStream();
-                            await stream.CopyToAsync(memoryStream);
-                            memoryStream.Position = 0;
-
-                            updateRecipeDto.ImageUploads.Add(new ImageUpload
-                            {
-                                Stream = memoryStream,
-                                FileName = image.FileName,
-                                ContentType = image.ContentType
-                            });
-                        }
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await recipeService.ProcessUploadedFilesAsync(uploadedFiles);
+                        updateRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
                     var recipe = await recipeService.UpdateRecipeAsync(updateRecipeDto);

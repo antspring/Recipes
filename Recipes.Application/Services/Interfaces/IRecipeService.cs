@@ -12,4 +12,5 @@ public interface IRecipeService
     Task DeleteRecipeAsync(Guid id);
     Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked);
     Task ToggleFavoriteAsync(Guid recipeId, Guid userId, bool isFavorite);
+    Task<List<ImageUpload>> ProcessUploadedFilesAsync(IEnumerable<IUploadedFile> uploadedFiles);
 }
