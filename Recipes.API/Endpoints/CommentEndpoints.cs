@@ -28,7 +28,7 @@ public static class CommentEndpoints
                 return Results.BadRequest(ex.Message);
             }
         });
-        
+
         app.MapPost("/api/recipes/{recipeId:guid}/comments", async (
                 Guid recipeId,
                 [FromBody] CreateCommentRequest request,
@@ -56,7 +56,7 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization();
-        
+
         app.MapPut("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
                 [FromBody] UpdateCommentRequest request,
@@ -88,7 +88,7 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization();
-        
+
         app.MapDelete("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
                 ClaimsPrincipal user,

@@ -20,7 +20,8 @@ public class RecipeCrudService(
     {
         var recipe = mapper.Map<Recipe>(createRecipeDto);
 
-        recipe.RecipeIngredients = await ingredientService.SaveRecipeIngredientsAsync(createRecipeDto.Ingredients, recipe.Id);
+        recipe.RecipeIngredients =
+            await ingredientService.SaveRecipeIngredientsAsync(createRecipeDto.Ingredients, recipe.Id);
         recipe.RecipeImages = await imageService.SaveImagesAsync(createRecipeDto.ImageUploads, recipe.Id);
 
         await unitOfWork.Recipes.AddAsync(recipe);
@@ -69,29 +70,30 @@ public class RecipeCrudService(
         var recipe = await unitOfWork.Recipes.GetByIdAsync(updateRecipeDto.Id);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
-    
+
         mapper.Map(updateRecipeDto, recipe);
-    
+
         if (updateRecipeDto.Ingredients != null)
         {
-            recipe.RecipeIngredients = await ingredientService.SaveRecipeIngredientsAsync(updateRecipeDto.Ingredients, recipe.Id);
+            recipe.RecipeIngredients =
+                await ingredientService.SaveRecipeIngredientsAsync(updateRecipeDto.Ingredients, recipe.Id);
         }
-    
+
         if (updateRecipeDto.ImageUploads is { Count: > 0 })
         {
             var newRecipeImages = await imageService.SaveImagesAsync(updateRecipeDto.ImageUploads, recipe.Id);
             recipe.RecipeImages ??= new List<RecipeImage>();
             recipe.RecipeImages.AddRange(newRecipeImages);
         }
-    
+
         if (updateRecipeDto.ImageIdsToDelete != null)
         {
             await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
         }
-    
+
         await unitOfWork.Recipes.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
-    
+
         var updatedRecipe = await unitOfWork.Recipes.GetByIdAsync(recipe.Id);
         var dto = RecipeDto.FromRecipe(updatedRecipe!);
         dto.ApplyImageUrls(imageStorageService);
@@ -103,12 +105,12 @@ public class RecipeCrudService(
         var recipe = await unitOfWork.Recipes.GetByIdAsync(id);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
-    
+
         if (recipe.RecipeImages != null && recipe.RecipeImages.Count > 0)
         {
             await imageService.DeleteImagesAsync(recipe.RecipeImages.ToList(), recipe);
         }
-    
+
         await unitOfWork.Recipes.DeleteAsync(recipe);
         await unitOfWork.SaveChangesAsync();
     }

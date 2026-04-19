@@ -33,7 +33,8 @@ public class CommentService(
         return CommentDto.FromComment(createdComment!);
     }
 
-    public async Task<PagedResult<CommentDto>> GetCommentsByRecipeIdAsync(Guid recipeId, int page = 1, int pageSize = 20, DateTime? from = null, DateTime? to = null)
+    public async Task<PagedResult<CommentDto>> GetCommentsByRecipeIdAsync(Guid recipeId, int page = 1,
+        int pageSize = 20, DateTime? from = null, DateTime? to = null)
     {
         var pagedResult = await unitOfWork.Comments.GetByRecipeIdPagedAsync(recipeId, page, pageSize, from, to);
         var dtos = pagedResult.Items.Select(CommentDto.FromComment).ToList();

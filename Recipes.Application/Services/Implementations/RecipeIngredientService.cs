@@ -12,7 +12,8 @@ public class RecipeIngredientService(
     IUnitOfWork unitOfWork,
     IMapper mapper) : IRecipeIngredientService
 {
-    public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto, Guid recipeId)
+    public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
+        Guid recipeId)
     {
         var recipeIngredients = new List<RecipeIngredient>();
         foreach (var ingredientDto in ingredientsDto)
@@ -21,7 +22,8 @@ public class RecipeIngredientService(
             if (ingredient == null)
                 throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
 
-            var recipeIngredient = mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId));
+            var recipeIngredient =
+                mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId));
             recipeIngredients.Add(recipeIngredient);
         }
 
