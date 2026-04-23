@@ -19,4 +19,6 @@ public class Comment
 
     public DateTime CreatedAt { get; init; }
     public DateTime UpdatedAt { get; set; }
+
+    public ICollection<Image> Images { get; set; } = new List<Image>();
 }
