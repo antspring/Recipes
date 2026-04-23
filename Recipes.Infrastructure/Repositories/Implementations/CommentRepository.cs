@@ -12,6 +12,7 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
         return await context.Comments
             .Include(c => c.Commentator)
             .Include(c => c.Recipe)
+            .Include(c => c.Images)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
@@ -19,6 +20,7 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
     {
         return await context.Comments
             .Include(c => c.Commentator)
+            .Include(c => c.Images)
             .Where(c => c.RecipeId == recipeId)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
@@ -29,6 +31,7 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
     {
         var query = context.Comments
             .Include(c => c.Commentator)
+            .Include(c => c.Images)
             .Where(c => c.RecipeId == recipeId);
 
         if (from.HasValue)

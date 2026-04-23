@@ -99,6 +99,22 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         {
             entity.ToTable("Comments");
 
+            entity.HasMany(c => c.Images)
+                .WithMany(i => i.Comments)
+                .UsingEntity<Dictionary<string, object>>(
+                    j => j.HasOne<Image>()
+                        .WithMany()
+                        .HasForeignKey("ImageId")
+                        .HasPrincipalKey(i => i.Id)
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j.HasOne<Comment>()
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .HasPrincipalKey(c => c.Id)
+                        .OnDelete(DeleteBehavior.Cascade),
+                    j => j.ToTable("CommentImages")
+                );
+
             entity.HasOne(c => c.Commentator)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(c => c.CommentatorId)

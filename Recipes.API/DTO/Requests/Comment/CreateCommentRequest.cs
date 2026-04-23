@@ -4,7 +4,8 @@ namespace Recipes.API.DTO.Requests.Comment;
 
 public class CreateCommentRequest
 {
-    [Required(ErrorMessage = "Comment text is required")]
-    [StringLength(1000, MinimumLength = 3, ErrorMessage = "Text length must be between 3 and 1000 characters")]
+    [Required]
     public string Value { get; set; } = null!;
+
+    public IFormFileCollection? Images { get; set; }
 }

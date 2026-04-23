@@ -1,8 +1,12 @@
 using System.Security.Claims;
+using System.Text.Json;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Requests.Comment;
+using Recipes.Application.DTO.Comment;
 using Recipes.Application.Services.Interfaces;
+using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -31,9 +35,11 @@ public static class CommentEndpoints
 
         app.MapPost("/api/recipes/{recipeId:guid}/comments", async (
                 Guid recipeId,
-                [FromBody] CreateCommentRequest request,
+                [FromForm] CreateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService) =>
+                ICommentService commentService,
+                IFileProcessingService fileProcessingService,
+                IMapper mapper) =>
             {
                 try
                 {
@@ -43,7 +49,18 @@ public static class CommentEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var commentDto = await commentService.CreateCommentAsync(recipeId, userId, request.Value);
+                    var createCommentDto = mapper.Map<CreateCommentDto>(request);
+                    createCommentDto.RecipeId = recipeId;
+                    createCommentDto.CommentatorId = userId;
+
+                    if (request.Images != null)
+                    {
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        createCommentDto.Images.AddRange(imageUploads);
+                    }
+
+                    var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
                 }
                 catch (ArgumentException ex)
@@ -55,13 +72,16 @@ public static class CommentEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .DisableAntiforgery();
 
         app.MapPut("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
-                [FromBody] UpdateCommentRequest request,
+                [FromForm] UpdateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService) =>
+                ICommentService commentService,
+                IFileProcessingService fileProcessingService,
+                IMapper mapper) =>
             {
                 try
                 {
@@ -71,7 +91,18 @@ public static class CommentEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var commentDto = await commentService.UpdateCommentAsync(commentId, userId, request.Value);
+                    var updateCommentDto = mapper.Map<UpdateCommentDto>(request);
+                    updateCommentDto.CommentatorId = userId;
+                    updateCommentDto.Id = commentId;
+
+                    if (request.Images != null)
+                    {
+                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
+                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        updateCommentDto.Images.AddRange(imageUploads);
+                    }
+
+                    var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
                 }
                 catch (ArgumentException ex)
@@ -87,7 +118,8 @@ public static class CommentEndpoints
                     return Results.BadRequest(ex.Message);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .DisableAntiforgery();
 
         app.MapDelete("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
