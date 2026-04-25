@@ -10,6 +10,7 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IPasswordHasher _passwordHasher;
     private readonly IUserAccessService _userAccessService;
     private readonly IUserAvatarService _userAvatarService;
     private readonly IUserProfileService _userProfileService;
@@ -19,6 +20,7 @@ public class AuthService : IAuthService
     public AuthService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
+        IPasswordHasher passwordHasher,
         IUserAccessService userAccessService,
         IUserAvatarService userAvatarService,
         IUserProfileService userProfileService,
@@ -27,6 +29,7 @@ public class AuthService : IAuthService
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _passwordHasher = passwordHasher;
         _userAccessService = userAccessService;
         _userAvatarService = userAvatarService;
         _userProfileService = userProfileService;
@@ -71,7 +74,7 @@ public class AuthService : IAuthService
     private async Task<User> CreateUserAsync(CreateUserDto createUserDto)
     {
         var user = _mapper.Map<User>(createUserDto);
-        user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
+        user.Password = _passwordHasher.Hash(createUserDto.Password);
         user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
         return await _unitOfWork.Users.CreateAsync(user);
     }

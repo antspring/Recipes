@@ -5,7 +5,9 @@ using Recipes.Domain.Models;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class UserAccessService(IUnitOfWork unitOfWork) : IUserAccessService
+public class UserAccessService(
+    IUnitOfWork unitOfWork,
+    IPasswordHasher passwordHasher) : IUserAccessService
 {
     public async Task<User> AuthenticateAsync(LoginUserDto loginUserDto)
     {
@@ -16,7 +18,7 @@ public class UserAccessService(IUnitOfWork unitOfWork) : IUserAccessService
         if (user == null)
             throw new ArgumentException("Invalid username or email");
 
-        var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.Password);
+        var isPasswordValid = passwordHasher.Verify(loginUserDto.Password, user.Password);
         if (!isPasswordValid)
             throw new ArgumentException("Invalid password");
 
