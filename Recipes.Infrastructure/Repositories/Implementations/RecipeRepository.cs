@@ -71,7 +71,7 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
 
     public async Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked)
     {
-        var existingLike = recipe.Likes?.FirstOrDefault(l => l.UserId == userId);
+        var existingLike = recipe.Likes.FirstOrDefault(l => l.UserId == userId);
 
         if (isLiked)
         {
@@ -83,14 +83,14 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
                     UserId = userId,
                     CreatedAt = DateTime.Now.ToUniversalTime()
                 };
-                recipe.Likes?.Add(like);
+                recipe.Likes.Add(like);
             }
         }
         else
         {
             if (existingLike != null)
             {
-                recipe.Likes?.Remove(existingLike);
+                recipe.Likes.Remove(existingLike);
             }
         }
     }

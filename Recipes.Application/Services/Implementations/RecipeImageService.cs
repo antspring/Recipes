@@ -9,8 +9,7 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeImageService(
     IUnitOfWork unitOfWork,
-    IImageStorageService imageStorageService,
-    ILogger<RecipeImageService> logger) : IRecipeImageService
+    IImageStorageService imageStorageService) : IRecipeImageService
 {
     public async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
     {

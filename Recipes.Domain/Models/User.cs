@@ -22,10 +22,10 @@ public class User
     public DateTime CreatedAt { get; init; } = DateTime.Now.ToUniversalTime();
     public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 
-    public List<Recipe>? Recipes { get; init; }
-    public List<Like>? Likes { get; init; }
-    public List<Favorite>? Favorites { get; init; }
-    public List<Comment>? Comments { get; init; }
-    public List<UnwantedIngredients>? UnwantedIngredients { get; init; }
-    public List<Allergens>? Allergens { get; init; }
+    public List<Recipe> Recipes { get; init; } = new();
+    public List<Like> Likes { get; init; } = new();
+    public List<Favorite> Favorites { get; init; } = new();
+    public List<Comment> Comments { get; init; } = new();
+    public List<UnwantedIngredients> UnwantedIngredients { get; init; } = new();
+    public List<Allergens> Allergens { get; init; } = new();
 }

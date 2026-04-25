@@ -25,9 +25,9 @@ public class Recipe
     public string? DishType { get; set; }
     public string? MealType { get; set; }
 
-    public List<Like>? Likes { get; init; }
-    public List<Comment>? Comments { get; init; }
-    public List<Image>? Images { get; init; }
-    public List<RecipeIngredient>? RecipeIngredients { get; set; }
-    public List<RecipeImage>? RecipeImages { get; set; }
+    public List<Like> Likes { get; init; } = new();
+    public List<Comment> Comments { get; init; } = new();
+    public List<Image> Images { get; init; } = new();
+    public List<RecipeIngredient> RecipeIngredients { get; set; } = new();
+    public List<RecipeImage> RecipeImages { get; set; } = new();
 }

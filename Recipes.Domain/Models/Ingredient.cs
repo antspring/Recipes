@@ -8,6 +8,6 @@ public class Ingredient
 
     public string Title { get; set; } = null!;
 
-    public List<UnwantedIngredients>? UsersUnwantedIngredients { get; init; }
-    public List<Allergens>? UsersAllergens { get; init; }
+    public List<UnwantedIngredients> UsersUnwantedIngredients { get; init; } = new();
+    public List<Allergens> UsersAllergens { get; init; } = new();
 }

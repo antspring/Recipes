@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
@@ -13,8 +12,7 @@ public class RecipeCrudService(
     IImageStorageService imageStorageService,
     IRecipeImageService imageService,
     IRecipeIngredientService ingredientService,
-    IMapper mapper,
-    ILogger<RecipeCrudService> logger) : IRecipeCrudService
+    IMapper mapper) : IRecipeCrudService
 {
     public async Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto)
     {
@@ -27,10 +25,7 @@ public class RecipeCrudService(
         await unitOfWork.Recipes.AddAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
-        var createdRecipe = await unitOfWork.Recipes.GetByIdAsync(recipe.Id);
-        var dto = RecipeDto.FromRecipe(createdRecipe!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredRecipeDtoAsync(recipe.Id);
     }
 
     public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id)
@@ -105,10 +100,7 @@ public class RecipeCrudService(
         await unitOfWork.Recipes.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
-        var updatedRecipe = await unitOfWork.Recipes.GetByIdAsync(recipe.Id);
-        var dto = RecipeDto.FromRecipe(updatedRecipe!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredRecipeDtoAsync(recipe.Id);
     }
 
     public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
@@ -127,5 +119,16 @@ public class RecipeCrudService(
 
         await unitOfWork.Recipes.DeleteAsync(recipe);
         await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId)
+    {
+        var recipe = await unitOfWork.Recipes.GetByIdAsync(recipeId);
+        if (recipe == null)
+            throw new InvalidOperationException("Recipe not found after save");
+
+        var dto = RecipeDto.FromRecipe(recipe);
+        dto.ApplyImageUrls(imageStorageService);
+        return dto;
     }
 }
