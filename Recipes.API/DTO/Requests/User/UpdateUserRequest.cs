@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Recipes.API.DTO.Requests.Attributes;
+using Recipes.API.Helpers;
 using Recipes.Application.DTO.User;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.DTO.Requests.User;
 
@@ -18,7 +18,7 @@ public class UpdateUserRequest
     [AvatarFile(ErrorMessage = "Invalid avatar file")]
     public IFormFile? Avatar { get; set; }
 
-    public UpdateUserDto ToUpdateUserDto()
+    public async Task<UpdateUserDto> ToUpdateUserDtoAsync()
     {
         return new UpdateUserDto
         {
@@ -26,7 +26,7 @@ public class UpdateUserRequest
             Email = Email,
             Name = Name,
             Description = Description,
-            Avatar = Avatar != null ? new FormFileWrapper(Avatar) : null
+            Avatar = Avatar != null ? await ImageUploadFactory.CreateAsync(Avatar) : null
         };
     }
 }

@@ -8,6 +8,6 @@ public class CreateUserDto
     public string Email { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
-    public IUploadedFile? Avatar { get; set; }
+    public ImageUpload? Avatar { get; set; }
     public string Password { get; set; } = null!;
 }

@@ -15,22 +15,19 @@ public class AuthService : IAuthService
     private readonly IJwtGenerateService _jwtGenerateService;
     private readonly ClaimsProvider _claimsProvider;
     private readonly IImageStorageService _imageStorageService;
-    private readonly IFileProcessingService _fileProcessingService;
 
     public AuthService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IJwtGenerateService jwtGenerateService,
         ClaimsProvider claimsProvider,
-        IImageStorageService imageStorageService,
-        IFileProcessingService fileProcessingService)
+        IImageStorageService imageStorageService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _jwtGenerateService = jwtGenerateService;
         _claimsProvider = claimsProvider;
         _imageStorageService = imageStorageService;
-        _fileProcessingService = fileProcessingService;
     }
 
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
@@ -40,9 +37,8 @@ public class AuthService : IAuthService
 
         if (createUserDto.Avatar != null)
         {
-            var imageUpload = await _fileProcessingService.ProcessUploadedFileAsync(createUserDto.Avatar);
-            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName,
-                imageUpload.ContentType);
+            var fileName = await _imageStorageService.UploadImageAsync(createUserDto.Avatar.Stream,
+                createUserDto.Avatar.FileName, createUserDto.Avatar.ContentType);
             user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
         }
 
@@ -129,9 +125,8 @@ public class AuthService : IAuthService
 
         if (updateUserDto.Avatar != null)
         {
-            var imageUpload = await _fileProcessingService.ProcessUploadedFileAsync(updateUserDto.Avatar);
-            var fileName = await _imageStorageService.UploadImageAsync(imageUpload.Stream, imageUpload.FileName,
-                imageUpload.ContentType);
+            var fileName = await _imageStorageService.UploadImageAsync(updateUserDto.Avatar.Stream,
+                updateUserDto.Avatar.FileName, updateUserDto.Avatar.ContentType);
             user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
         }
 

@@ -30,7 +30,7 @@ public static class AuthEndpoints
 
                 try
                 {
-                    var userAuthDto = await authService.Register(request.ToCreateUserDto(), userAgent);
+                    var userAuthDto = await authService.Register(await request.ToCreateUserDtoAsync(), userAgent);
                     var userResponse = new UserResponse(userAuthDto);
 
                     httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
@@ -143,7 +143,7 @@ public static class AuthEndpoints
 
                 try
                 {
-                    var updateUserDto = request.ToUpdateUserDto();
+                    var updateUserDto = await request.ToUpdateUserDtoAsync();
                     var userAuthDto = await authService.UpdateUserAsync(userIdGuid, updateUserDto, userAgent);
                     var userResponse = new UserResponse(userAuthDto);
 

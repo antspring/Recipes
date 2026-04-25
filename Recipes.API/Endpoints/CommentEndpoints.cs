@@ -2,11 +2,11 @@ using System.Security.Claims;
 using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Requests.Comment;
 using Recipes.Application.DTO.Comment;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -38,7 +38,6 @@ public static class CommentEndpoints
                 [FromForm] CreateCommentRequest request,
                 ClaimsPrincipal user,
                 ICommentService commentService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -55,8 +54,7 @@ public static class CommentEndpoints
 
                     if (request.Images != null)
                     {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
                         createCommentDto.Images.AddRange(imageUploads);
                     }
 
@@ -80,7 +78,6 @@ public static class CommentEndpoints
                 [FromForm] UpdateCommentRequest request,
                 ClaimsPrincipal user,
                 ICommentService commentService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -97,8 +94,7 @@ public static class CommentEndpoints
 
                     if (request.Images != null)
                     {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
                         updateCommentDto.Images.AddRange(imageUploads);
                     }
 

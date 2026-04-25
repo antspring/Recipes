@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Recipes.API.DTO.Requests.Attributes;
+using Recipes.API.Helpers;
 using Recipes.Application.DTO.User;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.DTO.Requests.User;
 
@@ -33,7 +33,7 @@ public class RegisterUserRequest
     [Compare("Password", ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = null!;
 
-    public CreateUserDto ToCreateUserDto()
+    public async Task<CreateUserDto> ToCreateUserDtoAsync()
     {
         return new CreateUserDto
         {
@@ -41,7 +41,7 @@ public class RegisterUserRequest
             Email = Email,
             Name = Name,
             Description = Description,
-            Avatar = Avatar != null ? new FormFileWrapper(Avatar) : null,
+            Avatar = Avatar != null ? await ImageUploadFactory.CreateAsync(Avatar) : null,
             Password = Password
         };
     }

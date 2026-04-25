@@ -20,7 +20,6 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IRecipeCrudService, RecipeCrudService>();
         services.AddScoped<IRecipeInteractionService, RecipeInteractionService>();
-        services.AddScoped<IFileProcessingService, FileProcessingService>();
         services.AddScoped<IRecipeImageService, RecipeImageService>();
         services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();

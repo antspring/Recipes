@@ -2,10 +2,10 @@ using System.Security.Claims;
 using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Recipe;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -17,7 +17,6 @@ public static class RecipeEndpoints
                 [FromForm] CreateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -38,8 +37,7 @@ public static class RecipeEndpoints
 
                     if (request.Images != null)
                     {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
                         createRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
@@ -84,7 +82,6 @@ public static class RecipeEndpoints
                 [FromForm] UpdateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
@@ -131,8 +128,7 @@ public static class RecipeEndpoints
 
                     if (request.Images != null)
                     {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
+                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
                         updateRecipeDto.ImageUploads.AddRange(imageUploads);
                     }
 
