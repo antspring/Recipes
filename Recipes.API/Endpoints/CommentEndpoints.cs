@@ -27,7 +27,7 @@ public static class CommentEndpoints
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(ex.Message);
+                return EndpointErrorHelper.BadRequest(ex);
             }
         });
 
@@ -58,13 +58,9 @@ public static class CommentEndpoints
                     var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -97,17 +93,9 @@ public static class CommentEndpoints
                     var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -128,17 +116,9 @@ public static class CommentEndpoints
                     await commentService.DeleteCommentAsync(commentId, userId);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();

@@ -46,7 +46,7 @@ public static class RecipeEndpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.BadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -118,13 +118,9 @@ public static class RecipeEndpoints
 
                     return Results.Ok(recipe);
                 }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -145,13 +141,9 @@ public static class RecipeEndpoints
                     await recipeCrudService.DeleteRecipeAsync(id, userId);
                     return Results.NoContent();
                 }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();
@@ -172,13 +164,9 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();
@@ -199,13 +187,9 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();
