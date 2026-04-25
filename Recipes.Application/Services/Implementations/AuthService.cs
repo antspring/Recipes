@@ -13,6 +13,7 @@ public class AuthService : IAuthService
     private readonly IUserAccessService _userAccessService;
     private readonly IUserAvatarService _userAvatarService;
     private readonly IUserProfileService _userProfileService;
+    private readonly IRefreshTokenService _refreshTokenService;
     private readonly IUserAuthTokenService _userAuthTokenService;
 
     public AuthService(
@@ -21,6 +22,7 @@ public class AuthService : IAuthService
         IUserAccessService userAccessService,
         IUserAvatarService userAvatarService,
         IUserProfileService userProfileService,
+        IRefreshTokenService refreshTokenService,
         IUserAuthTokenService userAuthTokenService)
     {
         _unitOfWork = unitOfWork;
@@ -28,6 +30,7 @@ public class AuthService : IAuthService
         _userAccessService = userAccessService;
         _userAvatarService = userAvatarService;
         _userProfileService = userProfileService;
+        _refreshTokenService = refreshTokenService;
         _userAuthTokenService = userAuthTokenService;
     }
 
@@ -46,18 +49,8 @@ public class AuthService : IAuthService
 
     public async Task<UserAuthDto> UpdateToken(string refreshToken, string? userAgent)
     {
-        var storedRefreshToken = await _unitOfWork.RefreshTokens.GetAsync(refreshToken);
-        if (storedRefreshToken == null)
-        {
-            throw new ArgumentException("Invalid refresh token");
-        }
-
-        if (storedRefreshToken.ExpiresAt < DateTime.Now)
-        {
-            throw new ArgumentException("Refresh token expired");
-        }
-
-        await _unitOfWork.RefreshTokens.RemoveAsync(storedRefreshToken.Id);
+        var storedRefreshToken = await _refreshTokenService.GetValidTokenAsync(refreshToken);
+        await _refreshTokenService.RevokeAsync(storedRefreshToken.Id);
 
         var user = await _userAccessService.GetRequiredUserAsync(storedRefreshToken.UserId);
         return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
