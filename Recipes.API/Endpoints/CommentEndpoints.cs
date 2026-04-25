@@ -42,8 +42,7 @@ public static class CommentEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
@@ -82,8 +81,7 @@ public static class CommentEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
@@ -124,8 +122,7 @@ public static class CommentEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
