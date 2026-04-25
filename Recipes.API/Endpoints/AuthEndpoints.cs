@@ -40,11 +40,11 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return EndpointErrorHelper.AuthBadRequest(ex);
+                    return AuthEndpointErrorHelper.BadRequest(ex);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
                 {
-                    return EndpointErrorHelper.AuthUniqueViolation("User with this email or username already exists");
+                    return AuthEndpointErrorHelper.UniqueViolation("User with this email or username already exists");
                 }
             })
             .DisableAntiforgery()
@@ -73,11 +73,11 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return EndpointErrorHelper.AuthBadRequest(ex);
+                    return AuthEndpointErrorHelper.BadRequest(ex);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
                 {
-                    return EndpointErrorHelper.AuthUniqueViolation("Invalid credentials");
+                    return AuthEndpointErrorHelper.UniqueViolation("Invalid credentials");
                 }
             })
             .AllowAnonymous();
@@ -105,7 +105,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return EndpointErrorHelper.AuthBadRequest(ex);
+                    return AuthEndpointErrorHelper.BadRequest(ex);
                 }
             })
             .AllowAnonymous();
@@ -134,7 +134,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return EndpointErrorHelper.AuthBadRequest(ex);
+                    return AuthEndpointErrorHelper.BadRequest(ex);
                 }
             })
             .DisableAntiforgery()
@@ -158,7 +158,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return EndpointErrorHelper.AuthBadRequest(ex);
+                    return AuthEndpointErrorHelper.BadRequest(ex);
                 }
             })
             .RequireAuthorization();
