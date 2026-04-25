@@ -63,6 +63,7 @@ public class CommentService(
         await DeleteImagesFromCommentAsync(comment, updateCommentDto.ImageIdsToDelete);
         await AddImagesToCommentAsync(comment, updateCommentDto.Images);
 
+        comment.UpdatedAt = DateTime.UtcNow;
         await unitOfWork.Comments.UpdateAsync(comment);
         await unitOfWork.SaveChangesAsync();
 

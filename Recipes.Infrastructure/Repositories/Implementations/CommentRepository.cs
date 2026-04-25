@@ -63,7 +63,6 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
 
     public async Task UpdateAsync(Comment comment)
     {
-        comment.UpdatedAt = DateTime.UtcNow;
         context.Comments.Update(comment);
     }
 

@@ -55,7 +55,6 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
 
     public async Task UpdateAsync(Recipe recipe)
     {
-        recipe.UpdatedAt = DateTime.UtcNow;
         context.Recipes.Update(recipe);
     }
 

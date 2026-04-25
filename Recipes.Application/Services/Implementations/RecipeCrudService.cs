@@ -97,6 +97,7 @@ public class RecipeCrudService(
             await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
         }
 
+        recipe.UpdatedAt = DateTime.UtcNow;
         await unitOfWork.Recipes.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
