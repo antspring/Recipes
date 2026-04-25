@@ -10,17 +10,20 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IUserAccessService _userAccessService;
     private readonly IUserAvatarService _userAvatarService;
     private readonly IUserAuthTokenService _userAuthTokenService;
 
     public AuthService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
+        IUserAccessService userAccessService,
         IUserAvatarService userAvatarService,
         IUserAuthTokenService userAuthTokenService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userAccessService = userAccessService;
         _userAvatarService = userAvatarService;
         _userAuthTokenService = userAuthTokenService;
     }
@@ -38,23 +41,7 @@ public class AuthService : IAuthService
 
     public async Task<UserAuthDto> Login(LoginUserDto loginUserDto)
     {
-        if (string.IsNullOrWhiteSpace(loginUserDto.UserName) && string.IsNullOrWhiteSpace(loginUserDto.Email))
-        {
-            throw new ArgumentException("Either UserName or Email must be provided");
-        }
-
-        var user = await _unitOfWork.Users.GetByUserNameOrEmailAsync(loginUserDto.UserName, loginUserDto.Email);
-        if (user is null)
-        {
-            throw new ArgumentException("Invalid username or email");
-        }
-
-        var isPasswordValid = BCrypt.Net.BCrypt.Verify(loginUserDto.Password, user.Password);
-        if (!isPasswordValid)
-        {
-            throw new ArgumentException("Invalid password");
-        }
-
+        var user = await _userAccessService.AuthenticateAsync(loginUserDto);
         return await _userAuthTokenService.IssueTokensAsync(user, loginUserDto.UserAgent);
     }
 
@@ -73,23 +60,13 @@ public class AuthService : IAuthService
 
         await _unitOfWork.RefreshTokens.RemoveAsync(storedRefreshToken.Id);
 
-        var user = await _unitOfWork.Users.GetByIdAsync(storedRefreshToken.UserId);
-        if (user == null)
-        {
-            throw new ArgumentException("User not found");
-        }
-
+        var user = await _userAccessService.GetRequiredUserAsync(storedRefreshToken.UserId);
         return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto, string? userAgent)
     {
-        var user = await _unitOfWork.Users.GetByIdAsync(userId);
-        if (user == null)
-        {
-            throw new ArgumentException("User not found");
-        }
-
+        var user = await _userAccessService.GetRequiredUserAsync(userId);
         await _userAvatarService.DeleteAvatarAsync(user);
         user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
 
@@ -103,12 +80,7 @@ public class AuthService : IAuthService
 
     public async Task<UserAuthDto> DeleteAvatarAsync(Guid userId)
     {
-        var user = await _unitOfWork.Users.GetByIdAsync(userId);
-        if (user == null)
-        {
-            throw new ArgumentException("User not found");
-        }
-
+        var user = await _userAccessService.GetRequiredUserAsync(userId);
         await _userAvatarService.DeleteAvatarAsync(user);
 
         user.AvatarUrl = null;
