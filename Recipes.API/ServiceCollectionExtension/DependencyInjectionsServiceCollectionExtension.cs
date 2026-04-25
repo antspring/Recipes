@@ -8,6 +8,7 @@ using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models.UserRelations;
 using Recipes.Infrastructure.Repositories.Implementations;
+using Recipes.Infrastructure.Services;
 using Recipes.Infrastructure.UnitOfWork.Implementations;
 
 namespace Recipes.API.ServiceCollectionExtension;
