@@ -12,6 +12,8 @@ namespace Recipes.API.Endpoints;
 
 public static class AuthEndpoints
 {
+    private const string RefreshTokenCookieName = "refreshToken";
+
     public static void MapAuthEndpoints(this WebApplication app)
     {
         var authEndpoints = app.MapGroup("/auth");
@@ -26,19 +28,14 @@ public static class AuthEndpoints
                     return Results.ValidationProblem(errors);
                 }
 
-                var userAgent = httpContext.Request.Headers["User-Agent"];
+                var userAgent = GetUserAgent(httpContext);
 
                 try
                 {
                     var userAuthDto = await authService.Register(await request.ToCreateUserDtoAsync(), userAgent);
                     var userResponse = new UserResponse(userAuthDto);
 
-                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                        Secure = true
-                    });
+                    AppendRefreshTokenCookie(httpContext, userResponse.RefreshToken);
 
                     return Results.Ok(userResponse);
                 }
@@ -70,17 +67,12 @@ public static class AuthEndpoints
 
                 try
                 {
-                    var userAgent = httpContext.Request.Headers["User-Agent"];
+                    var userAgent = GetUserAgent(httpContext);
 
                     var userAuthDto = await authService.Login(request.ToLoginUserDto(userAgent));
                     var userResponse = new UserResponse(userAuthDto);
 
-                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                        Secure = true
-                    });
+                    AppendRefreshTokenCookie(httpContext, userResponse.RefreshToken);
 
                     return Results.Ok(userResponse);
                 }
@@ -99,25 +91,20 @@ public static class AuthEndpoints
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                var refreshToken = httpContext.Request.Cookies["refreshToken"];
+                var refreshToken = httpContext.Request.Cookies[RefreshTokenCookieName];
                 if (string.IsNullOrEmpty(refreshToken))
                 {
                     return Results.BadRequest(new { error = "Refresh token not provided" });
                 }
 
-                var userAgent = httpContext.Request.Headers["User-Agent"];
+                var userAgent = GetUserAgent(httpContext);
 
                 try
                 {
                     var userAuthDto = await authService.UpdateToken(refreshToken, userAgent);
                     var userResponse = new UserResponse(userAuthDto);
 
-                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                        Secure = true
-                    });
+                    AppendRefreshTokenCookie(httpContext, userResponse.RefreshToken);
 
                     return Results.Ok(userResponse);
                 }
@@ -133,26 +120,20 @@ public static class AuthEndpoints
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+                if (!TryGetUserId(httpContext, out var userId))
                 {
                     return Results.Unauthorized();
                 }
 
-                var userAgent = httpContext.Request.Headers["User-Agent"];
+                var userAgent = GetUserAgent(httpContext);
 
                 try
                 {
                     var updateUserDto = await request.ToUpdateUserDtoAsync();
-                    var userAuthDto = await authService.UpdateUserAsync(userIdGuid, updateUserDto, userAgent);
+                    var userAuthDto = await authService.UpdateUserAsync(userId, updateUserDto, userAgent);
                     var userResponse = new UserResponse(userAuthDto);
 
-                    httpContext.Response.Cookies.Append("refreshToken", userResponse.RefreshToken, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        SameSite = SameSiteMode.None,
-                        Secure = true
-                    });
+                    AppendRefreshTokenCookie(httpContext, userResponse.RefreshToken);
 
                     return Results.Ok(userResponse);
                 }
@@ -168,15 +149,14 @@ public static class AuthEndpoints
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                var userId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var userIdGuid))
+                if (!TryGetUserId(httpContext, out var userId))
                 {
                     return Results.Unauthorized();
                 }
 
                 try
                 {
-                    var userAuthDto = await authService.DeleteAvatarAsync(userIdGuid);
+                    var userAuthDto = await authService.DeleteAvatarAsync(userId);
                     var userResponse = new UserResponse(userAuthDto);
 
                     return Results.Ok(userResponse);
@@ -187,5 +167,26 @@ public static class AuthEndpoints
                 }
             })
             .RequireAuthorization();
+    }
+
+    private static string? GetUserAgent(HttpContext httpContext)
+    {
+        return httpContext.Request.Headers.UserAgent.ToString();
+    }
+
+    private static bool TryGetUserId(HttpContext httpContext, out Guid userId)
+    {
+        var userIdValue = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdValue, out userId);
+    }
+
+    private static void AppendRefreshTokenCookie(HttpContext httpContext, string refreshToken)
+    {
+        httpContext.Response.Cookies.Append(RefreshTokenCookieName, refreshToken, new CookieOptions
+        {
+            HttpOnly = true,
+            SameSite = SameSiteMode.None,
+            Secure = true
+        });
     }
 }
