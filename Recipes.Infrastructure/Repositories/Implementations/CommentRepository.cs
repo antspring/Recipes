@@ -61,14 +61,16 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
         await context.Comments.AddAsync(comment);
     }
 
-    public async Task UpdateAsync(Comment comment)
+    public Task UpdateAsync(Comment comment)
     {
         context.Comments.Update(comment);
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(Comment comment)
+    public Task DeleteAsync(Comment comment)
     {
         context.Comments.Remove(comment);
+        return Task.CompletedTask;
     }
 
     public async Task<int> CountByRecipeIdAsync(Guid recipeId)

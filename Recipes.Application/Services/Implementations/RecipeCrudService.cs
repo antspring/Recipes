@@ -80,7 +80,6 @@ public class RecipeCrudService(
         if (updateRecipeDto.ImageUploads is { Count: > 0 })
         {
             var newRecipeImages = await imageService.SaveImagesAsync(updateRecipeDto.ImageUploads, recipe.Id);
-            recipe.RecipeImages ??= new List<RecipeImage>();
             recipe.RecipeImages.AddRange(newRecipeImages);
         }
 
@@ -113,7 +112,7 @@ public class RecipeCrudService(
         if (recipe.CreatorId != actorUserId)
             throw new UnauthorizedAccessException("Only the author can delete this recipe");
 
-        if (recipe.RecipeImages != null && recipe.RecipeImages.Count > 0)
+        if (recipe.RecipeImages.Count > 0)
         {
             await imageService.DeleteImagesAsync(recipe.RecipeImages.ToList(), recipe);
         }

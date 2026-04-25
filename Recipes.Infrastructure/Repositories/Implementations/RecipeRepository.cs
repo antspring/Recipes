@@ -53,14 +53,16 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         await context.Recipes.AddAsync(recipe);
     }
 
-    public async Task UpdateAsync(Recipe recipe)
+    public Task UpdateAsync(Recipe recipe)
     {
         context.Recipes.Update(recipe);
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync(Recipe recipe)
+    public Task DeleteAsync(Recipe recipe)
     {
         context.Recipes.Remove(recipe);
+        return Task.CompletedTask;
     }
 
     public async Task<bool> ExistsAsync(Guid id)
