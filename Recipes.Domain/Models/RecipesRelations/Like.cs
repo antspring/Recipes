@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace Recipes.Domain.Models.RecipesRelations;
 
-[PrimaryKey(nameof(RecipeId), nameof(UserId))]
 public class Like
 {
     public Guid RecipeId { get; init; }

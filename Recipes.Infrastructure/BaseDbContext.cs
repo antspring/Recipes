@@ -23,11 +23,35 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<User>().HasIndex(u => new { u.UserName, u.Email }).IsUnique();
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(u => new { u.UserName, u.Email }).IsUnique();
+            entity.Property(u => u.UserName).HasColumnType("varchar(50)");
+            entity.Property(u => u.Email).HasColumnType("varchar(254)");
+            entity.Property(u => u.Name).HasColumnType("varchar(100)");
+            entity.Property(u => u.Description).HasColumnType("varchar(1000)");
+            entity.Property(u => u.Password).HasColumnType("varchar(100)");
+        });
+
+        modelBuilder.Entity<Recipe>(entity =>
+        {
+            entity.Property(r => r.Title).HasColumnType("varchar(150)");
+            entity.Property(r => r.Description).HasColumnType("varchar(1000)");
+        });
+
+        modelBuilder.Entity<Comment>(entity => { entity.Property(c => c.Value).HasColumnType("varchar(1000)"); });
+
+        modelBuilder.Entity<Ingredient>(entity => { entity.Property(i => i.Title).HasColumnType("varchar(100)"); });
+
+        modelBuilder.Entity<Like>().HasKey(l => new { l.RecipeId, l.UserId });
+        modelBuilder.Entity<Favorite>().HasKey(f => new { f.RecipeId, f.UserId });
+        modelBuilder.Entity<RecipeImage>().HasKey(ri => new { ri.RecipeId, ri.ImageId });
 
         modelBuilder.Entity<RecipeIngredient>(entity =>
         {
+            entity.HasKey(ri => new { ri.RecipeId, ri.IngredientId });
             entity.ToTable("RecipeIngredients");
+            entity.Property(ri => ri.AlternativeWeight).HasColumnType("varchar(50)");
 
             entity.ToTable(t => t.HasCheckConstraint(
                 "CK_RecipeIngredients_Weight_AlternativeWeight",
@@ -59,6 +83,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
 
         modelBuilder.Entity<UnwantedIngredients>(entity =>
         {
+            entity.HasKey(uui => new { uui.UserId, uui.IngredientId });
             entity.ToTable("UnwantedIngredients");
 
             entity.HasOne(uui => uui.User)
@@ -74,6 +99,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
 
         modelBuilder.Entity<Allergens>(entity =>
         {
+            entity.HasKey(al => new { al.UserId, al.IngredientId });
             entity.ToTable("Allergens");
 
             entity.HasOne(al => al.User)
@@ -89,8 +115,6 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.ToTable("Comments");
-
             entity.HasMany(c => c.Images)
                 .WithMany(i => i.Comments)
                 .UsingEntity<Dictionary<string, object>>(

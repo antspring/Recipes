@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Domain.Models;
@@ -8,12 +6,8 @@ public class Recipe
 {
     public Guid Id { get; init; }
 
-    [StringLength(150, MinimumLength = 3)]
-    [Column(TypeName = "varchar(150)")]
     public string Title { get; set; } = null!;
 
-    [StringLength(1000, MinimumLength = 3)]
-    [Column(TypeName = "varchar(1000)")]
     public string Description { get; set; } = null!;
 
     public int CaloricValue { get; set; }

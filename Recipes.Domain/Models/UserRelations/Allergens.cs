@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace Recipes.Domain.Models.UserRelations;
 
-[PrimaryKey(nameof(UserId), nameof(IngredientId))]
 public class Allergens : IUserIngredientRelation
 {
     public Guid UserId { get; init; }
