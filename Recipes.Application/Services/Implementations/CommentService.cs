@@ -10,7 +10,8 @@ namespace Recipes.Application.Services.Implementations;
 public class CommentService(
     IUnitOfWork unitOfWork,
     IImageStorageService imageStorageService,
-    IMapper mapper) : ICommentService
+    IMapper mapper,
+    IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
     {
@@ -58,7 +59,7 @@ public class CommentService(
         await DeleteImagesFromCommentAsync(comment, updateCommentDto.ImageIdsToDelete);
         await AddImagesToCommentAsync(comment, updateCommentDto.Images);
 
-        comment.UpdatedAt = DateTime.UtcNow;
+        comment.UpdatedAt = clock.UtcNow;
         await unitOfWork.Comments.UpdateAsync(comment);
         await unitOfWork.SaveChangesAsync();
 
@@ -99,7 +100,7 @@ public class CommentService(
             var image = new Image
             {
                 FileName = fileName,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = clock.UtcNow
             };
 
             await unitOfWork.Images.AddAsync(image);

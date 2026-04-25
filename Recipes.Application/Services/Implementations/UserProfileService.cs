@@ -10,7 +10,8 @@ public class UserProfileService(
     IUnitOfWork unitOfWork,
     IMapper mapper,
     IUserAccessService userAccessService,
-    IUserAvatarService userAvatarService) : IUserProfileService
+    IUserAvatarService userAvatarService,
+    IClock clock) : IUserProfileService
 {
     public async Task<User> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto)
     {
@@ -19,7 +20,7 @@ public class UserProfileService(
         user.AvatarUrl = await userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
 
         mapper.Map(updateUserDto, user);
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = clock.UtcNow;
 
         await unitOfWork.Users.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
@@ -33,7 +34,7 @@ public class UserProfileService(
         await userAvatarService.DeleteAvatarAsync(user);
 
         user.AvatarUrl = null;
-        user.UpdatedAt = DateTime.UtcNow;
+        user.UpdatedAt = clock.UtcNow;
 
         await unitOfWork.Users.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();

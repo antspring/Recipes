@@ -11,7 +11,8 @@ public class RecipeCrudService(
     IImageStorageService imageStorageService,
     IRecipeImageService imageService,
     IRecipeIngredientService ingredientService,
-    IMapper mapper) : IRecipeCrudService
+    IMapper mapper,
+    IClock clock) : IRecipeCrudService
 {
     public async Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto)
     {
@@ -81,7 +82,7 @@ public class RecipeCrudService(
             await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
         }
 
-        recipe.UpdatedAt = DateTime.UtcNow;
+        recipe.UpdatedAt = clock.UtcNow;
         await unitOfWork.Recipes.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 

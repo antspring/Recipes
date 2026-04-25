@@ -6,7 +6,8 @@ using Recipes.Application.UnitOfWork.Interfaces;
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeInteractionService(
-    IUnitOfWork unitOfWork) : IRecipeInteractionService
+    IUnitOfWork unitOfWork,
+    IClock clock) : IRecipeInteractionService
 {
     public async Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked)
     {
@@ -22,7 +23,7 @@ public class RecipeInteractionService(
             {
                 RecipeId = recipe.Id,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = clock.UtcNow
             });
         }
 
@@ -48,7 +49,7 @@ public class RecipeInteractionService(
             {
                 RecipeId = recipe.Id,
                 UserId = userId,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = clock.UtcNow
             });
         }
 

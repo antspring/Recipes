@@ -12,10 +12,12 @@ namespace Recipes.Application.Services.Implementations;
 public class JwtGenerateService : IJwtGenerateService
 {
     private readonly IJwtOptions _jwtOptions;
+    private readonly IClock _clock;
 
-    public JwtGenerateService(IJwtOptions jwtOptions)
+    public JwtGenerateService(IJwtOptions jwtOptions, IClock clock)
     {
         _jwtOptions = jwtOptions;
+        _clock = clock;
     }
 
     public string GenerateAccessToken(IEnumerable<Claim> claims)
@@ -28,8 +30,8 @@ public class JwtGenerateService : IJwtGenerateService
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             Subject = new ClaimsIdentity(claims),
-            NotBefore = DateTime.UtcNow,
-            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessExpirationMinutes),
+            NotBefore = _clock.UtcNow,
+            Expires = _clock.UtcNow.AddMinutes(_jwtOptions.AccessExpirationMinutes),
             SigningCredentials = new SigningCredentials(
                 securityKey,
                 SecurityAlgorithms.HmacSha256Signature)
@@ -48,7 +50,7 @@ public class JwtGenerateService : IJwtGenerateService
         return new GeneratedRefreshToken(
             userId,
             toke,
-            DateTime.UtcNow.AddDays(_jwtOptions.RefreshExpirationDays),
+            _clock.UtcNow.AddDays(_jwtOptions.RefreshExpirationDays),
             userAgent);
     }
 }

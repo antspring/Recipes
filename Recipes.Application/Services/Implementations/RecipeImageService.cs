@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
@@ -9,7 +8,8 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeImageService(
     IUnitOfWork unitOfWork,
-    IImageStorageService imageStorageService) : IRecipeImageService
+    IImageStorageService imageStorageService,
+    IClock clock) : IRecipeImageService
 {
     public async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
     {
@@ -25,7 +25,7 @@ public class RecipeImageService(
             var image = new Image
             {
                 FileName = fileName,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = clock.UtcNow,
             };
             await unitOfWork.Images.AddAsync(image);
 

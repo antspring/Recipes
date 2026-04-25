@@ -4,7 +4,9 @@ using Recipes.Application.UnitOfWork.Interfaces;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class RefreshTokenService(IUnitOfWork unitOfWork) : IRefreshTokenService
+public class RefreshTokenService(
+    IUnitOfWork unitOfWork,
+    IClock clock) : IRefreshTokenService
 {
     public async Task<StoredRefreshToken> GetValidTokenAsync(string refreshToken)
     {
@@ -12,7 +14,7 @@ public class RefreshTokenService(IUnitOfWork unitOfWork) : IRefreshTokenService
         if (storedRefreshToken == null)
             throw new ArgumentException("Invalid refresh token");
 
-        if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
+        if (storedRefreshToken.ExpiresAt < clock.UtcNow)
             throw new ArgumentException("Refresh token expired");
 
         return storedRefreshToken;
