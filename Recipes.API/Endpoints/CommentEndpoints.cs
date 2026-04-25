@@ -1,9 +1,7 @@
 using System.Security.Claims;
-using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.Helpers;
-using Recipes.API.DTO.Requests;
 using Recipes.API.DTO.Requests.Comment;
 using Recipes.Application.DTO.Comment;
 using Recipes.Application.Services.Interfaces;

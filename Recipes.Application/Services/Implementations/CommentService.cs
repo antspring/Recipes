@@ -1,5 +1,6 @@
 using AutoMapper;
 using Recipes.Application.DTO.Comment;
+using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
@@ -24,10 +25,7 @@ public class CommentService(
         await unitOfWork.Comments.AddAsync(comment);
         await unitOfWork.SaveChangesAsync();
 
-        var createdComment = await unitOfWork.Comments.GetByIdAsync(comment.Id);
-        var dto = CommentDto.FromComment(createdComment!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredCommentDtoAsync(comment.Id);
     }
 
     public async Task<PagedResult<CommentDto>> GetCommentsByRecipeIdAsync(Guid recipeId, int page = 1,
@@ -68,10 +66,7 @@ public class CommentService(
         await unitOfWork.Comments.UpdateAsync(comment);
         await unitOfWork.SaveChangesAsync();
 
-        var updatedComment = await unitOfWork.Comments.GetByIdAsync(updateCommentDto.Id);
-        var dto = CommentDto.FromComment(updatedComment!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredCommentDtoAsync(updateCommentDto.Id);
     }
 
     public async Task DeleteCommentAsync(Guid commentId, Guid userId)
@@ -93,7 +88,7 @@ public class CommentService(
         await unitOfWork.SaveChangesAsync();
     }
 
-    private async Task AddImagesToCommentAsync(Comment comment, List<Recipes.Application.DTO.Recipe.ImageUpload> images)
+    private async Task AddImagesToCommentAsync(Comment comment, List<ImageUpload> images)
     {
         if (images.Count == 0)
             return;
@@ -131,5 +126,16 @@ public class CommentService(
             await unitOfWork.Images.DeleteAsync(image);
             comment.Images.Remove(image);
         }
+    }
+
+    private async Task<CommentDto> GetRequiredCommentDtoAsync(Guid commentId)
+    {
+        var comment = await unitOfWork.Comments.GetByIdAsync(commentId);
+        if (comment == null)
+            throw new InvalidOperationException("Comment not found after save");
+
+        var dto = CommentDto.FromComment(comment);
+        dto.ApplyImageUrls(imageStorageService);
+        return dto;
     }
 }
