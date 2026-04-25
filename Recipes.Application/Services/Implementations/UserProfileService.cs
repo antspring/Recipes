@@ -19,7 +19,7 @@ public class UserProfileService(
         user.AvatarUrl = await userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
 
         mapper.Map(updateUserDto, user);
-        user.UpdatedAt = DateTime.Now.ToUniversalTime();
+        user.UpdatedAt = DateTime.UtcNow;
 
         await unitOfWork.Users.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
@@ -33,7 +33,7 @@ public class UserProfileService(
         await userAvatarService.DeleteAvatarAsync(user);
 
         user.AvatarUrl = null;
-        user.UpdatedAt = DateTime.Now.ToUniversalTime();
+        user.UpdatedAt = DateTime.UtcNow;
 
         await unitOfWork.Users.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();

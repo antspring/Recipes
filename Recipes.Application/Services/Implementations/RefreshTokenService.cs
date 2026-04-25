@@ -12,7 +12,7 @@ public class RefreshTokenService(IUnitOfWork unitOfWork) : IRefreshTokenService
         if (storedRefreshToken == null)
             throw new ArgumentException("Invalid refresh token");
 
-        if (storedRefreshToken.ExpiresAt < DateTime.Now)
+        if (storedRefreshToken.ExpiresAt < DateTime.UtcNow)
             throw new ArgumentException("Refresh token expired");
 
         return storedRefreshToken;

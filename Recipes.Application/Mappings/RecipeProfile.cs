@@ -12,12 +12,12 @@ public class RecipeProfile : Profile
         CreateMap<CreateRecipeDto, Recipe>()
             .ForMember(d => d.Id, opt => opt.MapFrom(s => Guid.NewGuid()))
             .ForMember(d => d.Creator, opt => opt.Ignore())
-            .ForMember(d => d.CreatedAt, opt => opt.MapFrom(s => DateTime.Now.ToUniversalTime()))
-            .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(s => DateTime.Now.ToUniversalTime()));
+            .ForMember(d => d.CreatedAt, opt => opt.MapFrom(s => DateTime.UtcNow))
+            .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(s => DateTime.UtcNow));
 
         CreateMap<UpdateRecipeDto, Recipe>()
             .ForMember(d => d.Creator, opt => opt.Ignore())
             .ForMember(d => d.CreatedAt, opt => opt.Ignore())
-            .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(s => DateTime.Now.ToUniversalTime()));
+            .ForMember(d => d.UpdatedAt, opt => opt.MapFrom(s => DateTime.UtcNow));
     }
 }

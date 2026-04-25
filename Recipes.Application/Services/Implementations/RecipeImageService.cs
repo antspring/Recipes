@@ -25,7 +25,7 @@ public class RecipeImageService(
             var image = new Image
             {
                 FileName = fileName,
-                CreatedAt = DateTime.Now.ToUniversalTime(),
+                CreatedAt = DateTime.UtcNow,
             };
             await unitOfWork.Images.AddAsync(image);
 

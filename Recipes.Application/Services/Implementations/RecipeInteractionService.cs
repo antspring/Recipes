@@ -22,7 +22,7 @@ public class RecipeInteractionService(
             {
                 RecipeId = recipe.Id,
                 UserId = userId,
-                CreatedAt = DateTime.Now.ToUniversalTime()
+                CreatedAt = DateTime.UtcNow
             });
         }
 
@@ -48,7 +48,7 @@ public class RecipeInteractionService(
             {
                 RecipeId = recipe.Id,
                 UserId = userId,
-                CreatedAt = DateTime.Now.ToUniversalTime()
+                CreatedAt = DateTime.UtcNow
             });
         }
 

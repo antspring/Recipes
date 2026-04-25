@@ -28,8 +28,8 @@ public class JwtGenerateService : IJwtGenerateService
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
             Subject = new ClaimsIdentity(claims),
-            NotBefore = DateTime.Now,
-            Expires = DateTime.Now.AddMinutes(_jwtOptions.AccessExpirationMinutes),
+            NotBefore = DateTime.UtcNow,
+            Expires = DateTime.UtcNow.AddMinutes(_jwtOptions.AccessExpirationMinutes),
             SigningCredentials = new SigningCredentials(
                 securityKey,
                 SecurityAlgorithms.HmacSha256Signature)
@@ -48,7 +48,7 @@ public class JwtGenerateService : IJwtGenerateService
         return new GeneratedRefreshToken(
             userId,
             toke,
-            DateTime.Now.AddDays(_jwtOptions.RefreshExpirationDays).ToUniversalTime(),
+            DateTime.UtcNow.AddDays(_jwtOptions.RefreshExpirationDays),
             userAgent);
     }
 }

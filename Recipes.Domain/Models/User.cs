@@ -19,8 +19,8 @@ public class User
 
     public string Password { get; set; } = null!;
 
-    public DateTime CreatedAt { get; init; } = DateTime.Now.ToUniversalTime();
-    public DateTime UpdatedAt { get; set; } = DateTime.Now.ToUniversalTime();
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public List<Recipe> Recipes { get; init; } = new();
     public List<Like> Likes { get; init; } = new();
