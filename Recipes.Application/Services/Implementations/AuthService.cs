@@ -36,6 +36,7 @@ public class AuthService : IAuthService
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
         var user = _mapper.Map<User>(createUserDto);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
 
         if (createUserDto.Avatar != null)
         {
@@ -173,7 +174,7 @@ public class AuthService : IAuthService
         return new UserAuthDto(user, "", "");
     }
 
-    private (string, RefreshToken) GetTokens(User user, string? userAgent)
+    private (string, GeneratedRefreshToken) GetTokens(User user, string? userAgent)
     {
         var claims = _claimsProvider.GetClaims(user);
         var accessToken = _jwtGenerateService.GenerateAccessToken(claims);

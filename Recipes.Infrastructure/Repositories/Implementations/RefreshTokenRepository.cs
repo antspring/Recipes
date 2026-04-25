@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Recipes.Application.Auth;
 using Recipes.Application.Repositories.Interfaces;
+using Recipes.Infrastructure.Models;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
@@ -13,14 +14,21 @@ public class RefreshTokenRepository : IRefreshTokenRepository
         _dbContext = dbContext;
     }
 
-    public Task<RefreshToken?> GetAsync(string refreshToken)
+    public async Task<StoredRefreshToken?> GetAsync(string refreshToken)
     {
-        return _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken);
+        var entity = await _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken);
+        return entity == null
+            ? null
+            : new StoredRefreshToken(entity.Id, entity.UserId, entity.Token, entity.ExpiresAt, entity.UserAgent);
     }
 
-    public async Task CreateAsync(RefreshToken refreshToken)
+    public async Task CreateAsync(GeneratedRefreshToken refreshToken)
     {
-        await _dbContext.RefreshTokens.AddAsync(refreshToken);
+        await _dbContext.RefreshTokens.AddAsync(new RefreshToken(
+            refreshToken.UserId,
+            refreshToken.Token,
+            refreshToken.ExpiresAt,
+            refreshToken.UserAgent));
     }
 
     public Task RemoveAsync(Guid id)

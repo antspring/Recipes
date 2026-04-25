@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Recipes.Application.Auth;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
 using Recipes.Domain.Models.UserRelations;
+using Recipes.Infrastructure.Models;
 
 namespace Recipes.Infrastructure;
 
@@ -24,14 +24,6 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().HasIndex(u => new { u.UserName, u.Email }).IsUnique();
-
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.Property(e => e.Password)
-                .HasConversion(
-                    v => BCrypt.Net.BCrypt.HashPassword(v),
-                    v => v);
-        });
 
         modelBuilder.Entity<RecipeIngredient>(entity =>
         {
