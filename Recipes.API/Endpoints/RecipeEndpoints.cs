@@ -92,19 +92,13 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
-                    if (existingRecipe == null)
-                        return Results.NotFound();
-
-                    if (existingRecipe.CreatorId != userId)
-                        return Results.Forbid();
-
                     var ingredients =
                         JsonSerializer.Deserialize<List<UpdateRecipeIngredientRequest>>(request.IngredientsJson)
                         ?? throw new InvalidOperationException("Invalid ingredients JSON");
 
                     var updateRecipeDto = mapper.Map<UpdateRecipeDto>(request);
                     updateRecipeDto.Id = id;
+                    updateRecipeDto.ActorUserId = userId;
                     updateRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
 
                     if (!string.IsNullOrEmpty(request.ImageIdsToDelete))
@@ -112,16 +106,6 @@ public static class RecipeEndpoints
                         var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDelete);
                         if (imageIdsToDelete != null && imageIdsToDelete.Count > 0)
                         {
-                            var existingImageIds = existingRecipe.Images.Select(i => i.Id).ToList();
-                            var invalidImageIds = imageIdsToDelete
-                                .Where(id => !existingImageIds.Contains(id))
-                                .ToList();
-
-                            if (invalidImageIds.Count > 0)
-                            {
-                                throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
-                            }
-
                             updateRecipeDto.ImageIdsToDelete = imageIdsToDelete;
                         }
                     }
@@ -135,6 +119,10 @@ public static class RecipeEndpoints
                     var recipe = await recipeCrudService.UpdateRecipeAsync(updateRecipeDto);
 
                     return Results.Ok(recipe);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return Results.Forbid();
                 }
                 catch (Exception ex)
                 {
@@ -157,15 +145,12 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
-                    if (existingRecipe == null)
-                        return Results.NotFound();
-
-                    if (existingRecipe.CreatorId != userId)
-                        return Results.Forbid();
-
-                    await recipeCrudService.DeleteRecipeAsync(id);
+                    await recipeCrudService.DeleteRecipeAsync(id, userId);
                     return Results.NoContent();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return Results.Forbid();
                 }
                 catch (Exception ex)
                 {

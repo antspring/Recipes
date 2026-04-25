@@ -9,5 +9,5 @@ public interface IRecipeCrudService
     Task<List<RecipeDto>> GetAllRecipesAsync();
     Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId);
     Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto);
-    Task DeleteRecipeAsync(Guid id);
+    Task DeleteRecipeAsync(Guid id, Guid actorUserId);
 }

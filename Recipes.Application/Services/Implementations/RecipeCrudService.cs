@@ -71,6 +71,9 @@ public class RecipeCrudService(
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
+        if (recipe.CreatorId != updateRecipeDto.ActorUserId)
+            throw new UnauthorizedAccessException("Only the author can update this recipe");
+
         mapper.Map(updateRecipeDto, recipe);
 
         if (updateRecipeDto.Ingredients != null)
@@ -88,6 +91,14 @@ public class RecipeCrudService(
 
         if (updateRecipeDto.ImageIdsToDelete != null)
         {
+            var existingImageIds = recipe.Images.Select(i => i.Id).ToHashSet();
+            var invalidImageIds = updateRecipeDto.ImageIdsToDelete
+                .Where(id => !existingImageIds.Contains(id))
+                .ToList();
+
+            if (invalidImageIds.Count > 0)
+                throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
+
             await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
         }
 
@@ -100,11 +111,14 @@ public class RecipeCrudService(
         return dto;
     }
 
-    public async Task DeleteRecipeAsync(Guid id)
+    public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
     {
         var recipe = await unitOfWork.Recipes.GetByIdAsync(id);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
+
+        if (recipe.CreatorId != actorUserId)
+            throw new UnauthorizedAccessException("Only the author can delete this recipe");
 
         if (recipe.RecipeImages != null && recipe.RecipeImages.Count > 0)
         {
