@@ -9,7 +9,7 @@ namespace Recipes.Application.Services.Implementations;
 public class UserAuthTokenService(
     IUnitOfWork unitOfWork,
     IJwtGenerateService jwtGenerateService,
-    ClaimsProvider claimsProvider) : IUserAuthTokenService
+    IClaimsProvider claimsProvider) : IUserAuthTokenService
 {
     public async Task<UserAuthDto> IssueTokensAsync(User user, string? userAgent)
     {

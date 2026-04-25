@@ -3,9 +3,9 @@ using Recipes.Domain.Models;
 
 namespace Recipes.Application.Providers;
 
-public class ClaimsProvider
+public class ClaimsProvider : IClaimsProvider
 {
-    public List<Claim> GetClaims(User user)
+    public IReadOnlyList<Claim> GetClaims(User user)
     {
         var claims = new List<Claim>
         {

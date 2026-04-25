@@ -37,7 +37,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<ICommentService, CommentService>();
-        services.AddScoped<ClaimsProvider>();
+        services.AddScoped<IClaimsProvider, ClaimsProvider>();
         services
             .AddScoped<IUserIngredientRelationService<UnwantedIngredients>,
                 UserIngredientRelationService<UnwantedIngredients>>();
