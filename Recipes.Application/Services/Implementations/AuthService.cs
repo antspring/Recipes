@@ -12,6 +12,7 @@ public class AuthService : IAuthService
     private readonly IMapper _mapper;
     private readonly IUserAccessService _userAccessService;
     private readonly IUserAvatarService _userAvatarService;
+    private readonly IUserProfileService _userProfileService;
     private readonly IUserAuthTokenService _userAuthTokenService;
 
     public AuthService(
@@ -19,22 +20,20 @@ public class AuthService : IAuthService
         IMapper mapper,
         IUserAccessService userAccessService,
         IUserAvatarService userAvatarService,
+        IUserProfileService userProfileService,
         IUserAuthTokenService userAuthTokenService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _userAccessService = userAccessService;
         _userAvatarService = userAvatarService;
+        _userProfileService = userProfileService;
         _userAuthTokenService = userAuthTokenService;
     }
 
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
-        var user = _mapper.Map<User>(createUserDto);
-        user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
-        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
-
-        user = await _unitOfWork.Users.CreateAsync(user);
+        var user = await CreateUserAsync(createUserDto);
         await _unitOfWork.SaveChangesAsync();
         return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
@@ -66,29 +65,21 @@ public class AuthService : IAuthService
 
     public async Task<UserAuthDto> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto, string? userAgent)
     {
-        var user = await _userAccessService.GetRequiredUserAsync(userId);
-        await _userAvatarService.DeleteAvatarAsync(user);
-        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
-
-        _mapper.Map(updateUserDto, user);
-        user.UpdatedAt = DateTime.Now.ToUniversalTime();
-
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
+        var user = await _userProfileService.UpdateUserAsync(userId, updateUserDto);
         return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> DeleteAvatarAsync(Guid userId)
     {
-        var user = await _userAccessService.GetRequiredUserAsync(userId);
-        await _userAvatarService.DeleteAvatarAsync(user);
-
-        user.AvatarUrl = null;
-        user.UpdatedAt = DateTime.Now.ToUniversalTime();
-
-        await _unitOfWork.Users.UpdateAsync(user);
-        await _unitOfWork.SaveChangesAsync();
-
+        var user = await _userProfileService.DeleteAvatarAsync(userId);
         return new UserAuthDto(user, "", "");
+    }
+
+    private async Task<User> CreateUserAsync(CreateUserDto createUserDto)
+    {
+        var user = _mapper.Map<User>(createUserDto);
+        user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
+        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
+        return await _unitOfWork.Users.CreateAsync(user);
     }
 }
