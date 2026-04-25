@@ -3,7 +3,6 @@ using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
-using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Application.Services.Implementations;
 
@@ -31,33 +30,19 @@ public class RecipeCrudService(
     public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id)
     {
         var recipe = await unitOfWork.Recipes.GetByIdAsync(id);
-        if (recipe == null) return null;
-
-        var dto = RecipeDto.FromRecipe(recipe);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return recipe == null ? null : ToRecipeDto(recipe);
     }
 
     public async Task<List<RecipeDto>> GetAllRecipesAsync()
     {
         var recipes = await unitOfWork.Recipes.GetAllAsync();
-        var dtos = recipes.Select(RecipeDto.FromRecipe).ToList();
-        return dtos.Select(dto =>
-        {
-            dto.ApplyImageUrls(imageStorageService);
-            return dto;
-        }).ToList();
+        return ToRecipeDtos(recipes);
     }
 
     public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId)
     {
         var recipes = await unitOfWork.Recipes.GetByCreatorIdAsync(creatorId);
-        var dtos = recipes.Select(RecipeDto.FromRecipe).ToList();
-        return dtos.Select(dto =>
-        {
-            dto.ApplyImageUrls(imageStorageService);
-            return dto;
-        }).ToList();
+        return ToRecipeDtos(recipes);
     }
 
     public async Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto)
@@ -127,8 +112,18 @@ public class RecipeCrudService(
         if (recipe == null)
             throw new InvalidOperationException("Recipe not found after save");
 
+        return ToRecipeDto(recipe);
+    }
+
+    private RecipeDto ToRecipeDto(Recipe recipe)
+    {
         var dto = RecipeDto.FromRecipe(recipe);
         dto.ApplyImageUrls(imageStorageService);
         return dto;
+    }
+
+    private List<RecipeDto> ToRecipeDtos(IEnumerable<Recipe> recipes)
+    {
+        return recipes.Select(ToRecipeDto).ToList();
     }
 }

@@ -32,12 +32,7 @@ public class CommentService(
         int pageSize = 20, DateTime? from = null, DateTime? to = null)
     {
         var pagedResult = await unitOfWork.Comments.GetByRecipeIdPagedAsync(recipeId, page, pageSize, from, to);
-        var dtos = pagedResult.Items.Select(CommentDto.FromComment).ToList();
-
-        foreach (var dto in dtos)
-        {
-            dto.ApplyImageUrls(imageStorageService);
-        }
+        var dtos = ToCommentDtos(pagedResult.Items);
 
         return new PagedResult<CommentDto>
         {
@@ -57,7 +52,7 @@ public class CommentService(
         if (comment.CommentatorId != updateCommentDto.CommentatorId)
             throw new UnauthorizedAccessException("Only the author can update this comment");
 
-        if(updateCommentDto.Value is not null)
+        if (updateCommentDto.Value is not null)
             comment.Value = updateCommentDto.Value;
 
         await DeleteImagesFromCommentAsync(comment, updateCommentDto.ImageIdsToDelete);
@@ -135,8 +130,18 @@ public class CommentService(
         if (comment == null)
             throw new InvalidOperationException("Comment not found after save");
 
+        return ToCommentDto(comment);
+    }
+
+    private CommentDto ToCommentDto(Comment comment)
+    {
         var dto = CommentDto.FromComment(comment);
         dto.ApplyImageUrls(imageStorageService);
         return dto;
+    }
+
+    private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
+    {
+        return comments.Select(ToCommentDto).ToList();
     }
 }
