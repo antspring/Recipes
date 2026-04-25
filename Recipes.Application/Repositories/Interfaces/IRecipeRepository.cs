@@ -13,6 +13,10 @@ public interface IRecipeRepository
     Task UpdateAsync(Recipe recipe);
     Task DeleteAsync(Recipe recipe);
     Task<bool> ExistsAsync(Guid id);
-    Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked);
-    Task ToggleFavoriteAsync(Recipe recipe, Guid userId, bool isFavorite);
+    Task<Like?> GetLikeAsync(Guid recipeId, Guid userId);
+    Task AddLikeAsync(Like like);
+    Task RemoveLikeAsync(Like like);
+    Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId);
+    Task AddFavoriteAsync(Favorite favorite);
+    Task RemoveFavoriteAsync(Favorite favorite);
 }

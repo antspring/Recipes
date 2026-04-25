@@ -1,4 +1,5 @@
-using Microsoft.Extensions.Logging;
+using Recipes.Domain.Models.RecipesRelations;
+using Recipes.Domain.Models.UserRelations;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 
@@ -13,7 +14,23 @@ public class RecipeInteractionService(
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
-        await unitOfWork.Recipes.ToggleLikeAsync(recipe, userId, isLiked);
+        var existingLike = await unitOfWork.Recipes.GetLikeAsync(recipeId, userId);
+
+        if (isLiked && existingLike == null)
+        {
+            await unitOfWork.Recipes.AddLikeAsync(new Like
+            {
+                RecipeId = recipe.Id,
+                UserId = userId,
+                CreatedAt = DateTime.Now.ToUniversalTime()
+            });
+        }
+
+        if (!isLiked && existingLike != null)
+        {
+            await unitOfWork.Recipes.RemoveLikeAsync(existingLike);
+        }
+
         await unitOfWork.SaveChangesAsync();
     }
 
@@ -23,7 +40,23 @@ public class RecipeInteractionService(
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
-        await unitOfWork.Recipes.ToggleFavoriteAsync(recipe, userId, isFavorite);
+        var existingFavorite = await unitOfWork.Recipes.GetFavoriteAsync(recipeId, userId);
+
+        if (isFavorite && existingFavorite == null)
+        {
+            await unitOfWork.Recipes.AddFavoriteAsync(new Favorite
+            {
+                RecipeId = recipe.Id,
+                UserId = userId,
+                CreatedAt = DateTime.Now.ToUniversalTime()
+            });
+        }
+
+        if (!isFavorite && existingFavorite != null)
+        {
+            await unitOfWork.Recipes.RemoveFavoriteAsync(existingFavorite);
+        }
+
         await unitOfWork.SaveChangesAsync();
     }
 }

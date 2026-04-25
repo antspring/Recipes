@@ -69,56 +69,35 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return await context.Recipes.AnyAsync(r => r.Id == id);
     }
 
-    public async Task ToggleLikeAsync(Recipe recipe, Guid userId, bool isLiked)
+    public Task<Like?> GetLikeAsync(Guid recipeId, Guid userId)
     {
-        var existingLike = recipe.Likes.FirstOrDefault(l => l.UserId == userId);
-
-        if (isLiked)
-        {
-            if (existingLike == null)
-            {
-                var like = new Like
-                {
-                    RecipeId = recipe.Id,
-                    UserId = userId,
-                    CreatedAt = DateTime.Now.ToUniversalTime()
-                };
-                recipe.Likes.Add(like);
-            }
-        }
-        else
-        {
-            if (existingLike != null)
-            {
-                recipe.Likes.Remove(existingLike);
-            }
-        }
+        return context.Likes.FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);
     }
 
-    public async Task ToggleFavoriteAsync(Recipe recipe, Guid userId, bool isFavorite)
+    public async Task AddLikeAsync(Like like)
     {
-        var existingFavorite = await context.Favorites
-            .FirstOrDefaultAsync(f => f.RecipeId == recipe.Id && f.UserId == userId);
+        await context.Likes.AddAsync(like);
+    }
 
-        if (isFavorite)
-        {
-            if (existingFavorite == null)
-            {
-                var favorite = new Favorite
-                {
-                    RecipeId = recipe.Id,
-                    UserId = userId,
-                    CreatedAt = DateTime.Now.ToUniversalTime()
-                };
-                await context.Favorites.AddAsync(favorite);
-            }
-        }
-        else
-        {
-            if (existingFavorite != null)
-            {
-                context.Favorites.Remove(existingFavorite);
-            }
-        }
+    public Task RemoveLikeAsync(Like like)
+    {
+        context.Likes.Remove(like);
+        return Task.CompletedTask;
+    }
+
+    public Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId)
+    {
+        return context.Favorites.FirstOrDefaultAsync(f => f.RecipeId == recipeId && f.UserId == userId);
+    }
+
+    public async Task AddFavoriteAsync(Favorite favorite)
+    {
+        await context.Favorites.AddAsync(favorite);
+    }
+
+    public Task RemoveFavoriteAsync(Favorite favorite)
+    {
+        context.Favorites.Remove(favorite);
+        return Task.CompletedTask;
     }
 }
