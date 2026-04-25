@@ -32,9 +32,9 @@ public class UserRepository : IUserRepository
         return _dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public async Task<User> UpdateAsync(User user)
+    public Task<User> UpdateAsync(User user)
     {
         _dbContext.Users.Update(user);
-        return user;
+        return Task.FromResult(user);
     }
 }
