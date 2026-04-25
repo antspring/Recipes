@@ -1,7 +1,5 @@
 using AutoMapper;
-using Recipes.Application.Auth;
 using Recipes.Application.DTO.User;
-using Recipes.Application.Providers;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
@@ -12,22 +10,19 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IJwtGenerateService _jwtGenerateService;
-    private readonly ClaimsProvider _claimsProvider;
     private readonly IUserAvatarService _userAvatarService;
+    private readonly IUserAuthTokenService _userAuthTokenService;
 
     public AuthService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IJwtGenerateService jwtGenerateService,
-        ClaimsProvider claimsProvider,
-        IUserAvatarService userAvatarService)
+        IUserAvatarService userAvatarService,
+        IUserAuthTokenService userAuthTokenService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _jwtGenerateService = jwtGenerateService;
-        _claimsProvider = claimsProvider;
         _userAvatarService = userAvatarService;
+        _userAuthTokenService = userAuthTokenService;
     }
 
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
@@ -37,13 +32,8 @@ public class AuthService : IAuthService
         user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
 
         user = await _unitOfWork.Users.CreateAsync(user);
-
-        var (accessToken, refreshToken) = GetTokens(user, userAgent);
-        await _unitOfWork.RefreshTokens.CreateAsync(refreshToken);
-
         await _unitOfWork.SaveChangesAsync();
-
-        return new UserAuthDto(user, accessToken, refreshToken.Token);
+        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> Login(LoginUserDto loginUserDto)
@@ -65,11 +55,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("Invalid password");
         }
 
-        var (accessToken, refreshToken) = GetTokens(user, loginUserDto.UserAgent);
-        await _unitOfWork.RefreshTokens.CreateAsync(refreshToken);
-        await _unitOfWork.SaveChangesAsync();
-
-        return new UserAuthDto(user, accessToken, refreshToken.Token);
+        return await _userAuthTokenService.IssueTokensAsync(user, loginUserDto.UserAgent);
     }
 
     public async Task<UserAuthDto> UpdateToken(string refreshToken, string? userAgent)
@@ -93,11 +79,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("User not found");
         }
 
-        var (accessToken, newRefreshToken) = GetTokens(user, userAgent);
-        await _unitOfWork.RefreshTokens.CreateAsync(newRefreshToken);
-        await _unitOfWork.SaveChangesAsync();
-
-        return new UserAuthDto(user, accessToken, newRefreshToken.Token);
+        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto, string? userAgent)
@@ -116,12 +98,7 @@ public class AuthService : IAuthService
 
         await _unitOfWork.Users.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
-
-        var (accessToken, refreshToken) = GetTokens(user, userAgent);
-        await _unitOfWork.RefreshTokens.CreateAsync(refreshToken);
-        await _unitOfWork.SaveChangesAsync();
-
-        return new UserAuthDto(user, accessToken, refreshToken.Token);
+        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> DeleteAvatarAsync(Guid userId)
@@ -141,13 +118,5 @@ public class AuthService : IAuthService
         await _unitOfWork.SaveChangesAsync();
 
         return new UserAuthDto(user, "", "");
-    }
-
-    private (string, GeneratedRefreshToken) GetTokens(User user, string? userAgent)
-    {
-        var claims = _claimsProvider.GetClaims(user);
-        var accessToken = _jwtGenerateService.GenerateAccessToken(claims);
-        var refreshToken = _jwtGenerateService.GenerateRefreshToken(user.Id, userAgent);
-        return (accessToken, refreshToken);
     }
 }
