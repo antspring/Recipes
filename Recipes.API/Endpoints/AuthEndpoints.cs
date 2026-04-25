@@ -1,8 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Recipes.API.DTO.Requests;
-using Recipes.API.DTO.Responses;
+using Recipes.API.Helpers;
 using Recipes.Application.Services.Interfaces;
 using MiniValidation;
 using Recipes.API.DTO.Requests.User;
@@ -41,15 +40,11 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return EndpointErrorHelper.AuthBadRequest(ex);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
                 {
-                    return Results.BadRequest(
-                        new
-                        {
-                            error = "User with this email or username already exists"
-                        });
+                    return EndpointErrorHelper.AuthUniqueViolation("User with this email or username already exists");
                 }
             })
             .DisableAntiforgery()
@@ -78,11 +73,11 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return EndpointErrorHelper.AuthBadRequest(ex);
                 }
                 catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
                 {
-                    return Results.BadRequest(new { error = "Invalid credentials" });
+                    return EndpointErrorHelper.AuthUniqueViolation("Invalid credentials");
                 }
             })
             .AllowAnonymous();
@@ -110,7 +105,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return EndpointErrorHelper.AuthBadRequest(ex);
                 }
             })
             .AllowAnonymous();
@@ -139,7 +134,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return EndpointErrorHelper.AuthBadRequest(ex);
                 }
             })
             .DisableAntiforgery()
@@ -163,7 +158,7 @@ public static class AuthEndpoints
                 }
                 catch (ArgumentException ex)
                 {
-                    return Results.BadRequest(new { error = ex.Message });
+                    return EndpointErrorHelper.AuthBadRequest(ex);
                 }
             })
             .RequireAuthorization();

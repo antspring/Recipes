@@ -2,6 +2,16 @@ namespace Recipes.API.Helpers;
 
 public static class EndpointErrorHelper
 {
+    public static IResult AuthBadRequest(ArgumentException exception)
+    {
+        return Results.BadRequest(new { error = exception.Message });
+    }
+
+    public static IResult AuthUniqueViolation(string message)
+    {
+        return Results.BadRequest(new { error = message });
+    }
+
     public static IResult BadRequest(Exception exception)
     {
         return Results.BadRequest(exception.Message);
