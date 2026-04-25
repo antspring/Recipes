@@ -14,33 +14,27 @@ public class AuthService : IAuthService
     private readonly IMapper _mapper;
     private readonly IJwtGenerateService _jwtGenerateService;
     private readonly ClaimsProvider _claimsProvider;
-    private readonly IImageStorageService _imageStorageService;
+    private readonly IUserAvatarService _userAvatarService;
 
     public AuthService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IJwtGenerateService jwtGenerateService,
         ClaimsProvider claimsProvider,
-        IImageStorageService imageStorageService)
+        IUserAvatarService userAvatarService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _jwtGenerateService = jwtGenerateService;
         _claimsProvider = claimsProvider;
-        _imageStorageService = imageStorageService;
+        _userAvatarService = userAvatarService;
     }
 
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
         var user = _mapper.Map<User>(createUserDto);
         user.Password = BCrypt.Net.BCrypt.HashPassword(createUserDto.Password);
-
-        if (createUserDto.Avatar != null)
-        {
-            var fileName = await _imageStorageService.UploadImageAsync(createUserDto.Avatar.Stream,
-                createUserDto.Avatar.FileName, createUserDto.Avatar.ContentType);
-            user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
-        }
+        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
 
         user = await _unitOfWork.Users.CreateAsync(user);
 
@@ -114,21 +108,8 @@ public class AuthService : IAuthService
             throw new ArgumentException("User not found");
         }
 
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            var fileName = ExtractFileName(user.AvatarUrl);
-            if (await _imageStorageService.ImageExistsAsync(fileName))
-            {
-                await _imageStorageService.DeleteImageAsync(fileName);
-            }
-        }
-
-        if (updateUserDto.Avatar != null)
-        {
-            var fileName = await _imageStorageService.UploadImageAsync(updateUserDto.Avatar.Stream,
-                updateUserDto.Avatar.FileName, updateUserDto.Avatar.ContentType);
-            user.AvatarUrl = _imageStorageService.GetImageUrl(fileName);
-        }
+        await _userAvatarService.DeleteAvatarAsync(user);
+        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
 
         _mapper.Map(updateUserDto, user);
         user.UpdatedAt = DateTime.Now.ToUniversalTime();
@@ -151,14 +132,7 @@ public class AuthService : IAuthService
             throw new ArgumentException("User not found");
         }
 
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            var fileName = ExtractFileName(user.AvatarUrl);
-            if (await _imageStorageService.ImageExistsAsync(fileName))
-            {
-                await _imageStorageService.DeleteImageAsync(fileName);
-            }
-        }
+        await _userAvatarService.DeleteAvatarAsync(user);
 
         user.AvatarUrl = null;
         user.UpdatedAt = DateTime.Now.ToUniversalTime();
@@ -175,11 +149,5 @@ public class AuthService : IAuthService
         var accessToken = _jwtGenerateService.GenerateAccessToken(claims);
         var refreshToken = _jwtGenerateService.GenerateRefreshToken(user.Id, userAgent);
         return (accessToken, refreshToken);
-    }
-
-    private static string ExtractFileName(string avatarUrl)
-    {
-        var uri = new Uri(avatarUrl);
-        return uri.Segments.Last();
     }
 }

@@ -18,6 +18,7 @@ public static class DependencyInjectionsServiceCollectionExtension
     public static void AddDependencyInjections(this IServiceCollection services)
     {
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IUserAvatarService, UserAvatarService>();
         services.AddScoped<IRecipeCrudService, RecipeCrudService>();
         services.AddScoped<IRecipeInteractionService, RecipeInteractionService>();
         services.AddScoped<IRecipeImageService, RecipeImageService>();
