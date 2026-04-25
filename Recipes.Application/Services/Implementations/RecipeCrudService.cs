@@ -17,6 +17,10 @@ public class RecipeCrudService(
     public async Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto)
     {
         var recipe = mapper.Map<Recipe>(createRecipeDto);
+        var now = clock.UtcNow;
+
+        recipe.CreatedAt = now;
+        recipe.UpdatedAt = now;
 
         recipe.RecipeIngredients =
             await ingredientService.SaveRecipeIngredientsAsync(createRecipeDto.Ingredients, recipe.Id);

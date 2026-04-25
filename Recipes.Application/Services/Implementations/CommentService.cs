@@ -20,6 +20,10 @@ public class CommentService(
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
         var comment = mapper.Map<Comment>(createCommentDto);
+        var now = clock.UtcNow;
+
+        comment.CreatedAt = now;
+        comment.UpdatedAt = now;
 
         await AddImagesToCommentAsync(comment, createCommentDto.Images);
 

@@ -18,7 +18,7 @@ public class Recipe
     public Guid CreatorId { get; init; }
     public User Creator { get; init; } = null!;
 
-    public DateTime CreatedAt { get; init; }
+    public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     public TimeSpan? CookingTime { get; set; }
