@@ -23,7 +23,7 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<CommentRequestProfile>();
 }, typeof(Program).Assembly);
 
-builder.Services.AddJwtAuthentication();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {
