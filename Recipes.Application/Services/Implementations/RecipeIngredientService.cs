@@ -13,12 +13,25 @@ public class RecipeIngredientService(
     public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
         Guid recipeId)
     {
+        ValidateUniqueIngredients(ingredientsDto);
         await ValidateIngredientsExistAsync(ingredientsDto);
 
         return ingredientsDto
             .Select(ingredientDto =>
                 mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId)))
             .ToList();
+    }
+
+    private static void ValidateUniqueIngredients(IEnumerable<RecipeIngredientInputDto> ingredientsDto)
+    {
+        var duplicateIds = ingredientsDto
+            .GroupBy(ingredient => ingredient.IngredientId)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateIds.Count > 0)
+            throw new ArgumentException($"Duplicate ingredients: {string.Join(", ", duplicateIds)}");
     }
 
     private async Task ValidateIngredientsExistAsync(IEnumerable<RecipeIngredientInputDto> ingredientsDto)
