@@ -18,7 +18,7 @@ public static class RecipeRequestMapper
 
         var dto = mapper.Map<CreateRecipeDto>(request);
         dto.CreatorId = creatorId;
-        dto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
+        dto.Ingredients = ingredients.Select(ToRecipeIngredientInputDto).ToList();
 
         if (request.Images != null)
             dto.ImageUploads.AddRange(await ImageUploadFactory.CreateManyAsync(request.Images));
@@ -39,7 +39,7 @@ public static class RecipeRequestMapper
         var dto = mapper.Map<UpdateRecipeDto>(request);
         dto.Id = recipeId;
         dto.ActorUserId = actorUserId;
-        dto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
+        dto.Ingredients = ingredients.Select(ToRecipeIngredientInputDto).ToList();
 
         dto.ImageIdsToDelete = DeserializeOptional<List<Guid>>(
             request.ImageIdsToDelete,
@@ -62,6 +62,26 @@ public static class RecipeRequestMapper
         {
             throw new InvalidOperationException(errorMessage, ex);
         }
+    }
+
+    private static RecipeIngredientInputDto ToRecipeIngredientInputDto(CreateRecipeIngredientRequest request)
+    {
+        return new RecipeIngredientInputDto
+        {
+            IngredientId = request.IngredientId,
+            Weight = request.Weight,
+            AlternativeWeight = request.AlternativeWeight
+        };
+    }
+
+    private static RecipeIngredientInputDto ToRecipeIngredientInputDto(UpdateRecipeIngredientRequest request)
+    {
+        return new RecipeIngredientInputDto
+        {
+            IngredientId = request.IngredientId,
+            Weight = request.Weight,
+            AlternativeWeight = request.AlternativeWeight
+        };
     }
 
     private static T? DeserializeOptional<T>(string? json, string errorMessage) where T : class
