@@ -7,9 +7,9 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class CommentRepository(BaseDbContext context) : ICommentRepository
 {
-    public async Task<Comment?> GetByIdAsync(Guid id)
+    public Task<Comment?> GetByIdAsync(Guid id)
     {
-        return await context.Comments
+        return context.Comments
             .Include(c => c.Commentator)
             .Include(c => c.Recipe)
             .Include(c => c.Images)
@@ -46,9 +46,9 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
         };
     }
 
-    public async Task AddAsync(Comment comment)
+    public Task AddAsync(Comment comment)
     {
-        await context.Comments.AddAsync(comment);
+        return context.Comments.AddAsync(comment).AsTask();
     }
 
     public Task UpdateAsync(Comment comment)

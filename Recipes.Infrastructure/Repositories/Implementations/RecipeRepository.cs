@@ -6,9 +6,9 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class RecipeRepository(BaseDbContext context) : IRecipeRepository
 {
-    public async Task<Recipe?> GetByIdAsync(Guid id)
+    public Task<Recipe?> GetByIdAsync(Guid id)
     {
-        return await context.Recipes
+        return context.Recipes
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
             .ThenInclude(ri => ri.Ingredient)
@@ -19,9 +19,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
-    public async Task<List<Recipe>> GetAllAsync()
+    public Task<List<Recipe>> GetAllAsync()
     {
-        return await context.Recipes
+        return context.Recipes
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
             .ThenInclude(ri => ri.Ingredient)
@@ -32,9 +32,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ToListAsync();
     }
 
-    public async Task<List<Recipe>> GetByCreatorIdAsync(Guid creatorId)
+    public Task<List<Recipe>> GetByCreatorIdAsync(Guid creatorId)
     {
-        return await context.Recipes
+        return context.Recipes
             .Where(r => r.CreatorId == creatorId)
             .Include(r => r.Creator)
             .Include(r => r.RecipeIngredients)
@@ -46,9 +46,9 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ToListAsync();
     }
 
-    public async Task AddAsync(Recipe recipe)
+    public Task AddAsync(Recipe recipe)
     {
-        await context.Recipes.AddAsync(recipe);
+        return context.Recipes.AddAsync(recipe).AsTask();
     }
 
     public Task UpdateAsync(Recipe recipe)
@@ -63,8 +63,8 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return Task.CompletedTask;
     }
 
-    public async Task<bool> ExistsAsync(Guid id)
+    public Task<bool> ExistsAsync(Guid id)
     {
-        return await context.Recipes.AnyAsync(r => r.Id == id);
+        return context.Recipes.AnyAsync(r => r.Id == id);
     }
 }

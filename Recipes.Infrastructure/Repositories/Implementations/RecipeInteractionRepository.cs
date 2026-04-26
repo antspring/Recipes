@@ -17,9 +17,9 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
         return context.Likes.FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);
     }
 
-    public async Task AddLikeAsync(Like like)
+    public Task AddLikeAsync(Like like)
     {
-        await context.Likes.AddAsync(like);
+        return context.Likes.AddAsync(like).AsTask();
     }
 
     public Task RemoveLikeAsync(Like like)
@@ -33,9 +33,9 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
         return context.Favorites.FirstOrDefaultAsync(f => f.RecipeId == recipeId && f.UserId == userId);
     }
 
-    public async Task AddFavoriteAsync(Favorite favorite)
+    public Task AddFavoriteAsync(Favorite favorite)
     {
-        await context.Favorites.AddAsync(favorite);
+        return context.Favorites.AddAsync(favorite).AsTask();
     }
 
     public Task RemoveFavoriteAsync(Favorite favorite)

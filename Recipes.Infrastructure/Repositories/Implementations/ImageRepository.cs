@@ -6,9 +6,9 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class ImageRepository(BaseDbContext context) : IImageRepository
 {
-    public async Task AddAsync(Image image)
+    public Task AddAsync(Image image)
     {
-        await context.Images.AddAsync(image);
+        return context.Images.AddAsync(image).AsTask();
     }
 
     public Task DeleteAsync(Image image)

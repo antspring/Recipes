@@ -6,9 +6,9 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class UserRepository(BaseDbContext dbContext) : IUserRepository
 {
-    public async Task CreateAsync(User user)
+    public Task CreateAsync(User user)
     {
-        await dbContext.Users.AddAsync(user);
+        return dbContext.Users.AddAsync(user).AsTask();
     }
 
     public Task<User?> GetByUserNameOrEmailAsync(string? userName, string? email)
