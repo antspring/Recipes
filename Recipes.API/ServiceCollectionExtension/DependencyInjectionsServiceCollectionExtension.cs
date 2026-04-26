@@ -22,6 +22,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IUserAccessService, UserAccessService>();
         services.AddScoped<IUserAvatarService, UserAvatarService>();
+        services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<IUserAuthTokenService, UserAuthTokenService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();

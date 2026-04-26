@@ -1,37 +1,25 @@
-using AutoMapper;
 using Recipes.Application.DTO.User;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Application.UnitOfWork.Interfaces;
-using Recipes.Domain.Models;
 
 namespace Recipes.Application.Services.Implementations;
 
 public class AuthService : IAuthService
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-    private readonly IPasswordHasher _passwordHasher;
     private readonly IUserAccessService _userAccessService;
-    private readonly IUserAvatarService _userAvatarService;
+    private readonly IUserRegistrationService _userRegistrationService;
     private readonly IUserProfileService _userProfileService;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IUserAuthTokenService _userAuthTokenService;
 
     public AuthService(
-        IUnitOfWork unitOfWork,
-        IMapper mapper,
-        IPasswordHasher passwordHasher,
         IUserAccessService userAccessService,
-        IUserAvatarService userAvatarService,
+        IUserRegistrationService userRegistrationService,
         IUserProfileService userProfileService,
         IRefreshTokenService refreshTokenService,
         IUserAuthTokenService userAuthTokenService)
     {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-        _passwordHasher = passwordHasher;
         _userAccessService = userAccessService;
-        _userAvatarService = userAvatarService;
+        _userRegistrationService = userRegistrationService;
         _userProfileService = userProfileService;
         _refreshTokenService = refreshTokenService;
         _userAuthTokenService = userAuthTokenService;
@@ -39,8 +27,7 @@ public class AuthService : IAuthService
 
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
-        var user = await CreateUserAsync(createUserDto);
-        await _unitOfWork.SaveChangesAsync();
+        var user = await _userRegistrationService.RegisterAsync(createUserDto);
         return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
@@ -69,13 +56,5 @@ public class AuthService : IAuthService
     {
         var user = await _userProfileService.DeleteAvatarAsync(userId);
         return new UserAuthDto(user, "", "");
-    }
-
-    private async Task<User> CreateUserAsync(CreateUserDto createUserDto)
-    {
-        var user = _mapper.Map<User>(createUserDto);
-        user.Password = _passwordHasher.Hash(createUserDto.Password);
-        user.AvatarUrl = await _userAvatarService.UploadAvatarAsync(createUserDto.Avatar);
-        return await _unitOfWork.Users.CreateAsync(user);
     }
 }
