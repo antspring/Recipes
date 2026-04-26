@@ -3,7 +3,7 @@ using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Application.Services.Interfaces;
 
-public interface IUserIngredientRelationService<T> where T : class, IUserIngredientRelation
+public interface IUserIngredientRelationService<T> where T : class, IUserIngredientRelation, new()
 {
     Task<List<IngredientDto>> GetUserIngredientRelationAsync(Guid userId);
     Task SetUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds);

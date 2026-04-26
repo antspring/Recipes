@@ -8,7 +8,7 @@ using Recipes.Domain.Models.UserRelations;
 namespace Recipes.Application.Services.Implementations;
 
 public class UserIngredientRelationService<T> : IUserIngredientRelationService<T>
-    where T : class, IUserIngredientRelation
+    where T : class, IUserIngredientRelation, new()
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
@@ -24,11 +24,11 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
 
     private T CreateRelation(Guid userId, Guid ingredientId)
     {
-        return (T)Activator.CreateInstance(
-            typeof(T),
-            userId,
-            ingredientId
-        )!;
+        return new T
+        {
+            UserId = userId,
+            IngredientId = ingredientId
+        };
     }
 
     public async Task<List<IngredientDto>> GetUserIngredientRelationAsync(Guid userId)

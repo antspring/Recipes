@@ -11,10 +11,4 @@ public class Allergens : IUserIngredientRelation
     public Allergens()
     {
     }
-
-    public Allergens(Guid userId, Guid ingredientId)
-    {
-        UserId = userId;
-        IngredientId = ingredientId;
-    }
 }

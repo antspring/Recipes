@@ -11,10 +11,4 @@ public class UnwantedIngredients : IUserIngredientRelation
     public UnwantedIngredients()
     {
     }
-
-    public UnwantedIngredients(Guid userId, Guid ingredientId)
-    {
-        UserId = userId;
-        IngredientId = ingredientId;
-    }
 }
