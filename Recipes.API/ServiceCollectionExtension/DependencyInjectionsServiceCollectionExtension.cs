@@ -53,17 +53,24 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IUserAvatarService, UserAvatarService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IImageStorageService, ImageStorageService>();
+        services.AddImageStorageServices();
         services.AddSingleton<IJwtGenerateService, JwtGenerateService>();
+    }
+
+    private static void AddImageStorageServices(this IServiceCollection services)
+    {
+        services.AddScoped<ImageStorageService>();
+        services.AddScoped<IImageStorageService>(sp => sp.GetRequiredService<ImageStorageService>());
+        services.AddScoped<IImageUrlProvider>(sp => sp.GetRequiredService<ImageStorageService>());
     }
 
     private static void AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRecipeRepository, RecipeRepository>();
+        services.AddScoped<IRecipeExistenceRepository, RecipeExistenceRepository>();
+        services.AddScoped<IRecipeInteractionRepository, RecipeInteractionRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
-        services.AddScoped<IRecipeImageRepository, RecipeImageRepository>();
-        services.AddScoped<IRecipeIngredientRepository, RecipeIngredientRepository>();
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();

@@ -1,5 +1,3 @@
-using Recipes.Application.Services.Interfaces;
-
 namespace Recipes.Application.DTO.Recipe;
 
 public class RecipeDto
@@ -59,11 +57,4 @@ public class RecipeDto
         };
     }
 
-    public void ApplyImageUrls(IImageStorageService imageStorageService)
-    {
-        foreach (var image in Images)
-        {
-            image.Url = imageStorageService.GetImageUrl(image.FileName);
-        }
-    }
 }

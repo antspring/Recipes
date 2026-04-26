@@ -10,6 +10,17 @@ public class UserResponse
     public string AccessToken { get; set; }
     public string RefreshToken { get; set; }
 
+    public UserResponse(Recipes.Domain.Models.User user, string accessToken = "", string refreshToken = "")
+    {
+        UserName = user.UserName;
+        Email = user.Email;
+        Name = user.Name;
+        Description = user.Description;
+        AvatarUrl = user.AvatarUrl;
+        AccessToken = accessToken;
+        RefreshToken = refreshToken;
+    }
+
     public UserResponse(Recipes.Application.DTO.User.UserAuthDto userAuthDto)
     {
         UserName = userAuthDto.UserName;

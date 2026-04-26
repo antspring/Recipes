@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Recipes.Application.DTO.Comment;
+using Recipes.Application.Common;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Domain.Models;
 
@@ -7,23 +7,13 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class CommentRepository(BaseDbContext context) : ICommentRepository
 {
-    public async Task<Comment?> GetByIdAsync(Guid id)
+    public Task<Comment?> GetByIdAsync(Guid id)
     {
-        return await context.Comments
+        return context.Comments
             .Include(c => c.Commentator)
             .Include(c => c.Recipe)
             .Include(c => c.Images)
             .FirstOrDefaultAsync(c => c.Id == id);
-    }
-
-    public async Task<List<Comment>> GetByRecipeIdAsync(Guid recipeId)
-    {
-        return await context.Comments
-            .Include(c => c.Commentator)
-            .Include(c => c.Images)
-            .Where(c => c.RecipeId == recipeId)
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
     }
 
     public async Task<PagedResult<Comment>> GetByRecipeIdPagedAsync(Guid recipeId, int page, int pageSize,
@@ -56,9 +46,9 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
         };
     }
 
-    public async Task AddAsync(Comment comment)
+    public Task AddAsync(Comment comment)
     {
-        await context.Comments.AddAsync(comment);
+        return context.Comments.AddAsync(comment).AsTask();
     }
 
     public Task UpdateAsync(Comment comment)
@@ -71,10 +61,5 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
     {
         context.Comments.Remove(comment);
         return Task.CompletedTask;
-    }
-
-    public async Task<int> CountByRecipeIdAsync(Guid recipeId)
-    {
-        return await context.Comments.CountAsync(c => c.RecipeId == recipeId);
     }
 }

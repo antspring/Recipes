@@ -7,7 +7,8 @@ using Recipes.Domain.Models.UserRelations;
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeInteractionService(
-    IRecipeRepository recipeRepository,
+    IRecipeInteractionRepository recipeInteractionRepository,
+    IRecipeExistenceRepository recipeExistenceRepository,
     IUnitOfWork unitOfWork,
     IClock clock) : IRecipeInteractionService
 {
@@ -15,11 +16,11 @@ public class RecipeInteractionService(
     {
         await EnsureRecipeExistsAsync(recipeId);
 
-        var existingLike = await recipeRepository.GetLikeAsync(recipeId, userId);
+        var existingLike = await recipeInteractionRepository.GetLikeAsync(recipeId, userId);
 
         if (isLiked && existingLike == null)
         {
-            await recipeRepository.AddLikeAsync(new Like
+            await recipeInteractionRepository.AddLikeAsync(new Like
             {
                 RecipeId = recipeId,
                 UserId = userId,
@@ -29,7 +30,7 @@ public class RecipeInteractionService(
 
         if (!isLiked && existingLike != null)
         {
-            await recipeRepository.RemoveLikeAsync(existingLike);
+            await recipeInteractionRepository.RemoveLikeAsync(existingLike);
         }
 
         await unitOfWork.SaveChangesAsync();
@@ -39,11 +40,11 @@ public class RecipeInteractionService(
     {
         await EnsureRecipeExistsAsync(recipeId);
 
-        var existingFavorite = await recipeRepository.GetFavoriteAsync(recipeId, userId);
+        var existingFavorite = await recipeInteractionRepository.GetFavoriteAsync(recipeId, userId);
 
         if (isFavorite && existingFavorite == null)
         {
-            await recipeRepository.AddFavoriteAsync(new Favorite
+            await recipeInteractionRepository.AddFavoriteAsync(new Favorite
             {
                 RecipeId = recipeId,
                 UserId = userId,
@@ -53,7 +54,7 @@ public class RecipeInteractionService(
 
         if (!isFavorite && existingFavorite != null)
         {
-            await recipeRepository.RemoveFavoriteAsync(existingFavorite);
+            await recipeInteractionRepository.RemoveFavoriteAsync(existingFavorite);
         }
 
         await unitOfWork.SaveChangesAsync();
@@ -61,7 +62,7 @@ public class RecipeInteractionService(
 
     private async Task EnsureRecipeExistsAsync(Guid recipeId)
     {
-        if (!await recipeRepository.ExistsAsync(recipeId))
+        if (!await recipeExistenceRepository.ExistsAsync(recipeId))
             throw new ArgumentException("Recipe not found");
     }
 }

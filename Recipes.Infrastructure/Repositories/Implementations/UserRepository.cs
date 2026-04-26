@@ -6,11 +6,9 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class UserRepository(BaseDbContext dbContext) : IUserRepository
 {
-    public async Task<User> CreateAsync(User user)
+    public Task CreateAsync(User user)
     {
-        await dbContext.Users.AddAsync(user);
-
-        return user;
+        return dbContext.Users.AddAsync(user).AsTask();
     }
 
     public Task<User?> GetByUserNameOrEmailAsync(string? userName, string? email)
@@ -25,9 +23,9 @@ public class UserRepository(BaseDbContext dbContext) : IUserRepository
         return dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
     }
 
-    public Task<User> UpdateAsync(User user)
+    public Task UpdateAsync(User user)
     {
         dbContext.Users.Update(user);
-        return Task.FromResult(user);
+        return Task.CompletedTask;
     }
 }

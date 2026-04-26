@@ -23,7 +23,7 @@ public static class CommentEndpoints
                 var result = await commentService.GetCommentsByRecipeIdAsync(recipeId, page, pageSize, from, to);
                 return Results.Ok(result);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
@@ -48,7 +48,11 @@ public static class CommentEndpoints
                     var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
+                {
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
@@ -75,7 +79,15 @@ public static class CommentEndpoints
                     var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
@@ -98,7 +110,11 @@ public static class CommentEndpoints
                     await commentService.DeleteCommentAsync(commentId, userId);
                     return Results.NoContent();
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }

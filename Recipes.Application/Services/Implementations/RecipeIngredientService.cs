@@ -8,7 +8,8 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeIngredientService(
     IIngredientRepository ingredientRepository) : IRecipeIngredientService
 {
-    public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
+    public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(
+        IReadOnlyCollection<RecipeIngredientInputDto> ingredientsDto,
         Guid recipeId)
     {
         ValidateUniqueIngredients(ingredientsDto);

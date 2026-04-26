@@ -32,7 +32,7 @@ public class UserIngredientRelationService<T>(
             .ToList();
     }
 
-    public async Task SetUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
+    public async Task SetUserIngredientRelationAsync(Guid userId, IReadOnlyCollection<Guid> ingredientIds)
     {
         var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
         await repository.RemoveByUserIdAsync(userId);
@@ -44,7 +44,7 @@ public class UserIngredientRelationService<T>(
         await unitOfWork.SaveChangesAsync();
     }
 
-    public async Task AddUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
+    public async Task AddUserIngredientRelationAsync(Guid userId, IReadOnlyCollection<Guid> ingredientIds)
     {
         var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
 
@@ -63,7 +63,7 @@ public class UserIngredientRelationService<T>(
         }
     }
 
-    public async Task RemoveUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
+    public async Task RemoveUserIngredientRelationAsync(Guid userId, IReadOnlyCollection<Guid> ingredientIds)
     {
         var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
 

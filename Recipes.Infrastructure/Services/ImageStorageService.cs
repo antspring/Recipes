@@ -9,7 +9,7 @@ using Recipes.Application.Services.Interfaces;
 namespace Recipes.Infrastructure.Services;
 
 public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILogger<ImageStorageService> logger)
-    : IImageStorageService
+    : IImageStorageService, IImageUrlProvider
 {
     private readonly string _endpoint = objectStorageOptions.Endpoint;
     private readonly string _bucket = objectStorageOptions.Bucket;
@@ -23,14 +23,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         {
             if (field == null)
             {
-                var config = new AmazonS3Config
-                {
-                    ServiceURL = _endpoint,
-                    RegionEndpoint = RegionEndpoint.GetBySystemName(_region),
-                    ForcePathStyle = true
-                };
-
-                field = new AmazonS3Client(_accessKey, _secretKey, config);
+                field = CreateS3Client();
             }
 
             return field;
@@ -42,17 +35,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         try
         {
             var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-
-            var request = new PutObjectRequest
-            {
-                BucketName = _bucket,
-                Key = uniqueFileName,
-                InputStream = fileStream,
-                ContentType = contentType,
-                CannedACL = S3CannedACL.PublicRead
-            };
-
-            await S3Client.PutObjectAsync(request);
+            await S3Client.PutObjectAsync(CreatePutObjectRequest(uniqueFileName, fileStream, contentType));
 
             return uniqueFileName;
         }
@@ -67,13 +50,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
     {
         try
         {
-            var request = new DeleteObjectRequest
-            {
-                BucketName = _bucket,
-                Key = fileName
-            };
-
-            await S3Client.DeleteObjectAsync(request);
+            await S3Client.DeleteObjectAsync(CreateDeleteObjectRequest(fileName));
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -94,32 +71,45 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         }
     }
 
-    public async Task<bool> ImageExistsAsync(string fileName)
-    {
-        try
-        {
-            var request = new GetObjectMetadataRequest
-            {
-                BucketName = _bucket,
-                Key = fileName
-            };
-
-            await S3Client.GetObjectMetadataAsync(request);
-            return true;
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking image existence in Object Storage");
-            return false;
-        }
-    }
-
     public string GetImageUrl(string fileName)
     {
         return $"{_endpoint}/{_bucket}/{fileName}";
     }
+
+    private AmazonS3Client CreateS3Client()
+    {
+        return new AmazonS3Client(_accessKey, _secretKey, CreateS3Config());
+    }
+
+    private AmazonS3Config CreateS3Config()
+    {
+        return new AmazonS3Config
+        {
+            ServiceURL = _endpoint,
+            RegionEndpoint = RegionEndpoint.GetBySystemName(_region),
+            ForcePathStyle = true
+        };
+    }
+
+    private PutObjectRequest CreatePutObjectRequest(string fileName, Stream fileStream, string contentType)
+    {
+        return new PutObjectRequest
+        {
+            BucketName = _bucket,
+            Key = fileName,
+            InputStream = fileStream,
+            ContentType = contentType,
+            CannedACL = S3CannedACL.PublicRead
+        };
+    }
+
+    private DeleteObjectRequest CreateDeleteObjectRequest(string fileName)
+    {
+        return new DeleteObjectRequest
+        {
+            BucketName = _bucket,
+            Key = fileName
+        };
+    }
+
 }

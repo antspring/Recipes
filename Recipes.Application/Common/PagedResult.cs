@@ -1,4 +1,4 @@
-namespace Recipes.Application.DTO.Comment;
+namespace Recipes.Application.Common;
 
 public class PagedResult<T>
 {

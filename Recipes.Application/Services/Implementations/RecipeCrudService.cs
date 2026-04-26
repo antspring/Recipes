@@ -10,7 +10,7 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeCrudService(
     IRecipeRepository recipeRepository,
     IUnitOfWork unitOfWork,
-    IImageStorageService imageStorageService,
+    IImageUrlProvider imageUrlProvider,
     IRecipeImageService imageService,
     IRecipeIngredientService ingredientService,
     IMapper mapper,
@@ -99,7 +99,7 @@ public class RecipeCrudService(
             throw new UnauthorizedAccessException($"Only the author can {action} this recipe");
     }
 
-    private async Task UpdateIngredientsAsync(Recipe recipe, List<RecipeIngredientInputDto>? ingredients)
+    private async Task UpdateIngredientsAsync(Recipe recipe, IReadOnlyCollection<RecipeIngredientInputDto>? ingredients)
     {
         if (ingredients == null)
             return;
@@ -107,7 +107,7 @@ public class RecipeCrudService(
         recipe.RecipeIngredients = await ingredientService.SaveRecipeIngredientsAsync(ingredients, recipe.Id);
     }
 
-    private async Task AddImagesAsync(Recipe recipe, List<ImageUpload> imageUploads)
+    private async Task AddImagesAsync(Recipe recipe, IReadOnlyCollection<ImageUpload> imageUploads)
     {
         if (imageUploads.Count == 0)
             return;
@@ -120,7 +120,7 @@ public class RecipeCrudService(
         recipe.RecipeImages.AddRange(newRecipeImages);
     }
 
-    private async Task DeleteImagesAsync(Recipe recipe, List<Guid>? imageIdsToDelete)
+    private async Task DeleteImagesAsync(Recipe recipe, IReadOnlyCollection<Guid>? imageIdsToDelete)
     {
         if (imageIdsToDelete == null)
             return;
@@ -148,12 +148,20 @@ public class RecipeCrudService(
     private RecipeDto ToRecipeDto(Recipe recipe)
     {
         var dto = RecipeDto.FromRecipe(recipe);
-        dto.ApplyImageUrls(imageStorageService);
+        ApplyImageUrls(dto);
         return dto;
     }
 
     private List<RecipeDto> ToRecipeDtos(IEnumerable<Recipe> recipes)
     {
         return recipes.Select(ToRecipeDto).ToList();
+    }
+
+    private void ApplyImageUrls(RecipeDto recipe)
+    {
+        foreach (var image in recipe.Images)
+        {
+            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
+        }
     }
 }

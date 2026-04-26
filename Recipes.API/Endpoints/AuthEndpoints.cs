@@ -116,8 +116,8 @@ public static class AuthEndpoints
 
                 try
                 {
-                    var userAuthDto = await authService.DeleteAvatarAsync(userId);
-                    return Results.Ok(new UserResponse(userAuthDto));
+                    var user = await authService.DeleteAvatarAsync(userId);
+                    return Results.Ok(new UserResponse(user));
                 }
                 catch (ArgumentException ex)
                 {

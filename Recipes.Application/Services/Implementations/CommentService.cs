@@ -1,3 +1,4 @@
+using Recipes.Application.Common;
 using Recipes.Application.DTO.Comment;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
@@ -7,16 +8,16 @@ using Recipes.Domain.Models;
 namespace Recipes.Application.Services.Implementations;
 
 public class CommentService(
-    IRecipeRepository recipeRepository,
+    IRecipeExistenceRepository recipeExistenceRepository,
     ICommentRepository commentRepository,
     IUnitOfWork unitOfWork,
     ICommentImageService commentImageService,
-    IImageStorageService imageStorageService,
+    IImageUrlProvider imageUrlProvider,
     IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
     {
-        if (!await recipeRepository.ExistsAsync(createCommentDto.RecipeId))
+        if (!await recipeExistenceRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
         var now = clock.UtcNow;
@@ -109,12 +110,20 @@ public class CommentService(
     private CommentDto ToCommentDto(Comment comment)
     {
         var dto = CommentDto.FromComment(comment);
-        dto.ApplyImageUrls(imageStorageService);
+        ApplyImageUrls(dto);
         return dto;
     }
 
     private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
     {
         return comments.Select(ToCommentDto).ToList();
+    }
+
+    private void ApplyImageUrls(CommentDto comment)
+    {
+        foreach (var image in comment.Images)
+        {
+            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
+        }
     }
 }
