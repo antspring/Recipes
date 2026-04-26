@@ -1,5 +1,6 @@
 using AutoMapper;
 using Recipes.Application.DTO.Recipe;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
@@ -7,6 +8,7 @@ using Recipes.Domain.Models;
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeCrudService(
+    IRecipeRepository recipeRepository,
     IUnitOfWork unitOfWork,
     IImageStorageService imageStorageService,
     IRecipeImageService imageService,
@@ -26,7 +28,7 @@ public class RecipeCrudService(
             await ingredientService.SaveRecipeIngredientsAsync(createRecipeDto.Ingredients, recipe.Id);
         recipe.RecipeImages = await imageService.SaveImagesAsync(createRecipeDto.ImageUploads, recipe.Id);
 
-        await unitOfWork.Recipes.AddAsync(recipe);
+        await recipeRepository.AddAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
         return await GetRequiredRecipeDtoAsync(recipe.Id);
@@ -34,25 +36,25 @@ public class RecipeCrudService(
 
     public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id)
     {
-        var recipe = await unitOfWork.Recipes.GetByIdAsync(id);
+        var recipe = await recipeRepository.GetByIdAsync(id);
         return recipe == null ? null : ToRecipeDto(recipe);
     }
 
     public async Task<List<RecipeDto>> GetAllRecipesAsync()
     {
-        var recipes = await unitOfWork.Recipes.GetAllAsync();
+        var recipes = await recipeRepository.GetAllAsync();
         return ToRecipeDtos(recipes);
     }
 
     public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId)
     {
-        var recipes = await unitOfWork.Recipes.GetByCreatorIdAsync(creatorId);
+        var recipes = await recipeRepository.GetByCreatorIdAsync(creatorId);
         return ToRecipeDtos(recipes);
     }
 
     public async Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto)
     {
-        var recipe = await unitOfWork.Recipes.GetByIdAsync(updateRecipeDto.Id);
+        var recipe = await recipeRepository.GetByIdAsync(updateRecipeDto.Id);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
@@ -87,7 +89,7 @@ public class RecipeCrudService(
         }
 
         recipe.UpdatedAt = clock.UtcNow;
-        await unitOfWork.Recipes.UpdateAsync(recipe);
+        await recipeRepository.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
         return await GetRequiredRecipeDtoAsync(recipe.Id);
@@ -95,7 +97,7 @@ public class RecipeCrudService(
 
     public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
     {
-        var recipe = await unitOfWork.Recipes.GetByIdAsync(id);
+        var recipe = await recipeRepository.GetByIdAsync(id);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
@@ -107,13 +109,13 @@ public class RecipeCrudService(
             await imageService.DeleteImagesAsync(recipe.RecipeImages.ToList(), recipe);
         }
 
-        await unitOfWork.Recipes.DeleteAsync(recipe);
+        await recipeRepository.DeleteAsync(recipe);
         await unitOfWork.SaveChangesAsync();
     }
 
     private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId)
     {
-        var recipe = await unitOfWork.Recipes.GetByIdAsync(recipeId);
+        var recipe = await recipeRepository.GetByIdAsync(recipeId);
         if (recipe == null)
             throw new InvalidOperationException("Recipe not found after save");
 

@@ -1,13 +1,13 @@
 using Recipes.Application.DTO.Recipe;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeImageService(
-    IUnitOfWork unitOfWork,
+    IImageRepository imageRepository,
     IImageStorageService imageStorageService,
     IClock clock) : IRecipeImageService
 {
@@ -27,7 +27,7 @@ public class RecipeImageService(
                 FileName = fileName,
                 CreatedAt = clock.UtcNow,
             };
-            await unitOfWork.Images.AddAsync(image);
+            await imageRepository.AddAsync(image);
 
             recipeImages.Add(new RecipeImage
             {
@@ -67,7 +67,7 @@ public class RecipeImageService(
 
         foreach (var recipeImage in recipeImagesToDelete)
         {
-            await unitOfWork.Images.DeleteAsync(recipeImage.Image);
+            await imageRepository.DeleteAsync(recipeImage.Image);
             recipe.RecipeImages.Remove(recipeImage);
         }
     }
