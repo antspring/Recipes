@@ -3,43 +3,28 @@ using Recipes.Application.UnitOfWork.Interfaces;
 
 namespace Recipes.Infrastructure.UnitOfWork.Implementations;
 
-public class UnitOfWork : IUnitOfWork
+public class UnitOfWork(
+    BaseDbContext dbContext,
+    IRefreshTokenRepository refreshTokens,
+    IUserRepository users,
+    IRecipeRepository recipes,
+    IImageRepository images,
+    IRecipeImageRepository recipeImages,
+    IRecipeIngredientRepository recipeIngredients,
+    IIngredientRepository ingredients,
+    ICommentRepository comments) : IUnitOfWork
 {
-    private readonly BaseDbContext _dbContext;
-
-    public UnitOfWork(
-        BaseDbContext dbContext,
-        IRefreshTokenRepository refreshTokens,
-        IUserRepository users,
-        IRecipeRepository recipes,
-        IImageRepository images,
-        IRecipeImageRepository recipeImages,
-        IRecipeIngredientRepository recipeIngredients,
-        IIngredientRepository ingredients,
-        ICommentRepository comments)
-    {
-        _dbContext = dbContext;
-        RefreshTokens = refreshTokens;
-        Users = users;
-        Recipes = recipes;
-        Images = images;
-        RecipeImages = recipeImages;
-        RecipeIngredients = recipeIngredients;
-        Ingredients = ingredients;
-        Comments = comments;
-    }
-
-    public IRefreshTokenRepository RefreshTokens { get; }
-    public IUserRepository Users { get; }
-    public IRecipeRepository Recipes { get; }
-    public IImageRepository Images { get; }
-    public IRecipeImageRepository RecipeImages { get; }
-    public IRecipeIngredientRepository RecipeIngredients { get; }
-    public IIngredientRepository Ingredients { get; }
-    public ICommentRepository Comments { get; }
+    public IRefreshTokenRepository RefreshTokens { get; } = refreshTokens;
+    public IUserRepository Users { get; } = users;
+    public IRecipeRepository Recipes { get; } = recipes;
+    public IImageRepository Images { get; } = images;
+    public IRecipeImageRepository RecipeImages { get; } = recipeImages;
+    public IRecipeIngredientRepository RecipeIngredients { get; } = recipeIngredients;
+    public IIngredientRepository Ingredients { get; } = ingredients;
+    public ICommentRepository Comments { get; } = comments;
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return _dbContext.SaveChangesAsync(cancellationToken);
+        return dbContext.SaveChangesAsync(cancellationToken);
     }
 }
