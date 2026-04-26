@@ -18,8 +18,7 @@ public class CommentService(
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
     {
-        var recipe = await recipeRepository.GetByIdAsync(createCommentDto.RecipeId);
-        if (recipe == null)
+        if (!await recipeRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
         var comment = mapper.Map<Comment>(createCommentDto);
