@@ -112,7 +112,11 @@ public class RecipeCrudService(
         if (imageUploads.Count == 0)
             return;
 
-        var newRecipeImages = await imageService.SaveImagesAsync(imageUploads, recipe.Id);
+        var startOrder = recipe.RecipeImages.Count == 0
+            ? 0
+            : recipe.RecipeImages.Max(ri => ri.Order) + 1;
+
+        var newRecipeImages = await imageService.SaveImagesAsync(imageUploads, recipe.Id, startOrder);
         recipe.RecipeImages.AddRange(newRecipeImages);
     }
 

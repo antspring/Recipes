@@ -11,10 +11,13 @@ public class RecipeImageService(
     IImageStorageService imageStorageService,
     IClock clock) : IRecipeImageService
 {
-    public async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
+    public async Task<List<RecipeImage>> SaveImagesAsync(
+        List<ImageUpload> imageUploads,
+        Guid recipeId,
+        int startOrder = 0)
     {
         var recipeImages = new List<RecipeImage>();
-        var order = 0;
+        var order = startOrder;
         foreach (var imageUpload in imageUploads)
         {
             var fileName = await imageStorageService.UploadImageAsync(
