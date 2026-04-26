@@ -148,12 +148,20 @@ public class RecipeCrudService(
     private RecipeDto ToRecipeDto(Recipe recipe)
     {
         var dto = RecipeDto.FromRecipe(recipe);
-        dto.ApplyImageUrls(imageStorageService);
+        ApplyImageUrls(dto);
         return dto;
     }
 
     private List<RecipeDto> ToRecipeDtos(IEnumerable<Recipe> recipes)
     {
         return recipes.Select(ToRecipeDto).ToList();
+    }
+
+    private void ApplyImageUrls(RecipeDto recipe)
+    {
+        foreach (var image in recipe.Images)
+        {
+            image.Url = imageStorageService.GetImageUrl(image.FileName);
+        }
     }
 }

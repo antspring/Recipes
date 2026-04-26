@@ -1,5 +1,3 @@
-using Recipes.Application.Services.Interfaces;
-
 namespace Recipes.Application.DTO.Comment;
 
 public class CommentDto
@@ -35,11 +33,4 @@ public class CommentDto
         };
     }
 
-    public void ApplyImageUrls(IImageStorageService imageStorageService)
-    {
-        foreach (var image in Images)
-        {
-            image.Url = imageStorageService.GetImageUrl(image.FileName);
-        }
-    }
 }

@@ -109,12 +109,20 @@ public class CommentService(
     private CommentDto ToCommentDto(Comment comment)
     {
         var dto = CommentDto.FromComment(comment);
-        dto.ApplyImageUrls(imageStorageService);
+        ApplyImageUrls(dto);
         return dto;
     }
 
     private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
     {
         return comments.Select(ToCommentDto).ToList();
+    }
+
+    private void ApplyImageUrls(CommentDto comment)
+    {
+        foreach (var image in comment.Images)
+        {
+            image.Url = imageStorageService.GetImageUrl(image.FileName);
+        }
     }
 }
