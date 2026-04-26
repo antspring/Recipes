@@ -67,6 +67,7 @@ public class RecipeImageService(
 
         foreach (var recipeImage in recipeImagesToDelete)
         {
+            await unitOfWork.Images.DeleteAsync(recipeImage.Image);
             recipe.RecipeImages.Remove(recipeImage);
         }
     }

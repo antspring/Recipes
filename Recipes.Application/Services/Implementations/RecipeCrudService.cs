@@ -75,7 +75,7 @@ public class RecipeCrudService(
 
         if (updateRecipeDto.ImageIdsToDelete != null)
         {
-            var existingImageIds = recipe.Images.Select(i => i.Id).ToHashSet();
+            var existingImageIds = recipe.RecipeImages.Select(ri => ri.ImageId).ToHashSet();
             var invalidImageIds = updateRecipeDto.ImageIdsToDelete
                 .Where(id => !existingImageIds.Contains(id))
                 .ToList();
