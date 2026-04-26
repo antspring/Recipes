@@ -30,7 +30,11 @@ public static class RecipeEndpoints
 
                     return Results.Created($"/api/recipes/{recipe.Id}", recipe);
                 }
-                catch (Exception ex)
+                catch (InvalidOperationException ex)
+                {
+                    return EndpointErrorHelper.BadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.BadRequest(ex);
                 }
@@ -82,7 +86,15 @@ public static class RecipeEndpoints
 
                     return Results.Ok(recipe);
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
@@ -105,7 +117,11 @@ public static class RecipeEndpoints
                     await recipeCrudService.DeleteRecipeAsync(id, userId);
                     return Results.NoContent();
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
+                {
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
+                }
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
@@ -128,7 +144,7 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
                     return Results.NoContent();
                 }
-                catch (Exception ex)
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
@@ -151,7 +167,7 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
                     return Results.NoContent();
                 }
-                catch (Exception ex)
+                catch (ArgumentException ex)
                 {
                     return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
