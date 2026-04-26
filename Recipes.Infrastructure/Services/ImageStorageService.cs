@@ -71,24 +71,6 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         }
     }
 
-    public async Task<bool> ImageExistsAsync(string fileName)
-    {
-        try
-        {
-            await S3Client.GetObjectMetadataAsync(CreateMetadataRequest(fileName));
-            return true;
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error checking image existence in Object Storage");
-            return false;
-        }
-    }
-
     public string GetImageUrl(string fileName)
     {
         return $"{_endpoint}/{_bucket}/{fileName}";
@@ -130,12 +112,4 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         };
     }
 
-    private GetObjectMetadataRequest CreateMetadataRequest(string fileName)
-    {
-        return new GetObjectMetadataRequest
-        {
-            BucketName = _bucket,
-            Key = fileName
-        };
-    }
 }

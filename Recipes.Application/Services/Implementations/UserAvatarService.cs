@@ -25,10 +25,7 @@ public class UserAvatarService(IImageStorageService imageStorageService) : IUser
             return;
 
         var fileName = ExtractFileName(user.AvatarUrl);
-        if (await imageStorageService.ImageExistsAsync(fileName))
-        {
-            await imageStorageService.DeleteImageAsync(fileName);
-        }
+        await imageStorageService.DeleteImageAsync(fileName);
     }
 
     private static string ExtractFileName(string avatarUrl)
