@@ -11,16 +11,21 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
     where T : class, IUserIngredientRelation, new()
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IUserIngredientRelationRepository<T> _repository;
+    private readonly IIngredientRepository _ingredientRepository;
     private readonly IMapper _mapper;
 
-    public UserIngredientRelationService(IUnitOfWork unitOfWork, IMapper mapper)
+    public UserIngredientRelationService(
+        IUnitOfWork unitOfWork,
+        IUserIngredientRelationRepository<T> repository,
+        IIngredientRepository ingredientRepository,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
+        _repository = repository;
+        _ingredientRepository = ingredientRepository;
         _mapper = mapper;
     }
-
-    private IUserIngredientRelationRepository<T> Repository
-        => _unitOfWork.GetUserIngredientRelationRepository<T>();
 
     private T CreateRelation(Guid userId, Guid ingredientId)
     {
@@ -33,7 +38,7 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
 
     public async Task<List<IngredientDto>> GetUserIngredientRelationAsync(Guid userId)
     {
-        var ingredients = await Repository
+        var ingredients = await _repository
             .GetByUserIdAsync(userId);
 
         return _mapper.Map<List<IngredientDto>>(
@@ -44,12 +49,12 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
     public async Task SetUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
     {
         await ValidateIngredientsExistAsync(ingredientIds);
-        await Repository.RemoveByUserIdAsync(userId);
+        await _repository.RemoveByUserIdAsync(userId);
 
         var ingredients = ingredientIds
             .Select(id => CreateRelation(userId, id));
 
-        await Repository.AddRangeAsync(ingredients);
+        await _repository.AddRangeAsync(ingredients);
         await _unitOfWork.SaveChangesAsync();
     }
 
@@ -57,7 +62,7 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
     {
         await ValidateIngredientsExistAsync(ingredientIds);
 
-        var existing = await Repository.GetByUserIdAsync(userId);
+        var existing = await _repository.GetByUserIdAsync(userId);
         var existingIds = existing.Select(i => i.IngredientId).ToHashSet();
 
         var newIngredients = ingredientIds
@@ -67,7 +72,7 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
 
         if (newIngredients.Count > 0)
         {
-            await Repository.AddRangeAsync(newIngredients);
+            await _repository.AddRangeAsync(newIngredients);
             await _unitOfWork.SaveChangesAsync();
         }
     }
@@ -76,13 +81,13 @@ public class UserIngredientRelationService<T> : IUserIngredientRelationService<T
     {
         await ValidateIngredientsExistAsync(ingredientIds);
 
-        await Repository.RemoveRangeAsync(userId, ingredientIds);
+        await _repository.RemoveRangeAsync(userId, ingredientIds);
         await _unitOfWork.SaveChangesAsync();
     }
 
     private async Task ValidateIngredientsExistAsync(List<Guid> ingredientIds)
     {
-        var existingIds = await _unitOfWork.Ingredients.GetExistingIdsAsync(ingredientIds);
+        var existingIds = await _ingredientRepository.GetExistingIdsAsync(ingredientIds);
         var notFoundIds = ingredientIds.Except(existingIds).ToArray();
 
         if (notFoundIds.Length > 0)
