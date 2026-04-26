@@ -16,7 +16,6 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<UserProfile>();
     cfg.AddProfile<IngredientProfile>();
     cfg.AddProfile<RecipeProfile>();
-    cfg.AddProfile<RecipeIngredientProfile>();
     cfg.AddProfile<RecipeRequestProfile>();
     cfg.AddProfile<RecipeIngredientRequestProfile>();
     cfg.AddProfile<CommentProfile>();

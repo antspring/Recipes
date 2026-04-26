@@ -1,4 +1,3 @@
-using AutoMapper;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
@@ -7,8 +6,7 @@ using Recipes.Domain.Models.RecipesRelations;
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeIngredientService(
-    IIngredientRepository ingredientRepository,
-    IMapper mapper) : IRecipeIngredientService
+    IIngredientRepository ingredientRepository) : IRecipeIngredientService
 {
     public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
         Guid recipeId)
@@ -17,9 +15,19 @@ public class RecipeIngredientService(
         await ValidateIngredientsExistAsync(ingredientsDto);
 
         return ingredientsDto
-            .Select(ingredientDto =>
-                mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId)))
+            .Select(ingredientDto => CreateRecipeIngredient(ingredientDto, recipeId))
             .ToList();
+    }
+
+    private static RecipeIngredient CreateRecipeIngredient(RecipeIngredientInputDto ingredientDto, Guid recipeId)
+    {
+        return new RecipeIngredient
+        {
+            RecipeId = recipeId,
+            IngredientId = ingredientDto.IngredientId,
+            Weight = ingredientDto.Weight,
+            AlternativeWeight = ingredientDto.AlternativeWeight
+        };
     }
 
     private static void ValidateUniqueIngredients(IEnumerable<RecipeIngredientInputDto> ingredientsDto)
