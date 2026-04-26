@@ -3,58 +3,43 @@ using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class AuthService : IAuthService
+public class AuthService(
+    IUserAccessService userAccessService,
+    IUserRegistrationService userRegistrationService,
+    IUserProfileService userProfileService,
+    IRefreshTokenService refreshTokenService,
+    IUserAuthTokenService userAuthTokenService) : IAuthService
 {
-    private readonly IUserAccessService _userAccessService;
-    private readonly IUserRegistrationService _userRegistrationService;
-    private readonly IUserProfileService _userProfileService;
-    private readonly IRefreshTokenService _refreshTokenService;
-    private readonly IUserAuthTokenService _userAuthTokenService;
-
-    public AuthService(
-        IUserAccessService userAccessService,
-        IUserRegistrationService userRegistrationService,
-        IUserProfileService userProfileService,
-        IRefreshTokenService refreshTokenService,
-        IUserAuthTokenService userAuthTokenService)
-    {
-        _userAccessService = userAccessService;
-        _userRegistrationService = userRegistrationService;
-        _userProfileService = userProfileService;
-        _refreshTokenService = refreshTokenService;
-        _userAuthTokenService = userAuthTokenService;
-    }
-
     public async Task<UserAuthDto> Register(CreateUserDto createUserDto, string? userAgent)
     {
-        var user = await _userRegistrationService.RegisterAsync(createUserDto);
-        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
+        var user = await userRegistrationService.RegisterAsync(createUserDto);
+        return await userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> Login(LoginUserDto loginUserDto)
     {
-        var user = await _userAccessService.AuthenticateAsync(loginUserDto);
-        return await _userAuthTokenService.IssueTokensAsync(user, loginUserDto.UserAgent);
+        var user = await userAccessService.AuthenticateAsync(loginUserDto);
+        return await userAuthTokenService.IssueTokensAsync(user, loginUserDto.UserAgent);
     }
 
     public async Task<UserAuthDto> UpdateToken(string refreshToken, string? userAgent)
     {
-        var storedRefreshToken = await _refreshTokenService.GetValidTokenAsync(refreshToken);
-        await _refreshTokenService.RevokeAsync(storedRefreshToken.Id);
+        var storedRefreshToken = await refreshTokenService.GetValidTokenAsync(refreshToken);
+        await refreshTokenService.RevokeAsync(storedRefreshToken.Id);
 
-        var user = await _userAccessService.GetRequiredUserAsync(storedRefreshToken.UserId);
-        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
+        var user = await userAccessService.GetRequiredUserAsync(storedRefreshToken.UserId);
+        return await userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto, string? userAgent)
     {
-        var user = await _userProfileService.UpdateUserAsync(userId, updateUserDto);
-        return await _userAuthTokenService.IssueTokensAsync(user, userAgent);
+        var user = await userProfileService.UpdateUserAsync(userId, updateUserDto);
+        return await userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
 
     public async Task<UserAuthDto> DeleteAvatarAsync(Guid userId)
     {
-        var user = await _userProfileService.DeleteAvatarAsync(userId);
+        var user = await userProfileService.DeleteAvatarAsync(userId);
         return new UserAuthDto(user, "", "");
     }
 }

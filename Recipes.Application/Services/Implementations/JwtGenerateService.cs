@@ -9,32 +9,20 @@ using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class JwtGenerateService : IJwtGenerateService
+public class JwtGenerateService(
+    IJwtOptions jwtOptions,
+    IClock clock) : IJwtGenerateService
 {
-    private readonly IJwtOptions _jwtOptions;
-    private readonly IClock _clock;
-
-    public JwtGenerateService(IJwtOptions jwtOptions, IClock clock)
-    {
-        _jwtOptions = jwtOptions;
-        _clock = clock;
-    }
-
     public string GenerateAccessToken(IEnumerable<Claim> claims)
     {
-        var key = Encoding.UTF8.GetBytes(_jwtOptions.Key);
-        var securityKey = new SymmetricSecurityKey(key);
-
         var descriptor = new SecurityTokenDescriptor
         {
-            Issuer = _jwtOptions.Issuer,
-            Audience = _jwtOptions.Audience,
+            Issuer = jwtOptions.Issuer,
+            Audience = jwtOptions.Audience,
             Subject = new ClaimsIdentity(claims),
-            NotBefore = _clock.UtcNow,
-            Expires = _clock.UtcNow.AddMinutes(_jwtOptions.AccessExpirationMinutes),
-            SigningCredentials = new SigningCredentials(
-                securityKey,
-                SecurityAlgorithms.HmacSha256Signature)
+            NotBefore = clock.UtcNow,
+            Expires = clock.UtcNow.AddMinutes(jwtOptions.AccessExpirationMinutes),
+            SigningCredentials = CreateSigningCredentials()
         };
 
         return new JsonWebTokenHandler().CreateToken(descriptor);
@@ -45,12 +33,22 @@ public class JwtGenerateService : IJwtGenerateService
         var randomNumber = new byte[32];
         using var rnd = RandomNumberGenerator.Create();
         rnd.GetBytes(randomNumber);
-        var toke = Convert.ToBase64String(randomNumber);
+        var token = Convert.ToBase64String(randomNumber);
 
         return new GeneratedRefreshToken(
             userId,
-            toke,
-            _clock.UtcNow.AddDays(_jwtOptions.RefreshExpirationDays),
+            token,
+            clock.UtcNow.AddDays(jwtOptions.RefreshExpirationDays),
             userAgent);
+    }
+
+    private SigningCredentials CreateSigningCredentials()
+    {
+        var key = Encoding.UTF8.GetBytes(jwtOptions.Key);
+        var securityKey = new SymmetricSecurityKey(key);
+
+        return new SigningCredentials(
+            securityKey,
+            SecurityAlgorithms.HmacSha256Signature);
     }
 }
