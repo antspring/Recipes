@@ -1,11 +1,9 @@
 using System.Security.Claims;
-using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Recipe;
-using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -17,31 +15,16 @@ public static class RecipeEndpoints
                 [FromForm] CreateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
 
-                    var ingredients =
-                        JsonSerializer.Deserialize<List<CreateRecipeIngredientRequest>>(request.IngredientsJson)
-                        ?? throw new InvalidOperationException("Invalid ingredients JSON");
-
-                    var createRecipeDto = mapper.Map<CreateRecipeDto>(request);
-                    createRecipeDto.CreatorId = userId;
-                    createRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
-
-                    if (request.Images != null)
-                    {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
-                        createRecipeDto.ImageUploads.AddRange(imageUploads);
-                    }
+                    var createRecipeDto = await RecipeRequestMapper.ToCreateRecipeDtoAsync(request, userId, mapper);
 
                     var recipe = await recipeCrudService.CreateRecipeAsync(createRecipeDto);
 
@@ -49,7 +32,7 @@ public static class RecipeEndpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.BadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -84,57 +67,16 @@ public static class RecipeEndpoints
                 [FromForm] UpdateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService,
-                IFileProcessingService fileProcessingService,
                 IMapper mapper) =>
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
-                    if (existingRecipe == null)
-                        return Results.NotFound();
-
-                    if (existingRecipe.CreatorId != userId)
-                        return Results.Forbid();
-
-                    var ingredients =
-                        JsonSerializer.Deserialize<List<UpdateRecipeIngredientRequest>>(request.IngredientsJson)
-                        ?? throw new InvalidOperationException("Invalid ingredients JSON");
-
-                    var updateRecipeDto = mapper.Map<UpdateRecipeDto>(request);
-                    updateRecipeDto.Id = id;
-                    updateRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
-
-                    if (!string.IsNullOrEmpty(request.ImageIdsToDelete))
-                    {
-                        var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDelete);
-                        if (imageIdsToDelete != null && imageIdsToDelete.Count > 0)
-                        {
-                            var existingImageIds = existingRecipe.Images.Select(i => i.Id).ToList();
-                            var invalidImageIds = imageIdsToDelete
-                                .Where(id => !existingImageIds.Contains(id))
-                                .ToList();
-
-                            if (invalidImageIds.Count > 0)
-                            {
-                                throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
-                            }
-
-                            updateRecipeDto.ImageIdsToDelete = imageIdsToDelete;
-                        }
-                    }
-
-                    if (request.Images != null)
-                    {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
-                        updateRecipeDto.ImageUploads.AddRange(imageUploads);
-                    }
+                    var updateRecipeDto = await RecipeRequestMapper.ToUpdateRecipeDtoAsync(request, id, userId, mapper);
 
                     var recipe = await recipeCrudService.UpdateRecipeAsync(updateRecipeDto);
 
@@ -142,7 +84,7 @@ public static class RecipeEndpoints
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -155,25 +97,17 @@ public static class RecipeEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
 
-                    var existingRecipe = await recipeCrudService.GetRecipeByIdAsync(id);
-                    if (existingRecipe == null)
-                        return Results.NotFound();
-
-                    if (existingRecipe.CreatorId != userId)
-                        return Results.Forbid();
-
-                    await recipeCrudService.DeleteRecipeAsync(id);
+                    await recipeCrudService.DeleteRecipeAsync(id, userId);
                     return Results.NoContent();
                 }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();
@@ -186,8 +120,7 @@ public static class RecipeEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
@@ -195,13 +128,9 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleLikeAsync(recipeId, userId, request.IsLiked);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();
@@ -214,8 +143,7 @@ public static class RecipeEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
@@ -223,13 +151,9 @@ public static class RecipeEndpoints
                     await recipeInteractionService.ToggleFavoriteAsync(recipeId, userId, request.IsFavorite);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();

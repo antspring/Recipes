@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Recipes.Application.Options.Interfaces;
 using Recipes.Application.Services.Interfaces;
 
-namespace Recipes.Application.Services.Implementations;
+namespace Recipes.Infrastructure.Services;
 
 public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILogger<ImageStorageService> logger)
     : IImageStorageService
@@ -61,20 +61,6 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
             logger.LogError(ex, "Error uploading image to Object Storage");
             throw new InvalidOperationException("Failed to upload image to Object Storage", ex);
         }
-    }
-
-    public async Task<List<string>> UploadImagesAsync(
-        IEnumerable<(Stream Stream, string FileName, string ContentType)> files)
-    {
-        var urls = new List<string>();
-
-        foreach (var file in files)
-        {
-            var url = await UploadImageAsync(file.Stream, file.FileName, file.ContentType);
-            urls.Add(url);
-        }
-
-        return urls;
     }
 
     public async Task DeleteImageAsync(string fileName)

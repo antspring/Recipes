@@ -1,12 +1,8 @@
 using System.Security.Claims;
-using System.Text.Json;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Recipes.API.DTO.Requests;
+using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Comment;
-using Recipes.Application.DTO.Comment;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.Endpoints;
 
@@ -29,7 +25,7 @@ public static class CommentEndpoints
             }
             catch (Exception ex)
             {
-                return Results.BadRequest(ex.Message);
+                return EndpointErrorHelper.BadRequest(ex);
             }
         });
 
@@ -37,39 +33,24 @@ public static class CommentEndpoints
                 Guid recipeId,
                 [FromForm] CreateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService,
-                IFileProcessingService fileProcessingService,
-                IMapper mapper) =>
+                ICommentService commentService) =>
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
 
-                    var createCommentDto = mapper.Map<CreateCommentDto>(request);
-                    createCommentDto.RecipeId = recipeId;
-                    createCommentDto.CommentatorId = userId;
-
-                    if (request.Images != null)
-                    {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
-                        createCommentDto.Images.AddRange(imageUploads);
-                    }
+                    var createCommentDto =
+                        await CommentRequestMapper.ToCreateCommentDtoAsync(request, recipeId, userId);
 
                     var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -79,43 +60,24 @@ public static class CommentEndpoints
                 Guid commentId,
                 [FromForm] UpdateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService,
-                IFileProcessingService fileProcessingService,
-                IMapper mapper) =>
+                ICommentService commentService) =>
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
 
-                    var updateCommentDto = mapper.Map<UpdateCommentDto>(request);
-                    updateCommentDto.CommentatorId = userId;
-                    updateCommentDto.Id = commentId;
-
-                    if (request.Images != null)
-                    {
-                        var uploadedFiles = request.Images.Select(f => new FormFileWrapper(f));
-                        var imageUploads = await fileProcessingService.ProcessUploadedFilesAsync(uploadedFiles);
-                        updateCommentDto.Images.AddRange(imageUploads);
-                    }
+                    var updateCommentDto =
+                        await CommentRequestMapper.ToUpdateCommentDtoAsync(request, commentId, userId);
 
                     var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization()
@@ -128,8 +90,7 @@ public static class CommentEndpoints
             {
                 try
                 {
-                    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
                     {
                         return Results.Unauthorized();
                     }
@@ -137,17 +98,9 @@ public static class CommentEndpoints
                     await commentService.DeleteCommentAsync(commentId, userId);
                     return Results.NoContent();
                 }
-                catch (ArgumentException ex)
-                {
-                    return Results.NotFound(ex.Message);
-                }
-                catch (UnauthorizedAccessException)
-                {
-                    return Results.Forbid();
-                }
                 catch (Exception ex)
                 {
-                    return Results.BadRequest(ex.Message);
+                    return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
             .RequireAuthorization();

@@ -8,5 +8,5 @@ public class UpdateUserDto
     public string? Email { get; set; }
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public IUploadedFile? Avatar { get; set; }
+    public ImageUpload? Avatar { get; set; }
 }

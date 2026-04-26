@@ -1,5 +1,5 @@
-using AutoMapper;
 using Recipes.Application.DTO.Comment;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
@@ -7,39 +7,42 @@ using Recipes.Domain.Models;
 namespace Recipes.Application.Services.Implementations;
 
 public class CommentService(
+    IRecipeRepository recipeRepository,
+    ICommentRepository commentRepository,
     IUnitOfWork unitOfWork,
+    ICommentImageService commentImageService,
     IImageStorageService imageStorageService,
-    IMapper mapper) : ICommentService
+    IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
     {
-        var recipe = await unitOfWork.Recipes.GetByIdAsync(createCommentDto.RecipeId);
-        if (recipe == null)
+        if (!await recipeRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
-        var comment = mapper.Map<Comment>(createCommentDto);
+        var now = clock.UtcNow;
+        var comment = new Comment
+        {
+            Id = Guid.NewGuid(),
+            RecipeId = createCommentDto.RecipeId,
+            CommentatorId = createCommentDto.CommentatorId,
+            Value = createCommentDto.Value,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
 
-        await AddImagesToCommentAsync(comment, createCommentDto.Images);
+        await commentImageService.AddImagesAsync(comment, createCommentDto.Images);
 
-        await unitOfWork.Comments.AddAsync(comment);
+        await commentRepository.AddAsync(comment);
         await unitOfWork.SaveChangesAsync();
 
-        var createdComment = await unitOfWork.Comments.GetByIdAsync(comment.Id);
-        var dto = CommentDto.FromComment(createdComment!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredCommentDtoAsync(comment.Id);
     }
 
     public async Task<PagedResult<CommentDto>> GetCommentsByRecipeIdAsync(Guid recipeId, int page = 1,
         int pageSize = 20, DateTime? from = null, DateTime? to = null)
     {
-        var pagedResult = await unitOfWork.Comments.GetByRecipeIdPagedAsync(recipeId, page, pageSize, from, to);
-        var dtos = pagedResult.Items.Select(CommentDto.FromComment).ToList();
-
-        foreach (var dto in dtos)
-        {
-            dto.ApplyImageUrls(imageStorageService);
-        }
+        var pagedResult = await commentRepository.GetByRecipeIdPagedAsync(recipeId, page, pageSize, from, to);
+        var dtos = ToCommentDtos(pagedResult.Items);
 
         return new PagedResult<CommentDto>
         {
@@ -52,84 +55,66 @@ public class CommentService(
 
     public async Task<CommentDto> UpdateCommentAsync(UpdateCommentDto updateCommentDto)
     {
-        var comment = await unitOfWork.Comments.GetByIdAsync(updateCommentDto.Id);
-        if (comment == null)
-            throw new ArgumentException($"Comment with id {updateCommentDto.Id} not found");
+        var comment = await GetRequiredCommentAsync(updateCommentDto.Id);
+        EnsureCommentAuthor(comment, updateCommentDto.CommentatorId, "update");
 
-        if (comment.CommentatorId != updateCommentDto.CommentatorId)
-            throw new UnauthorizedAccessException("Only the author can update this comment");
-
-        if(updateCommentDto.Value is not null)
+        if (updateCommentDto.Value is not null)
             comment.Value = updateCommentDto.Value;
 
-        await DeleteImagesFromCommentAsync(comment, updateCommentDto.ImageIdsToDelete);
-        await AddImagesToCommentAsync(comment, updateCommentDto.Images);
+        await commentImageService.DeleteImagesAsync(comment, updateCommentDto.ImageIdsToDelete);
+        await commentImageService.AddImagesAsync(comment, updateCommentDto.Images);
 
-        await unitOfWork.Comments.UpdateAsync(comment);
+        comment.UpdatedAt = clock.UtcNow;
+        await commentRepository.UpdateAsync(comment);
         await unitOfWork.SaveChangesAsync();
 
-        var updatedComment = await unitOfWork.Comments.GetByIdAsync(updateCommentDto.Id);
-        var dto = CommentDto.FromComment(updatedComment!);
-        dto.ApplyImageUrls(imageStorageService);
-        return dto;
+        return await GetRequiredCommentDtoAsync(updateCommentDto.Id);
     }
 
     public async Task DeleteCommentAsync(Guid commentId, Guid userId)
     {
-        var comment = await unitOfWork.Comments.GetByIdAsync(commentId);
-        if (comment == null)
-            throw new ArgumentException($"Comment with id {commentId} not found");
+        var comment = await GetRequiredCommentAsync(commentId);
+        EnsureCommentAuthor(comment, userId, "delete");
 
-        if (comment.CommentatorId != userId)
-            throw new UnauthorizedAccessException("Only the author can delete this comment");
+        await commentImageService.DeleteAllImagesAsync(comment);
 
-        foreach (var image in comment.Images)
-        {
-            await imageStorageService.DeleteImageAsync(image.FileName);
-            await unitOfWork.Images.DeleteAsync(image);
-        }
-
-        await unitOfWork.Comments.DeleteAsync(comment);
+        await commentRepository.DeleteAsync(comment);
         await unitOfWork.SaveChangesAsync();
     }
 
-    private async Task AddImagesToCommentAsync(Comment comment, List<Recipes.Application.DTO.Recipe.ImageUpload> images)
+    private async Task<Comment> GetRequiredCommentAsync(Guid commentId)
     {
-        if (images.Count == 0)
-            return;
+        var comment = await commentRepository.GetByIdAsync(commentId);
+        if (comment == null)
+            throw new ArgumentException($"Comment with id {commentId} not found");
 
-        foreach (var imageUpload in images)
-        {
-            var fileName = await imageStorageService.UploadImageAsync(
-                imageUpload.Stream,
-                imageUpload.FileName,
-                imageUpload.ContentType);
-
-            var image = new Image
-            {
-                FileName = fileName,
-                CreatedAt = DateTime.Now.ToUniversalTime()
-            };
-
-            await unitOfWork.Images.AddAsync(image);
-            comment.Images.Add(image);
-        }
+        return comment;
     }
 
-    private async Task DeleteImagesFromCommentAsync(Comment comment, List<Guid> imageIdsToDelete)
+    private static void EnsureCommentAuthor(Comment comment, Guid userId, string action)
     {
-        if (imageIdsToDelete.Count == 0)
-            return;
+        if (comment.CommentatorId != userId)
+            throw new UnauthorizedAccessException($"Only the author can {action} this comment");
+    }
 
-        var imagesToDelete = comment.Images
-            .Where(i => imageIdsToDelete.Contains(i.Id))
-            .ToList();
+    private async Task<CommentDto> GetRequiredCommentDtoAsync(Guid commentId)
+    {
+        var comment = await commentRepository.GetByIdAsync(commentId);
+        if (comment == null)
+            throw new InvalidOperationException("Comment not found after save");
 
-        foreach (var image in imagesToDelete)
-        {
-            await imageStorageService.DeleteImageAsync(image.FileName);
-            await unitOfWork.Images.DeleteAsync(image);
-            comment.Images.Remove(image);
-        }
+        return ToCommentDto(comment);
+    }
+
+    private CommentDto ToCommentDto(Comment comment)
+    {
+        var dto = CommentDto.FromComment(comment);
+        dto.ApplyImageUrls(imageStorageService);
+        return dto;
+    }
+
+    private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
+    {
+        return comments.Select(ToCommentDto).ToList();
     }
 }

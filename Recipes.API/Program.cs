@@ -14,16 +14,12 @@ builder.Services.AddDependencyInjections();
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddProfile<UserProfile>();
-    cfg.AddProfile<IngredientProfile>();
     cfg.AddProfile<RecipeProfile>();
-    cfg.AddProfile<RecipeIngredientProfile>();
     cfg.AddProfile<RecipeRequestProfile>();
     cfg.AddProfile<RecipeIngredientRequestProfile>();
-    cfg.AddProfile<CommentProfile>();
-    cfg.AddProfile<CommentRequestProfile>();
 }, typeof(Program).Assembly);
 
-builder.Services.AddJwtAuthentication();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
 {

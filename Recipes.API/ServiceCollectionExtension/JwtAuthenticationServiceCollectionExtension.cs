@@ -1,15 +1,17 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using Recipes.Application.Options.Interfaces;
 
 namespace Recipes.API.ServiceCollectionExtension;
 
 public static class JwtAuthenticationServiceCollectionExtension
 {
-    public static void AddJwtAuthentication(this IServiceCollection services)
+    public static void AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtOptions = services.BuildServiceProvider().GetRequiredService<IJwtOptions>();
+        var jwtSection = configuration.GetSection("Jwt");
+        var issuer = GetRequiredJwtOption(jwtSection, "Issuer");
+        var audience = GetRequiredJwtOption(jwtSection, "Audience");
+        var key = GetRequiredJwtOption(jwtSection, "Key");
 
         services.AddAuthorization();
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
@@ -21,10 +23,15 @@ public static class JwtAuthenticationServiceCollectionExtension
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 ClockSkew = TimeSpan.Zero,
-                ValidIssuer = jwtOptions.Issuer,
-                ValidAudience = jwtOptions.Audience,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key))
+                ValidIssuer = issuer,
+                ValidAudience = audience,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
             };
         });
+    }
+
+    private static string GetRequiredJwtOption(IConfigurationSection jwtSection, string key)
+    {
+        return jwtSection[key] ?? throw new InvalidOperationException($"Jwt:{key} is not configured");
     }
 }

@@ -1,30 +1,31 @@
 using Microsoft.EntityFrameworkCore;
 using Recipes.Application.Auth;
 using Recipes.Application.Repositories.Interfaces;
+using Recipes.Infrastructure.Models;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
-public class RefreshTokenRepository : IRefreshTokenRepository
+public class RefreshTokenRepository(BaseDbContext dbContext) : IRefreshTokenRepository
 {
-    private readonly BaseDbContext _dbContext;
-
-    public RefreshTokenRepository(BaseDbContext dbContext)
+    public async Task<StoredRefreshToken?> GetAsync(string refreshToken)
     {
-        _dbContext = dbContext;
+        var entity = await dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken);
+        return entity == null
+            ? null
+            : new StoredRefreshToken(entity.Id, entity.UserId, entity.Token, entity.ExpiresAt, entity.UserAgent);
     }
 
-    public Task<RefreshToken?> GetAsync(string refreshToken)
+    public async Task CreateAsync(GeneratedRefreshToken refreshToken)
     {
-        return _dbContext.RefreshTokens.FirstOrDefaultAsync(r => r.Token == refreshToken);
-    }
-
-    public async Task CreateAsync(RefreshToken refreshToken)
-    {
-        await _dbContext.RefreshTokens.AddAsync(refreshToken);
+        await dbContext.RefreshTokens.AddAsync(new RefreshToken(
+            refreshToken.UserId,
+            refreshToken.Token,
+            refreshToken.ExpiresAt,
+            refreshToken.UserAgent));
     }
 
     public Task RemoveAsync(Guid id)
     {
-        return _dbContext.RefreshTokens.Where(r => r.Id == id).ExecuteDeleteAsync();
+        return dbContext.RefreshTokens.Where(r => r.Id == id).ExecuteDeleteAsync();
     }
 }

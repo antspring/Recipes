@@ -1,7 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using Recipes.API.DTO.Requests.Attributes;
-using Recipes.Application.DTO.User;
-using Recipes.Infrastructure.Helpers;
 
 namespace Recipes.API.DTO.Requests.User;
 
@@ -32,17 +30,4 @@ public class RegisterUserRequest
     [Required(ErrorMessage = "ConfirmPassword is required")]
     [Compare("Password", ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = null!;
-
-    public CreateUserDto ToCreateUserDto()
-    {
-        return new CreateUserDto
-        {
-            UserName = UserName,
-            Email = Email,
-            Name = Name,
-            Description = Description,
-            Avatar = Avatar != null ? new FormFileWrapper(Avatar) : null,
-            Password = Password
-        };
-    }
 }

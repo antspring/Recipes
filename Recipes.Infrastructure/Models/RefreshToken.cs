@@ -1,14 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using Recipes.Domain.Models;
 
-namespace Recipes.Application.Auth;
+namespace Recipes.Infrastructure.Models;
 
 public class RefreshToken
 {
-    public RefreshToken(Guid userId,
-        string token,
-        DateTime expiresAt,
-        string? userAgent)
+    public RefreshToken(Guid userId, string token, DateTime expiresAt, string? userAgent)
     {
         UserId = userId;
         Token = token;

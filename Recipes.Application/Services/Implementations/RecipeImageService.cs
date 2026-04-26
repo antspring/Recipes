@@ -1,21 +1,23 @@
-using Microsoft.Extensions.Logging;
 using Recipes.Application.DTO.Recipe;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Application.Services.Implementations;
 
 public class RecipeImageService(
-    IUnitOfWork unitOfWork,
+    IImageRepository imageRepository,
     IImageStorageService imageStorageService,
-    ILogger<RecipeImageService> logger) : IRecipeImageService
+    IClock clock) : IRecipeImageService
 {
-    public async Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId)
+    public async Task<List<RecipeImage>> SaveImagesAsync(
+        IReadOnlyCollection<ImageUpload> imageUploads,
+        Guid recipeId,
+        int startOrder = 0)
     {
         var recipeImages = new List<RecipeImage>();
-        var order = 0;
+        var order = startOrder;
         foreach (var imageUpload in imageUploads)
         {
             var fileName = await imageStorageService.UploadImageAsync(
@@ -26,9 +28,9 @@ public class RecipeImageService(
             var image = new Image
             {
                 FileName = fileName,
-                CreatedAt = DateTime.Now.ToUniversalTime(),
+                CreatedAt = clock.UtcNow,
             };
-            await unitOfWork.Images.AddAsync(image);
+            await imageRepository.AddAsync(image);
 
             recipeImages.Add(new RecipeImage
             {
@@ -41,7 +43,7 @@ public class RecipeImageService(
         return recipeImages;
     }
 
-    public async Task DeleteImagesAsync(List<Guid> imageIds, Recipe recipe)
+    public async Task DeleteImagesAsync(IReadOnlyCollection<Guid> imageIds, Recipe recipe)
     {
         var recipeImagesToDelete = recipe.RecipeImages
             .Where(ri => imageIds.Contains(ri.ImageId))
@@ -50,7 +52,7 @@ public class RecipeImageService(
         await DeleteRecipeImagesAsync(recipeImagesToDelete, recipe);
     }
 
-    public async Task DeleteImagesAsync(List<RecipeImage> recipeImages, Recipe recipe)
+    public async Task DeleteImagesAsync(IReadOnlyCollection<RecipeImage> recipeImages, Recipe recipe)
     {
         if (recipeImages.Count == 0)
             return;
@@ -58,7 +60,7 @@ public class RecipeImageService(
         await DeleteRecipeImagesAsync(recipeImages, recipe);
     }
 
-    private async Task DeleteRecipeImagesAsync(List<RecipeImage> recipeImagesToDelete, Recipe recipe)
+    private async Task DeleteRecipeImagesAsync(IReadOnlyCollection<RecipeImage> recipeImagesToDelete, Recipe recipe)
     {
         if (recipeImagesToDelete.Count == 0)
             return;
@@ -68,6 +70,7 @@ public class RecipeImageService(
 
         foreach (var recipeImage in recipeImagesToDelete)
         {
+            await imageRepository.DeleteAsync(recipeImage.Image);
             recipe.RecipeImages.Remove(recipeImage);
         }
     }

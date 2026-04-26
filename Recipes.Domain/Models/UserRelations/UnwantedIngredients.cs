@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace Recipes.Domain.Models.UserRelations;
 
-[PrimaryKey(nameof(UserId), nameof(IngredientId))]
 public class UnwantedIngredients : IUserIngredientRelation
 {
     public Guid UserId { get; init; }
@@ -13,11 +10,5 @@ public class UnwantedIngredients : IUserIngredientRelation
 
     public UnwantedIngredients()
     {
-    }
-
-    public UnwantedIngredients(Guid userId, Guid ingredientId)
-    {
-        UserId = userId;
-        IngredientId = ingredientId;
     }
 }

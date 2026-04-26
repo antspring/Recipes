@@ -4,15 +4,10 @@ using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
-public class UserIngredientRelationRepository<T> : IUserIngredientRelationRepository<T>
+public class UserIngredientRelationRepository<T>(BaseDbContext context) : IUserIngredientRelationRepository<T>
     where T : class, IUserIngredientRelation
 {
-    private readonly DbSet<T> _dbSet;
-
-    public UserIngredientRelationRepository(BaseDbContext context)
-    {
-        _dbSet = context.Set<T>();
-    }
+    private readonly DbSet<T> _dbSet = context.Set<T>();
 
     public Task<List<T>> GetByUserIdAsync(Guid userId)
     {

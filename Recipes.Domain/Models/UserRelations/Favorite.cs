@@ -1,9 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-
 namespace Recipes.Domain.Models.UserRelations;
 
-[PrimaryKey(nameof(RecipeId), nameof(UserId))]
 public class Favorite
 {
     public Guid RecipeId { get; init; }

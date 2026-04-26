@@ -1,88 +1,100 @@
-using AutoMapper;
 using Recipes.Application.DTO.Ingredient;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
+using Recipes.Domain.Models;
 using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class UserIngredientRelationService<T> : IUserIngredientRelationService<T>
-    where T : class, IUserIngredientRelation
+public class UserIngredientRelationService<T>(
+    IUnitOfWork unitOfWork,
+    IUserIngredientRelationRepository<T> repository,
+    IIngredientRepository ingredientRepository) : IUserIngredientRelationService<T>
+    where T : class, IUserIngredientRelation, new()
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-
-    public UserIngredientRelationService(IUnitOfWork unitOfWork, IMapper mapper)
-    {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-    }
-
-    private IUserIngredientRelationRepository<T> Repository
-        => _unitOfWork.GetUserIngredientRelationRepository<T>();
-
     private T CreateRelation(Guid userId, Guid ingredientId)
     {
-        return (T)Activator.CreateInstance(
-            typeof(T),
-            userId,
-            ingredientId
-        )!;
+        return new T
+        {
+            UserId = userId,
+            IngredientId = ingredientId
+        };
     }
 
     public async Task<List<IngredientDto>> GetUserIngredientRelationAsync(Guid userId)
     {
-        var ingredients = await Repository
+        var ingredients = await repository
             .GetByUserIdAsync(userId);
 
-        return _mapper.Map<List<IngredientDto>>(
-            ingredients.Select(i => i.Ingredient).ToList()
-        );
+        return ingredients
+            .Select(relation => ToIngredientDto(relation.Ingredient))
+            .ToList();
     }
 
     public async Task SetUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
     {
-        await ValidateIngredientsExistAsync(ingredientIds);
-        await Repository.RemoveByUserIdAsync(userId);
+        var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
+        await repository.RemoveByUserIdAsync(userId);
 
-        var ingredients = ingredientIds
+        var ingredients = normalizedIngredientIds
             .Select(id => CreateRelation(userId, id));
 
-        await Repository.AddRangeAsync(ingredients);
-        await _unitOfWork.SaveChangesAsync();
+        await repository.AddRangeAsync(ingredients);
+        await unitOfWork.SaveChangesAsync();
     }
 
     public async Task AddUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
     {
-        await ValidateIngredientsExistAsync(ingredientIds);
+        var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
 
-        var existing = await Repository.GetByUserIdAsync(userId);
+        var existing = await repository.GetByUserIdAsync(userId);
         var existingIds = existing.Select(i => i.IngredientId).ToHashSet();
 
-        var newIngredients = ingredientIds
+        var newIngredients = normalizedIngredientIds
             .Where(id => !existingIds.Contains(id))
             .Select(id => CreateRelation(userId, id))
             .ToList();
 
         if (newIngredients.Count > 0)
         {
-            await Repository.AddRangeAsync(newIngredients);
-            await _unitOfWork.SaveChangesAsync();
+            await repository.AddRangeAsync(newIngredients);
+            await unitOfWork.SaveChangesAsync();
         }
     }
 
     public async Task RemoveUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
     {
-        await ValidateIngredientsExistAsync(ingredientIds);
+        var normalizedIngredientIds = await ValidateAndNormalizeIngredientIdsAsync(ingredientIds);
 
-        await Repository.RemoveRangeAsync(userId, ingredientIds);
-        await _unitOfWork.SaveChangesAsync();
+        await repository.RemoveRangeAsync(userId, normalizedIngredientIds);
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    private static List<Guid> NormalizeIngredientIds(IEnumerable<Guid> ingredientIds)
+    {
+        return ingredientIds.Distinct().ToList();
+    }
+
+    private static IngredientDto ToIngredientDto(Ingredient ingredient)
+    {
+        return new IngredientDto
+        {
+            Id = ingredient.Id,
+            Title = ingredient.Title
+        };
+    }
+
+    private async Task<List<Guid>> ValidateAndNormalizeIngredientIdsAsync(IEnumerable<Guid> ingredientIds)
+    {
+        var normalizedIngredientIds = NormalizeIngredientIds(ingredientIds);
+        await ValidateIngredientsExistAsync(normalizedIngredientIds);
+        return normalizedIngredientIds;
     }
 
     private async Task ValidateIngredientsExistAsync(List<Guid> ingredientIds)
     {
-        var existingIds = await _unitOfWork.Ingredients.GetExistingIdsAsync(ingredientIds);
+        var existingIds = await ingredientRepository.GetExistingIdsAsync(ingredientIds);
         var notFoundIds = ingredientIds.Except(existingIds).ToArray();
 
         if (notFoundIds.Length > 0)
