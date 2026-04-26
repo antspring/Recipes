@@ -17,7 +17,6 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<RecipeProfile>();
     cfg.AddProfile<RecipeRequestProfile>();
     cfg.AddProfile<RecipeIngredientRequestProfile>();
-    cfg.AddProfile<CommentRequestProfile>();
 }, typeof(Program).Assembly);
 
 builder.Services.AddJwtAuthentication(builder.Configuration);

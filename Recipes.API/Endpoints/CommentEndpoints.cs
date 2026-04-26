@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Comment;
@@ -34,8 +33,7 @@ public static class CommentEndpoints
                 Guid recipeId,
                 [FromForm] CreateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService,
-                IMapper mapper) =>
+                ICommentService commentService) =>
             {
                 try
                 {
@@ -45,7 +43,7 @@ public static class CommentEndpoints
                     }
 
                     var createCommentDto =
-                        await CommentRequestMapper.ToCreateCommentDtoAsync(request, recipeId, userId, mapper);
+                        await CommentRequestMapper.ToCreateCommentDtoAsync(request, recipeId, userId);
 
                     var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
@@ -62,8 +60,7 @@ public static class CommentEndpoints
                 Guid commentId,
                 [FromForm] UpdateCommentRequest request,
                 ClaimsPrincipal user,
-                ICommentService commentService,
-                IMapper mapper) =>
+                ICommentService commentService) =>
             {
                 try
                 {
@@ -73,7 +70,7 @@ public static class CommentEndpoints
                     }
 
                     var updateCommentDto =
-                        await CommentRequestMapper.ToUpdateCommentDtoAsync(request, commentId, userId, mapper);
+                        await CommentRequestMapper.ToUpdateCommentDtoAsync(request, commentId, userId);
 
                     var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
