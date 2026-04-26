@@ -54,39 +54,14 @@ public class RecipeCrudService(
 
     public async Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto)
     {
-        var recipe = await recipeRepository.GetByIdAsync(updateRecipeDto.Id);
-        if (recipe == null)
-            throw new ArgumentException("Recipe not found");
-
-        if (recipe.CreatorId != updateRecipeDto.ActorUserId)
-            throw new UnauthorizedAccessException("Only the author can update this recipe");
+        var recipe = await GetRequiredRecipeAsync(updateRecipeDto.Id);
+        EnsureRecipeAuthor(recipe, updateRecipeDto.ActorUserId, "update");
 
         mapper.Map(updateRecipeDto, recipe);
 
-        if (updateRecipeDto.Ingredients != null)
-        {
-            recipe.RecipeIngredients =
-                await ingredientService.SaveRecipeIngredientsAsync(updateRecipeDto.Ingredients, recipe.Id);
-        }
-
-        if (updateRecipeDto.ImageUploads is { Count: > 0 })
-        {
-            var newRecipeImages = await imageService.SaveImagesAsync(updateRecipeDto.ImageUploads, recipe.Id);
-            recipe.RecipeImages.AddRange(newRecipeImages);
-        }
-
-        if (updateRecipeDto.ImageIdsToDelete != null)
-        {
-            var existingImageIds = recipe.RecipeImages.Select(ri => ri.ImageId).ToHashSet();
-            var invalidImageIds = updateRecipeDto.ImageIdsToDelete
-                .Where(id => !existingImageIds.Contains(id))
-                .ToList();
-
-            if (invalidImageIds.Count > 0)
-                throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
-
-            await imageService.DeleteImagesAsync(updateRecipeDto.ImageIdsToDelete, recipe);
-        }
+        await UpdateIngredientsAsync(recipe, updateRecipeDto.Ingredients);
+        await AddImagesAsync(recipe, updateRecipeDto.ImageUploads);
+        await DeleteImagesAsync(recipe, updateRecipeDto.ImageIdsToDelete);
 
         recipe.UpdatedAt = clock.UtcNow;
         await recipeRepository.UpdateAsync(recipe);
@@ -97,12 +72,8 @@ public class RecipeCrudService(
 
     public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
     {
-        var recipe = await recipeRepository.GetByIdAsync(id);
-        if (recipe == null)
-            throw new ArgumentException("Recipe not found");
-
-        if (recipe.CreatorId != actorUserId)
-            throw new UnauthorizedAccessException("Only the author can delete this recipe");
+        var recipe = await GetRequiredRecipeAsync(id);
+        EnsureRecipeAuthor(recipe, actorUserId, "delete");
 
         if (recipe.RecipeImages.Count > 0)
         {
@@ -111,6 +82,54 @@ public class RecipeCrudService(
 
         await recipeRepository.DeleteAsync(recipe);
         await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<Recipe> GetRequiredRecipeAsync(Guid recipeId)
+    {
+        var recipe = await recipeRepository.GetByIdAsync(recipeId);
+        if (recipe == null)
+            throw new ArgumentException("Recipe not found");
+
+        return recipe;
+    }
+
+    private static void EnsureRecipeAuthor(Recipe recipe, Guid actorUserId, string action)
+    {
+        if (recipe.CreatorId != actorUserId)
+            throw new UnauthorizedAccessException($"Only the author can {action} this recipe");
+    }
+
+    private async Task UpdateIngredientsAsync(Recipe recipe, List<RecipeIngredientInputDto>? ingredients)
+    {
+        if (ingredients == null)
+            return;
+
+        recipe.RecipeIngredients = await ingredientService.SaveRecipeIngredientsAsync(ingredients, recipe.Id);
+    }
+
+    private async Task AddImagesAsync(Recipe recipe, List<ImageUpload> imageUploads)
+    {
+        if (imageUploads.Count == 0)
+            return;
+
+        var newRecipeImages = await imageService.SaveImagesAsync(imageUploads, recipe.Id);
+        recipe.RecipeImages.AddRange(newRecipeImages);
+    }
+
+    private async Task DeleteImagesAsync(Recipe recipe, List<Guid>? imageIdsToDelete)
+    {
+        if (imageIdsToDelete == null)
+            return;
+
+        var existingImageIds = recipe.RecipeImages.Select(ri => ri.ImageId).ToHashSet();
+        var invalidImageIds = imageIdsToDelete
+            .Where(id => !existingImageIds.Contains(id))
+            .ToList();
+
+        if (invalidImageIds.Count > 0)
+            throw new ArgumentException($"Images not found: {string.Join(", ", invalidImageIds)}");
+
+        await imageService.DeleteImagesAsync(imageIdsToDelete, recipe);
     }
 
     private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId)
