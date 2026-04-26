@@ -12,7 +12,7 @@ public class RecipeImageService(
     IClock clock) : IRecipeImageService
 {
     public async Task<List<RecipeImage>> SaveImagesAsync(
-        List<ImageUpload> imageUploads,
+        IReadOnlyCollection<ImageUpload> imageUploads,
         Guid recipeId,
         int startOrder = 0)
     {
@@ -43,7 +43,7 @@ public class RecipeImageService(
         return recipeImages;
     }
 
-    public async Task DeleteImagesAsync(List<Guid> imageIds, Recipe recipe)
+    public async Task DeleteImagesAsync(IReadOnlyCollection<Guid> imageIds, Recipe recipe)
     {
         var recipeImagesToDelete = recipe.RecipeImages
             .Where(ri => imageIds.Contains(ri.ImageId))
@@ -52,7 +52,7 @@ public class RecipeImageService(
         await DeleteRecipeImagesAsync(recipeImagesToDelete, recipe);
     }
 
-    public async Task DeleteImagesAsync(List<RecipeImage> recipeImages, Recipe recipe)
+    public async Task DeleteImagesAsync(IReadOnlyCollection<RecipeImage> recipeImages, Recipe recipe)
     {
         if (recipeImages.Count == 0)
             return;
@@ -60,7 +60,7 @@ public class RecipeImageService(
         await DeleteRecipeImagesAsync(recipeImages, recipe);
     }
 
-    private async Task DeleteRecipeImagesAsync(List<RecipeImage> recipeImagesToDelete, Recipe recipe)
+    private async Task DeleteRecipeImagesAsync(IReadOnlyCollection<RecipeImage> recipeImagesToDelete, Recipe recipe)
     {
         if (recipeImagesToDelete.Count == 0)
             return;

@@ -5,7 +5,11 @@ namespace Recipes.Application.Services.Interfaces;
 
 public interface IRecipeImageService
 {
-    Task<List<RecipeImage>> SaveImagesAsync(List<ImageUpload> imageUploads, Guid recipeId, int startOrder = 0);
-    Task DeleteImagesAsync(List<Guid> imageIds, Domain.Models.Recipe recipe);
-    Task DeleteImagesAsync(List<RecipeImage> recipeImages, Domain.Models.Recipe recipe);
+    Task<List<RecipeImage>> SaveImagesAsync(
+        IReadOnlyCollection<ImageUpload> imageUploads,
+        Guid recipeId,
+        int startOrder = 0);
+
+    Task DeleteImagesAsync(IReadOnlyCollection<Guid> imageIds, Domain.Models.Recipe recipe);
+    Task DeleteImagesAsync(IReadOnlyCollection<RecipeImage> recipeImages, Domain.Models.Recipe recipe);
 }
