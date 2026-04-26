@@ -6,9 +6,4 @@ public static class AuthEndpointErrorHelper
     {
         return Results.BadRequest(new { error = exception.Message });
     }
-
-    public static IResult UniqueViolation(string message)
-    {
-        return Results.BadRequest(new { error = message });
-    }
 }

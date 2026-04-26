@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Recipes.API.Helpers;
 using Recipes.Application.Services.Interfaces;
 using Recipes.API.DTO.Requests.User;
@@ -32,10 +31,6 @@ public static class AuthEndpoints
                 {
                     return AuthEndpointErrorHelper.BadRequest(ex);
                 }
-                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
-                {
-                    return AuthEndpointErrorHelper.UniqueViolation("User with this email or username already exists");
-                }
             })
             .DisableAntiforgery()
             .AllowAnonymous();
@@ -58,10 +53,6 @@ public static class AuthEndpoints
                 catch (ArgumentException ex)
                 {
                     return AuthEndpointErrorHelper.BadRequest(ex);
-                }
-                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("unique") ?? false)
-                {
-                    return AuthEndpointErrorHelper.UniqueViolation("Invalid credentials");
                 }
             })
             .AllowAnonymous();
