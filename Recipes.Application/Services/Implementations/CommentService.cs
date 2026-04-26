@@ -1,4 +1,3 @@
-using AutoMapper;
 using Recipes.Application.DTO.Comment;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
@@ -13,7 +12,6 @@ public class CommentService(
     IUnitOfWork unitOfWork,
     ICommentImageService commentImageService,
     IImageStorageService imageStorageService,
-    IMapper mapper,
     IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
@@ -21,11 +19,16 @@ public class CommentService(
         if (!await recipeRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
-        var comment = mapper.Map<Comment>(createCommentDto);
         var now = clock.UtcNow;
-
-        comment.CreatedAt = now;
-        comment.UpdatedAt = now;
+        var comment = new Comment
+        {
+            Id = Guid.NewGuid(),
+            RecipeId = createCommentDto.RecipeId,
+            CommentatorId = createCommentDto.CommentatorId,
+            Value = createCommentDto.Value,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
 
         await commentImageService.AddImagesAsync(comment, createCommentDto.Images);
 
