@@ -7,7 +7,7 @@ using Recipes.Application.Auth;
 using Recipes.Application.Options.Interfaces;
 using Recipes.Application.Services.Interfaces;
 
-namespace Recipes.Application.Services.Implementations;
+namespace Recipes.Infrastructure.Services;
 
 public class JwtGenerateService(
     IJwtOptions jwtOptions,
