@@ -1,5 +1,5 @@
+using Recipes.Application.Common;
 using Recipes.Domain.Models;
-using Recipes.Application.DTO.Comment;
 
 namespace Recipes.Application.Repositories.Interfaces;
 

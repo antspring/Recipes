@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Recipes.Application.DTO.Comment;
+using Recipes.Application.Common;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Domain.Models;
 
