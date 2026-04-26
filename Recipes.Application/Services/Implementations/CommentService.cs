@@ -53,12 +53,8 @@ public class CommentService(
 
     public async Task<CommentDto> UpdateCommentAsync(UpdateCommentDto updateCommentDto)
     {
-        var comment = await commentRepository.GetByIdAsync(updateCommentDto.Id);
-        if (comment == null)
-            throw new ArgumentException($"Comment with id {updateCommentDto.Id} not found");
-
-        if (comment.CommentatorId != updateCommentDto.CommentatorId)
-            throw new UnauthorizedAccessException("Only the author can update this comment");
+        var comment = await GetRequiredCommentAsync(updateCommentDto.Id);
+        EnsureCommentAuthor(comment, updateCommentDto.CommentatorId, "update");
 
         if (updateCommentDto.Value is not null)
             comment.Value = updateCommentDto.Value;
@@ -75,17 +71,28 @@ public class CommentService(
 
     public async Task DeleteCommentAsync(Guid commentId, Guid userId)
     {
-        var comment = await commentRepository.GetByIdAsync(commentId);
-        if (comment == null)
-            throw new ArgumentException($"Comment with id {commentId} not found");
-
-        if (comment.CommentatorId != userId)
-            throw new UnauthorizedAccessException("Only the author can delete this comment");
+        var comment = await GetRequiredCommentAsync(commentId);
+        EnsureCommentAuthor(comment, userId, "delete");
 
         await commentImageService.DeleteAllImagesAsync(comment);
 
         await commentRepository.DeleteAsync(comment);
         await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task<Comment> GetRequiredCommentAsync(Guid commentId)
+    {
+        var comment = await commentRepository.GetByIdAsync(commentId);
+        if (comment == null)
+            throw new ArgumentException($"Comment with id {commentId} not found");
+
+        return comment;
+    }
+
+    private static void EnsureCommentAuthor(Comment comment, Guid userId, string action)
+    {
+        if (comment.CommentatorId != userId)
+            throw new UnauthorizedAccessException($"Only the author can {action} this comment");
     }
 
     private async Task<CommentDto> GetRequiredCommentDtoAsync(Guid commentId)
