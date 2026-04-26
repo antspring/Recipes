@@ -41,8 +41,9 @@ public static class RecipeRequestMapper
         dto.ActorUserId = actorUserId;
         dto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
 
-        if (!string.IsNullOrEmpty(request.ImageIdsToDelete))
-            dto.ImageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDelete) ?? new List<Guid>();
+        dto.ImageIdsToDelete = DeserializeOptional<List<Guid>>(
+            request.ImageIdsToDelete,
+            "Invalid image ids JSON");
 
         if (request.Images != null)
             dto.ImageUploads.AddRange(await ImageUploadFactory.CreateManyAsync(request.Images));
@@ -52,7 +53,30 @@ public static class RecipeRequestMapper
 
     private static T DeserializeRequired<T>(string json, string errorMessage) where T : class
     {
-        return JsonSerializer.Deserialize<T>(json)
-               ?? throw new InvalidOperationException(errorMessage);
+        try
+        {
+            return JsonSerializer.Deserialize<T>(json)
+                   ?? throw new InvalidOperationException(errorMessage);
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(errorMessage, ex);
+        }
+    }
+
+    private static T? DeserializeOptional<T>(string? json, string errorMessage) where T : class
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+
+        try
+        {
+            return JsonSerializer.Deserialize<T>(json)
+                   ?? throw new InvalidOperationException(errorMessage);
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(errorMessage, ex);
+        }
     }
 }
