@@ -1,10 +1,8 @@
 using System.Security.Claims;
-using System.Text.Json;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Recipe;
-using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.API.Endpoints;
@@ -26,19 +24,7 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var ingredients =
-                        JsonSerializer.Deserialize<List<CreateRecipeIngredientRequest>>(request.IngredientsJson)
-                        ?? throw new InvalidOperationException("Invalid ingredients JSON");
-
-                    var createRecipeDto = mapper.Map<CreateRecipeDto>(request);
-                    createRecipeDto.CreatorId = userId;
-                    createRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
-
-                    if (request.Images != null)
-                    {
-                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
-                        createRecipeDto.ImageUploads.AddRange(imageUploads);
-                    }
+                    var createRecipeDto = await RecipeRequestMapper.ToCreateRecipeDtoAsync(request, userId, mapper);
 
                     var recipe = await recipeCrudService.CreateRecipeAsync(createRecipeDto);
 
@@ -90,29 +76,7 @@ public static class RecipeEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var ingredients =
-                        JsonSerializer.Deserialize<List<UpdateRecipeIngredientRequest>>(request.IngredientsJson)
-                        ?? throw new InvalidOperationException("Invalid ingredients JSON");
-
-                    var updateRecipeDto = mapper.Map<UpdateRecipeDto>(request);
-                    updateRecipeDto.Id = id;
-                    updateRecipeDto.ActorUserId = userId;
-                    updateRecipeDto.Ingredients = mapper.Map<List<RecipeIngredientInputDto>>(ingredients);
-
-                    if (!string.IsNullOrEmpty(request.ImageIdsToDelete))
-                    {
-                        var imageIdsToDelete = JsonSerializer.Deserialize<List<Guid>>(request.ImageIdsToDelete);
-                        if (imageIdsToDelete != null && imageIdsToDelete.Count > 0)
-                        {
-                            updateRecipeDto.ImageIdsToDelete = imageIdsToDelete;
-                        }
-                    }
-
-                    if (request.Images != null)
-                    {
-                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
-                        updateRecipeDto.ImageUploads.AddRange(imageUploads);
-                    }
+                    var updateRecipeDto = await RecipeRequestMapper.ToUpdateRecipeDtoAsync(request, id, userId, mapper);
 
                     var recipe = await recipeCrudService.UpdateRecipeAsync(updateRecipeDto);
 

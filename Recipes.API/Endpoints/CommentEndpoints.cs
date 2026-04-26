@@ -3,7 +3,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Recipes.API.Helpers;
 using Recipes.API.DTO.Requests.Comment;
-using Recipes.Application.DTO.Comment;
 using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.API.Endpoints;
@@ -45,15 +44,8 @@ public static class CommentEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var createCommentDto = mapper.Map<CreateCommentDto>(request);
-                    createCommentDto.RecipeId = recipeId;
-                    createCommentDto.CommentatorId = userId;
-
-                    if (request.Images != null)
-                    {
-                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
-                        createCommentDto.Images.AddRange(imageUploads);
-                    }
+                    var createCommentDto =
+                        await CommentRequestMapper.ToCreateCommentDtoAsync(request, recipeId, userId, mapper);
 
                     var commentDto = await commentService.CreateCommentAsync(createCommentDto);
                     return Results.Created($"/api/recipes/{recipeId}/comments/{commentDto.Id}", commentDto);
@@ -80,15 +72,8 @@ public static class CommentEndpoints
                         return Results.Unauthorized();
                     }
 
-                    var updateCommentDto = mapper.Map<UpdateCommentDto>(request);
-                    updateCommentDto.CommentatorId = userId;
-                    updateCommentDto.Id = commentId;
-
-                    if (request.Images != null)
-                    {
-                        var imageUploads = await ImageUploadFactory.CreateManyAsync(request.Images);
-                        updateCommentDto.Images.AddRange(imageUploads);
-                    }
+                    var updateCommentDto =
+                        await CommentRequestMapper.ToUpdateCommentDtoAsync(request, commentId, userId, mapper);
 
                     var commentDto = await commentService.UpdateCommentAsync(updateCommentDto);
                     return Results.Ok(commentDto);
