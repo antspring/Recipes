@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using Recipes.Application.Options.Implementations;
 using Recipes.Application.Options.Interfaces;
 using Recipes.Application.Providers;
 using Recipes.Application.Repositories.Interfaces;
@@ -8,6 +7,7 @@ using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models.UserRelations;
 using Recipes.Infrastructure.Repositories.Implementations;
+using Recipes.Infrastructure.Options;
 using Recipes.Infrastructure.Services;
 using Recipes.Infrastructure.UnitOfWork.Implementations;
 

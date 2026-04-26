@@ -1,4 +1,4 @@
-using Recipes.Application.Options.Implementations;
+using Recipes.Infrastructure.Options;
 
 namespace Recipes.API.ServiceCollectionExtension;
 

@@ -1,6 +1,6 @@
 using Recipes.Application.Options.Interfaces;
 
-namespace Recipes.Application.Options.Implementations;
+namespace Recipes.Infrastructure.Options;
 
 public class JwtOptions : IJwtOptions
 {
