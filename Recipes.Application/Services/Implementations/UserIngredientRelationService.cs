@@ -1,8 +1,8 @@
-using AutoMapper;
 using Recipes.Application.DTO.Ingredient;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
+using Recipes.Domain.Models;
 using Recipes.Domain.Models.UserRelations;
 
 namespace Recipes.Application.Services.Implementations;
@@ -10,8 +10,7 @@ namespace Recipes.Application.Services.Implementations;
 public class UserIngredientRelationService<T>(
     IUnitOfWork unitOfWork,
     IUserIngredientRelationRepository<T> repository,
-    IIngredientRepository ingredientRepository,
-    IMapper mapper) : IUserIngredientRelationService<T>
+    IIngredientRepository ingredientRepository) : IUserIngredientRelationService<T>
     where T : class, IUserIngredientRelation, new()
 {
     private T CreateRelation(Guid userId, Guid ingredientId)
@@ -28,9 +27,9 @@ public class UserIngredientRelationService<T>(
         var ingredients = await repository
             .GetByUserIdAsync(userId);
 
-        return mapper.Map<List<IngredientDto>>(
-            ingredients.Select(i => i.Ingredient).ToList()
-        );
+        return ingredients
+            .Select(relation => ToIngredientDto(relation.Ingredient))
+            .ToList();
     }
 
     public async Task SetUserIngredientRelationAsync(Guid userId, List<Guid> ingredientIds)
@@ -75,6 +74,15 @@ public class UserIngredientRelationService<T>(
     private static List<Guid> NormalizeIngredientIds(IEnumerable<Guid> ingredientIds)
     {
         return ingredientIds.Distinct().ToList();
+    }
+
+    private static IngredientDto ToIngredientDto(Ingredient ingredient)
+    {
+        return new IngredientDto
+        {
+            Id = ingredient.Id,
+            Title = ingredient.Title
+        };
     }
 
     private async Task<List<Guid>> ValidateAndNormalizeIngredientIdsAsync(IEnumerable<Guid> ingredientIds)
