@@ -53,8 +53,8 @@ public static class UserIngredientRelationEndpoints
 
     private static async Task<IResult> HandleMutationAsync(
         ClaimsPrincipal user,
-        List<Guid> ingredientIds,
-        Func<Guid, List<Guid>, Task> action)
+        IReadOnlyCollection<Guid> ingredientIds,
+        Func<Guid, IReadOnlyCollection<Guid>, Task> action)
     {
         if (!EndpointUserHelper.TryGetUserId(user, out var userId))
             return Results.Unauthorized();
