@@ -7,11 +7,6 @@ namespace Recipes.Infrastructure.Repositories.Implementations;
 
 public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInteractionRepository
 {
-    public Task<bool> RecipeExistsAsync(Guid recipeId)
-    {
-        return context.Recipes.AnyAsync(r => r.Id == recipeId);
-    }
-
     public Task<Like?> GetLikeAsync(Guid recipeId, Guid userId)
     {
         return context.Likes.FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);

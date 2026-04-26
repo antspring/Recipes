@@ -63,8 +63,4 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
         return Task.CompletedTask;
     }
 
-    public Task<bool> ExistsAsync(Guid id)
-    {
-        return context.Recipes.AnyAsync(r => r.Id == id);
-    }
 }

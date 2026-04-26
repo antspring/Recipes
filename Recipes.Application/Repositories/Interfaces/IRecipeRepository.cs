@@ -10,5 +10,4 @@ public interface IRecipeRepository
     Task AddAsync(Recipe recipe);
     Task UpdateAsync(Recipe recipe);
     Task DeleteAsync(Recipe recipe);
-    Task<bool> ExistsAsync(Guid id);
 }

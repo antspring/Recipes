@@ -8,6 +8,7 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeInteractionService(
     IRecipeInteractionRepository recipeInteractionRepository,
+    IRecipeExistenceRepository recipeExistenceRepository,
     IUnitOfWork unitOfWork,
     IClock clock) : IRecipeInteractionService
 {
@@ -61,7 +62,7 @@ public class RecipeInteractionService(
 
     private async Task EnsureRecipeExistsAsync(Guid recipeId)
     {
-        if (!await recipeInteractionRepository.RecipeExistsAsync(recipeId))
+        if (!await recipeExistenceRepository.ExistsAsync(recipeId))
             throw new ArgumentException("Recipe not found");
     }
 }

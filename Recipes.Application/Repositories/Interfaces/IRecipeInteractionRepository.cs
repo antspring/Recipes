@@ -5,7 +5,6 @@ namespace Recipes.Application.Repositories.Interfaces;
 
 public interface IRecipeInteractionRepository
 {
-    Task<bool> RecipeExistsAsync(Guid recipeId);
     Task<Like?> GetLikeAsync(Guid recipeId, Guid userId);
     Task AddLikeAsync(Like like);
     Task RemoveLikeAsync(Like like);

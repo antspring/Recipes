@@ -8,7 +8,7 @@ using Recipes.Domain.Models;
 namespace Recipes.Application.Services.Implementations;
 
 public class CommentService(
-    IRecipeRepository recipeRepository,
+    IRecipeExistenceRepository recipeExistenceRepository,
     ICommentRepository commentRepository,
     IUnitOfWork unitOfWork,
     ICommentImageService commentImageService,
@@ -17,7 +17,7 @@ public class CommentService(
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
     {
-        if (!await recipeRepository.ExistsAsync(createCommentDto.RecipeId))
+        if (!await recipeExistenceRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
         var now = clock.UtcNow;
