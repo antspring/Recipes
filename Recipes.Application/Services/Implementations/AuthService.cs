@@ -1,5 +1,6 @@
 using Recipes.Application.DTO.User;
 using Recipes.Application.Services.Interfaces;
+using Recipes.Domain.Models;
 
 namespace Recipes.Application.Services.Implementations;
 
@@ -37,13 +38,12 @@ public class AuthService(
         return await IssueTokensAsync(user, userAgent);
     }
 
-    public async Task<UserAuthDto> DeleteAvatarAsync(Guid userId)
+    public Task<User> DeleteAvatarAsync(Guid userId)
     {
-        var user = await userProfileService.DeleteAvatarAsync(userId);
-        return new UserAuthDto(user, "", "");
+        return userProfileService.DeleteAvatarAsync(userId);
     }
 
-    private Task<UserAuthDto> IssueTokensAsync(Domain.Models.User user, string? userAgent)
+    private Task<UserAuthDto> IssueTokensAsync(User user, string? userAgent)
     {
         return userAuthTokenService.IssueTokensAsync(user, userAgent);
     }
