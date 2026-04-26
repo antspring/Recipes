@@ -63,20 +63,6 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         }
     }
 
-    public async Task<List<string>> UploadImagesAsync(
-        IEnumerable<(Stream Stream, string FileName, string ContentType)> files)
-    {
-        var urls = new List<string>();
-
-        foreach (var file in files)
-        {
-            var url = await UploadImageAsync(file.Stream, file.FileName, file.ContentType);
-            urls.Add(url);
-        }
-
-        return urls;
-    }
-
     public async Task DeleteImageAsync(string fileName)
     {
         try
