@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Recipes.API.Helpers;
@@ -95,7 +94,7 @@ public static class AuthEndpoints
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                if (!TryGetUserId(httpContext, out var userId))
+                if (!EndpointUserHelper.TryGetUserId(httpContext.User, out var userId))
                 {
                     return Results.Unauthorized();
                 }
@@ -119,7 +118,7 @@ public static class AuthEndpoints
                 IAuthService authService,
                 HttpContext httpContext) =>
             {
-                if (!TryGetUserId(httpContext, out var userId))
+                if (!EndpointUserHelper.TryGetUserId(httpContext.User, out var userId))
                 {
                     return Results.Unauthorized();
                 }
@@ -135,11 +134,5 @@ public static class AuthEndpoints
                 }
             })
             .RequireAuthorization();
-    }
-
-    private static bool TryGetUserId(HttpContext httpContext, out Guid userId)
-    {
-        var userIdValue = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdValue, out userId);
     }
 }
