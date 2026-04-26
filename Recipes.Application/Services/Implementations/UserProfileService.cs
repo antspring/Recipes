@@ -18,8 +18,12 @@ public class UserProfileService(
     public async Task<User> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto)
     {
         var user = await userAccessService.GetRequiredUserAsync(userId);
-        await userAvatarService.DeleteAvatarAsync(user);
-        user.AvatarUrl = await userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
+
+        if (updateUserDto.Avatar != null)
+        {
+            await userAvatarService.DeleteAvatarAsync(user);
+            user.AvatarUrl = await userAvatarService.UploadAvatarAsync(updateUserDto.Avatar);
+        }
 
         mapper.Map(updateUserDto, user);
         user.UpdatedAt = clock.UtcNow;
