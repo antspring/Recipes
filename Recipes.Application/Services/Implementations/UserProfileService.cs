@@ -13,11 +13,16 @@ public class UserProfileService(
     IMapper mapper,
     IUserAccessService userAccessService,
     IUserAvatarService userAvatarService,
+    IUserUniquenessService userUniquenessService,
     IClock clock) : IUserProfileService
 {
     public async Task<User> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto)
     {
         var user = await userAccessService.GetRequiredUserAsync(userId);
+        await userUniquenessService.EnsureUserNameOrEmailAvailableAsync(
+            updateUserDto.UserName,
+            updateUserDto.Email,
+            userId);
 
         if (updateUserDto.Avatar != null)
         {

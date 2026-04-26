@@ -13,10 +13,13 @@ public class UserRegistrationService(
     IMapper mapper,
     IPasswordHasher passwordHasher,
     IUserAvatarService userAvatarService,
-    IClock clock) : IUserRegistrationService
+    IClock clock,
+    IUserUniquenessService userUniquenessService) : IUserRegistrationService
 {
     public async Task<User> RegisterAsync(CreateUserDto createUserDto)
     {
+        await userUniquenessService.EnsureUserNameOrEmailAvailableAsync(createUserDto.UserName, createUserDto.Email);
+
         var user = mapper.Map<User>(createUserDto);
         var now = clock.UtcNow;
 

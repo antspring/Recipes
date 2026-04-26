@@ -25,6 +25,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<IUserAuthTokenService, UserAuthTokenService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
+        services.AddScoped<IUserUniquenessService, UserUniquenessService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IRecipeCrudService, RecipeCrudService>();
         services.AddScoped<IRecipeInteractionService, RecipeInteractionService>();
