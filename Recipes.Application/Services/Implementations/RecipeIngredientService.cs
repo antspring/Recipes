@@ -1,9 +1,7 @@
 using AutoMapper;
-using AutoMapper.Configuration;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
-using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
 
 namespace Recipes.Application.Services.Implementations;
@@ -15,18 +13,21 @@ public class RecipeIngredientService(
     public async Task<List<RecipeIngredient>> SaveRecipeIngredientsAsync(List<RecipeIngredientInputDto> ingredientsDto,
         Guid recipeId)
     {
-        var recipeIngredients = new List<RecipeIngredient>();
-        foreach (var ingredientDto in ingredientsDto)
-        {
-            var ingredient = await unitOfWork.Ingredients.GetByIdAsync(ingredientDto.IngredientId);
-            if (ingredient == null)
-                throw new ArgumentException($"Ingredient with id {ingredientDto.IngredientId} not found");
+        await ValidateIngredientsExistAsync(ingredientsDto);
 
-            var recipeIngredient =
-                mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId));
-            recipeIngredients.Add(recipeIngredient);
-        }
+        return ingredientsDto
+            .Select(ingredientDto =>
+                mapper.Map<RecipeIngredient>(ingredientDto, opt => opt.Items.Add("RecipeId", recipeId)))
+            .ToList();
+    }
 
-        return recipeIngredients;
+    private async Task ValidateIngredientsExistAsync(IEnumerable<RecipeIngredientInputDto> ingredientsDto)
+    {
+        var ingredientIds = ingredientsDto.Select(ingredient => ingredient.IngredientId).Distinct().ToList();
+        var existingIds = await unitOfWork.Ingredients.GetExistingIdsAsync(ingredientIds);
+        var missingIds = ingredientIds.Except(existingIds).ToList();
+
+        if (missingIds.Count > 0)
+            throw new ArgumentException($"Ingredients not found: {string.Join(", ", missingIds)}");
     }
 }
