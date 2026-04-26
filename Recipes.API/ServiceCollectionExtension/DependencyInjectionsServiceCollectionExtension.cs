@@ -63,8 +63,6 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRecipeRepository, RecipeRepository>();
         services.AddScoped<IRecipeInteractionRepository, RecipeInteractionRepository>();
         services.AddScoped<IImageRepository, ImageRepository>();
-        services.AddScoped<IRecipeImageRepository, RecipeImageRepository>();
-        services.AddScoped<IRecipeIngredientRepository, RecipeIngredientRepository>();
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();

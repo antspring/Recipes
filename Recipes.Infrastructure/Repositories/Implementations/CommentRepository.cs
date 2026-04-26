@@ -16,16 +16,6 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
             .FirstOrDefaultAsync(c => c.Id == id);
     }
 
-    public async Task<List<Comment>> GetByRecipeIdAsync(Guid recipeId)
-    {
-        return await context.Comments
-            .Include(c => c.Commentator)
-            .Include(c => c.Images)
-            .Where(c => c.RecipeId == recipeId)
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
-    }
-
     public async Task<PagedResult<Comment>> GetByRecipeIdPagedAsync(Guid recipeId, int page, int pageSize,
         DateTime? from, DateTime? to)
     {
@@ -71,10 +61,5 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
     {
         context.Comments.Remove(comment);
         return Task.CompletedTask;
-    }
-
-    public async Task<int> CountByRecipeIdAsync(Guid recipeId)
-    {
-        return await context.Comments.CountAsync(c => c.RecipeId == recipeId);
     }
 }
