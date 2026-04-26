@@ -53,10 +53,15 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IUserAvatarService, UserAvatarService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddImageStorageServices();
+        services.AddSingleton<IJwtGenerateService, JwtGenerateService>();
+    }
+
+    private static void AddImageStorageServices(this IServiceCollection services)
+    {
         services.AddScoped<ImageStorageService>();
         services.AddScoped<IImageStorageService>(sp => sp.GetRequiredService<ImageStorageService>());
         services.AddScoped<IImageUrlProvider>(sp => sp.GetRequiredService<ImageStorageService>());
-        services.AddSingleton<IJwtGenerateService, JwtGenerateService>();
     }
 
     private static void AddRepositories(this IServiceCollection services)
