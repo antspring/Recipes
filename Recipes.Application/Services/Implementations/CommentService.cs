@@ -12,7 +12,7 @@ public class CommentService(
     ICommentRepository commentRepository,
     IUnitOfWork unitOfWork,
     ICommentImageService commentImageService,
-    IImageStorageService imageStorageService,
+    IImageUrlProvider imageUrlProvider,
     IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
@@ -123,7 +123,7 @@ public class CommentService(
     {
         foreach (var image in comment.Images)
         {
-            image.Url = imageStorageService.GetImageUrl(image.FileName);
+            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
         }
     }
 }

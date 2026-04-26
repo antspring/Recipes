@@ -10,7 +10,7 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeCrudService(
     IRecipeRepository recipeRepository,
     IUnitOfWork unitOfWork,
-    IImageStorageService imageStorageService,
+    IImageUrlProvider imageUrlProvider,
     IRecipeImageService imageService,
     IRecipeIngredientService ingredientService,
     IMapper mapper,
@@ -161,7 +161,7 @@ public class RecipeCrudService(
     {
         foreach (var image in recipe.Images)
         {
-            image.Url = imageStorageService.GetImageUrl(image.FileName);
+            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
         }
     }
 }

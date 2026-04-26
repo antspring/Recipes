@@ -9,7 +9,7 @@ using Recipes.Application.Services.Interfaces;
 namespace Recipes.Infrastructure.Services;
 
 public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILogger<ImageStorageService> logger)
-    : IImageStorageService
+    : IImageStorageService, IImageUrlProvider
 {
     private readonly string _endpoint = objectStorageOptions.Endpoint;
     private readonly string _bucket = objectStorageOptions.Bucket;

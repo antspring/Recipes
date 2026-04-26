@@ -5,5 +5,4 @@ public interface IImageStorageService
     Task<string> UploadImageAsync(Stream fileStream, string fileName, string contentType);
     Task DeleteImageAsync(string fileName);
     Task DeleteImagesAsync(IEnumerable<string> fileNames);
-    string GetImageUrl(string fileName);
 }

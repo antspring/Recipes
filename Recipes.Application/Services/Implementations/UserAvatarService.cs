@@ -4,7 +4,9 @@ using Recipes.Domain.Models;
 
 namespace Recipes.Application.Services.Implementations;
 
-public class UserAvatarService(IImageStorageService imageStorageService) : IUserAvatarService
+public class UserAvatarService(
+    IImageStorageService imageStorageService,
+    IImageUrlProvider imageUrlProvider) : IUserAvatarService
 {
     public async Task<string?> UploadAvatarAsync(ImageUpload? avatar)
     {
@@ -16,7 +18,7 @@ public class UserAvatarService(IImageStorageService imageStorageService) : IUser
             avatar.FileName,
             avatar.ContentType);
 
-        return imageStorageService.GetImageUrl(fileName);
+        return imageUrlProvider.GetImageUrl(fileName);
     }
 
     public async Task DeleteAvatarAsync(User user)
