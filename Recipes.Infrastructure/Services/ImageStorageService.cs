@@ -23,14 +23,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         {
             if (field == null)
             {
-                var config = new AmazonS3Config
-                {
-                    ServiceURL = _endpoint,
-                    RegionEndpoint = RegionEndpoint.GetBySystemName(_region),
-                    ForcePathStyle = true
-                };
-
-                field = new AmazonS3Client(_accessKey, _secretKey, config);
+                field = CreateS3Client();
             }
 
             return field;
@@ -42,17 +35,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         try
         {
             var uniqueFileName = $"{Guid.NewGuid()}_{fileName}";
-
-            var request = new PutObjectRequest
-            {
-                BucketName = _bucket,
-                Key = uniqueFileName,
-                InputStream = fileStream,
-                ContentType = contentType,
-                CannedACL = S3CannedACL.PublicRead
-            };
-
-            await S3Client.PutObjectAsync(request);
+            await S3Client.PutObjectAsync(CreatePutObjectRequest(uniqueFileName, fileStream, contentType));
 
             return uniqueFileName;
         }
@@ -67,13 +50,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
     {
         try
         {
-            var request = new DeleteObjectRequest
-            {
-                BucketName = _bucket,
-                Key = fileName
-            };
-
-            await S3Client.DeleteObjectAsync(request);
+            await S3Client.DeleteObjectAsync(CreateDeleteObjectRequest(fileName));
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -98,13 +75,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
     {
         try
         {
-            var request = new GetObjectMetadataRequest
-            {
-                BucketName = _bucket,
-                Key = fileName
-            };
-
-            await S3Client.GetObjectMetadataAsync(request);
+            await S3Client.GetObjectMetadataAsync(CreateMetadataRequest(fileName));
             return true;
         }
         catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
@@ -121,5 +92,50 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
     public string GetImageUrl(string fileName)
     {
         return $"{_endpoint}/{_bucket}/{fileName}";
+    }
+
+    private AmazonS3Client CreateS3Client()
+    {
+        return new AmazonS3Client(_accessKey, _secretKey, CreateS3Config());
+    }
+
+    private AmazonS3Config CreateS3Config()
+    {
+        return new AmazonS3Config
+        {
+            ServiceURL = _endpoint,
+            RegionEndpoint = RegionEndpoint.GetBySystemName(_region),
+            ForcePathStyle = true
+        };
+    }
+
+    private PutObjectRequest CreatePutObjectRequest(string fileName, Stream fileStream, string contentType)
+    {
+        return new PutObjectRequest
+        {
+            BucketName = _bucket,
+            Key = fileName,
+            InputStream = fileStream,
+            ContentType = contentType,
+            CannedACL = S3CannedACL.PublicRead
+        };
+    }
+
+    private DeleteObjectRequest CreateDeleteObjectRequest(string fileName)
+    {
+        return new DeleteObjectRequest
+        {
+            BucketName = _bucket,
+            Key = fileName
+        };
+    }
+
+    private GetObjectMetadataRequest CreateMetadataRequest(string fileName)
+    {
+        return new GetObjectMetadataRequest
+        {
+            BucketName = _bucket,
+            Key = fileName
+        };
     }
 }
