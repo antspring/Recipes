@@ -25,7 +25,8 @@ public static class AuthEndpoints
                 try
                 {
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
-                    var userAuthDto = await authService.Register(await request.ToCreateUserDtoAsync(), userAgent);
+                    var createUserDto = await AuthRequestMapper.ToCreateUserDtoAsync(request);
+                    var userAuthDto = await authService.Register(createUserDto, userAgent);
                     return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto);
                 }
                 catch (ArgumentException ex)
@@ -51,7 +52,8 @@ public static class AuthEndpoints
                 try
                 {
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
-                    var userAuthDto = await authService.Login(request.ToLoginUserDto(userAgent));
+                    var loginUserDto = AuthRequestMapper.ToLoginUserDto(request, userAgent);
+                    var userAuthDto = await authService.Login(loginUserDto);
                     return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto);
                 }
                 catch (ArgumentException ex)
@@ -101,7 +103,7 @@ public static class AuthEndpoints
                 try
                 {
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
-                    var updateUserDto = await request.ToUpdateUserDtoAsync();
+                    var updateUserDto = await AuthRequestMapper.ToUpdateUserDtoAsync(request);
                     var userAuthDto = await authService.UpdateUserAsync(userId, updateUserDto, userAgent);
                     return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto);
                 }
