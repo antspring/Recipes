@@ -1,16 +1,16 @@
 using Recipes.Application.Auth;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
-using Recipes.Application.UnitOfWork.Interfaces;
 
 namespace Recipes.Application.Services.Implementations;
 
 public class RefreshTokenService(
-    IUnitOfWork unitOfWork,
+    IRefreshTokenRepository refreshTokenRepository,
     IClock clock) : IRefreshTokenService
 {
     public async Task<StoredRefreshToken> GetValidTokenAsync(string refreshToken)
     {
-        var storedRefreshToken = await unitOfWork.RefreshTokens.GetAsync(refreshToken);
+        var storedRefreshToken = await refreshTokenRepository.GetAsync(refreshToken);
         if (storedRefreshToken == null)
             throw new ArgumentException("Invalid refresh token");
 
@@ -22,6 +22,6 @@ public class RefreshTokenService(
 
     public Task RevokeAsync(Guid tokenId)
     {
-        return unitOfWork.RefreshTokens.RemoveAsync(tokenId);
+        return refreshTokenRepository.RemoveAsync(tokenId);
     }
 }
