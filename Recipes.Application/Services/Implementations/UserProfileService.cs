@@ -1,5 +1,6 @@
 using AutoMapper;
 using Recipes.Application.DTO.User;
+using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
 using Recipes.Domain.Models;
@@ -7,6 +8,7 @@ using Recipes.Domain.Models;
 namespace Recipes.Application.Services.Implementations;
 
 public class UserProfileService(
+    IUserRepository userRepository,
     IUnitOfWork unitOfWork,
     IMapper mapper,
     IUserAccessService userAccessService,
@@ -22,7 +24,7 @@ public class UserProfileService(
         mapper.Map(updateUserDto, user);
         user.UpdatedAt = clock.UtcNow;
 
-        await unitOfWork.Users.UpdateAsync(user);
+        await userRepository.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
 
         return user;
@@ -36,7 +38,7 @@ public class UserProfileService(
         user.AvatarUrl = null;
         user.UpdatedAt = clock.UtcNow;
 
-        await unitOfWork.Users.UpdateAsync(user);
+        await userRepository.UpdateAsync(user);
         await unitOfWork.SaveChangesAsync();
 
         return user;
