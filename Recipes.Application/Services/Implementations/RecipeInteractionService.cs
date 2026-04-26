@@ -13,9 +13,7 @@ public class RecipeInteractionService(
 {
     public async Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked)
     {
-        var recipe = await recipeRepository.GetByIdAsync(recipeId);
-        if (recipe == null)
-            throw new ArgumentException("Recipe not found");
+        await EnsureRecipeExistsAsync(recipeId);
 
         var existingLike = await recipeRepository.GetLikeAsync(recipeId, userId);
 
@@ -23,7 +21,7 @@ public class RecipeInteractionService(
         {
             await recipeRepository.AddLikeAsync(new Like
             {
-                RecipeId = recipe.Id,
+                RecipeId = recipeId,
                 UserId = userId,
                 CreatedAt = clock.UtcNow
             });
@@ -39,9 +37,7 @@ public class RecipeInteractionService(
 
     public async Task ToggleFavoriteAsync(Guid recipeId, Guid userId, bool isFavorite)
     {
-        var recipe = await recipeRepository.GetByIdAsync(recipeId);
-        if (recipe == null)
-            throw new ArgumentException("Recipe not found");
+        await EnsureRecipeExistsAsync(recipeId);
 
         var existingFavorite = await recipeRepository.GetFavoriteAsync(recipeId, userId);
 
@@ -49,7 +45,7 @@ public class RecipeInteractionService(
         {
             await recipeRepository.AddFavoriteAsync(new Favorite
             {
-                RecipeId = recipe.Id,
+                RecipeId = recipeId,
                 UserId = userId,
                 CreatedAt = clock.UtcNow
             });
@@ -61,5 +57,11 @@ public class RecipeInteractionService(
         }
 
         await unitOfWork.SaveChangesAsync();
+    }
+
+    private async Task EnsureRecipeExistsAsync(Guid recipeId)
+    {
+        if (!await recipeRepository.ExistsAsync(recipeId))
+            throw new ArgumentException("Recipe not found");
     }
 }
