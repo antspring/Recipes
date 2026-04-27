@@ -10,7 +10,9 @@ public static class CommentEndpoints
 {
     public static void MapCommentEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/recipes/{recipeId:guid}/comments", async (
+        var commentEndpoints = app.MapGroup("/api/recipes").WithTags("Comments");
+
+        commentEndpoints.MapGet("/{recipeId:guid}/comments", async (
             Guid recipeId,
             ICommentService commentService,
             [FromQuery] int page = 1,
@@ -27,10 +29,9 @@ public static class CommentEndpoints
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
-        })
-        .WithTags("Comments");
+        });
 
-        app.MapPost("/api/recipes/{recipeId:guid}/comments", async (
+        commentEndpoints.MapPost("/{recipeId:guid}/comments", async (
                 Guid recipeId,
                 [FromForm] CreateCommentRequest request,
                 ClaimsPrincipal user,
@@ -59,10 +60,9 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery()
-            .WithTags("Comments");
+            .DisableAntiforgery();
 
-        app.MapPut("/api/recipes/comments/{commentId:guid}", async (
+        commentEndpoints.MapPut("/comments/{commentId:guid}", async (
                 Guid commentId,
                 [FromForm] UpdateCommentRequest request,
                 ClaimsPrincipal user,
@@ -95,10 +95,9 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery()
-            .WithTags("Comments");
+            .DisableAntiforgery();
 
-        app.MapDelete("/api/recipes/comments/{commentId:guid}", async (
+        commentEndpoints.MapDelete("/comments/{commentId:guid}", async (
                 Guid commentId,
                 ClaimsPrincipal user,
                 ICommentService commentService) =>
@@ -122,7 +121,6 @@ public static class CommentEndpoints
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization()
-            .WithTags("Comments");
+            .RequireAuthorization();
     }
 }
