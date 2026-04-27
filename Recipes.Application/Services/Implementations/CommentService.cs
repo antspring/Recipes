@@ -121,6 +121,10 @@ public class CommentService(
 
     private void ApplyImageUrls(CommentDto comment)
     {
+        comment.CommentatorAvatarUrl = string.IsNullOrWhiteSpace(comment.CommentatorAvatarUrl)
+            ? null
+            : imageUrlProvider.GetImageUrl(comment.CommentatorAvatarUrl);
+
         foreach (var image in comment.Images)
         {
             image.Url = imageUrlProvider.GetImageUrl(image.FileName);
