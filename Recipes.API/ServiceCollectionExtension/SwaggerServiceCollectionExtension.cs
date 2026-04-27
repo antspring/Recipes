@@ -1,3 +1,4 @@
+using AspNetCore.Swagger.Themes;
 using Microsoft.OpenApi;
 
 namespace Recipes.API.ServiceCollectionExtension;
@@ -33,7 +34,7 @@ public static class SwaggerServiceCollectionExtension
             options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
         });
 
-        app.UseSwaggerUI(options =>
+        app.UseSwaggerUI(Theme.Dark, options =>
         {
             options.OAuthClientId("swagger-ui-client");
             options.OAuthClientSecret("");
