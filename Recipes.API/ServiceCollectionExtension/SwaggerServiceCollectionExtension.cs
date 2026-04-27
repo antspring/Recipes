@@ -1,5 +1,5 @@
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerUI;
+using AspNetCore.Swagger.Themes;
+using Microsoft.OpenApi;
 
 namespace Recipes.API.ServiceCollectionExtension;
 
@@ -21,6 +21,7 @@ public static class SwaggerServiceCollectionExtension
             });
 
             options.OperationFilter<AuthorizeCheckOperationFilter>();
+            options.OperationFilter<MultipartFormDataOperationFilter>();
         });
 
         return services;
@@ -28,8 +29,12 @@ public static class SwaggerServiceCollectionExtension
 
     public static IApplicationBuilder UseSwaggerWithAuth(this IApplicationBuilder app)
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(options =>
+        app.UseSwagger(options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+        });
+
+        app.UseSwaggerUI(Theme.Dark, options =>
         {
             options.OAuthClientId("swagger-ui-client");
             options.OAuthClientSecret("");

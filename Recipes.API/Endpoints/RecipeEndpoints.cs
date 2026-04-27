@@ -11,7 +11,9 @@ public static class RecipeEndpoints
 {
     public static void MapRecipeEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapPost("/api/recipes", async (
+        var recipeEndpoints = app.MapGroup("/api/recipes").WithTags("Recipes");
+
+        recipeEndpoints.MapPost(string.Empty, async (
                 [FromForm] CreateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService,
@@ -42,7 +44,7 @@ public static class RecipeEndpoints
             .RequireAuthorization()
             .DisableAntiforgery();
 
-        app.MapGet("/api/recipes/{id:guid}", async (
+        recipeEndpoints.MapGet("/{id:guid}", async (
             Guid id,
             [FromQuery] string? include,
             IRecipeCrudService recipeCrudService) =>
@@ -61,7 +63,7 @@ public static class RecipeEndpoints
             }
         });
 
-        app.MapGet("/api/recipes", async (
+        recipeEndpoints.MapGet(string.Empty, async (
             [FromQuery] string? include,
             IRecipeCrudService recipeCrudService) =>
         {
@@ -77,7 +79,7 @@ public static class RecipeEndpoints
             }
         });
 
-        app.MapGet("/api/recipes/creator/{creatorId:guid}", async (
+        recipeEndpoints.MapGet("/creator/{creatorId:guid}", async (
             Guid creatorId,
             [FromQuery] string? include,
             IRecipeCrudService recipeCrudService) =>
@@ -94,7 +96,7 @@ public static class RecipeEndpoints
             }
         });
 
-        app.MapPut("/api/recipes/{id:guid}", async (
+        recipeEndpoints.MapPut("/{id:guid}", async (
                 Guid id,
                 [FromForm] UpdateRecipeWithFilesRequest request,
                 ClaimsPrincipal user,
@@ -130,7 +132,7 @@ public static class RecipeEndpoints
             .RequireAuthorization()
             .DisableAntiforgery();
 
-        app.MapDelete("/api/recipes/{id:guid}", async (
+        recipeEndpoints.MapDelete("/{id:guid}", async (
                 Guid id,
                 ClaimsPrincipal user,
                 IRecipeCrudService recipeCrudService) =>
@@ -156,7 +158,7 @@ public static class RecipeEndpoints
             })
             .RequireAuthorization();
 
-        app.MapPut("/api/recipes/{recipeId:guid}/like", async (
+        recipeEndpoints.MapPut("/{recipeId:guid}/like", async (
                 Guid recipeId,
                 [FromBody] ToggleLikeRequest request,
                 ClaimsPrincipal user,
@@ -179,7 +181,7 @@ public static class RecipeEndpoints
             })
             .RequireAuthorization();
 
-        app.MapPut("/api/recipes/{recipeId:guid}/favorite", async (
+        recipeEndpoints.MapPut("/{recipeId:guid}/favorite", async (
                 Guid recipeId,
                 [FromBody] ToggleFavoriteRequest request,
                 ClaimsPrincipal user,

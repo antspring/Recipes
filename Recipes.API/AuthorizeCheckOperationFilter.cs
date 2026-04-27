@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Recipes.API;
@@ -13,18 +13,12 @@ public class AuthorizeCheckOperationFilter : IOperationFilter
 
         if (hasAuthorize)
         {
+            operation.Security ??= new List<OpenApiSecurityRequirement>();
             operation.Security.Add(new OpenApiSecurityRequirement
             {
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    Array.Empty<string>()
+                    new OpenApiSecuritySchemeReference("Bearer", context.Document),
+                    new List<string>()
                 }
             });
         }

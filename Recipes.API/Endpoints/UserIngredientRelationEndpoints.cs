@@ -11,10 +11,11 @@ public static class UserIngredientRelationEndpoints
 {
     public static void MapUserIngredientRelationEndpoints<TRelation>(
         this IEndpointRouteBuilder app,
-        string route)
+        string route,
+        string tag)
         where TRelation : class, IUserIngredientRelation, new()
     {
-        var endpoints = app.MapGroup(route).RequireAuthorization();
+        var endpoints = app.MapGroup(route).RequireAuthorization().WithTags(tag);
 
         endpoints.MapGet("/", async Task<IResult> (
             IUserIngredientRelationService<TRelation> service,

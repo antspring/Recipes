@@ -10,7 +10,9 @@ public static class RecipeStepEndpoints
 {
     public static void MapRecipeStepEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/recipes/{recipeId:guid}/steps", async (
+        var stepEndpoints = app.MapGroup("/api/recipes/{recipeId:guid}/steps").WithTags("Recipe steps");
+
+        stepEndpoints.MapGet(string.Empty, async (
             Guid recipeId,
             IRecipeStepService recipeStepService) =>
         {
@@ -25,7 +27,7 @@ public static class RecipeStepEndpoints
             }
         });
 
-        app.MapPost("/api/recipes/{recipeId:guid}/steps", async (
+        stepEndpoints.MapPost(string.Empty, async (
                 Guid recipeId,
                 [FromForm] CreateRecipeStepRequest request,
                 ClaimsPrincipal user,
@@ -59,7 +61,7 @@ public static class RecipeStepEndpoints
             .RequireAuthorization()
             .DisableAntiforgery();
 
-        app.MapPut("/api/recipes/{recipeId:guid}/steps/{stepId:guid}", async (
+        stepEndpoints.MapPut("/{stepId:guid}", async (
                 Guid recipeId,
                 Guid stepId,
                 [FromForm] UpdateRecipeStepRequest request,
@@ -98,7 +100,7 @@ public static class RecipeStepEndpoints
             .RequireAuthorization()
             .DisableAntiforgery();
 
-        app.MapDelete("/api/recipes/{recipeId:guid}/steps/{stepId:guid}", async (
+        stepEndpoints.MapDelete("/{stepId:guid}", async (
                 Guid recipeId,
                 Guid stepId,
                 ClaimsPrincipal user,
@@ -125,7 +127,7 @@ public static class RecipeStepEndpoints
             })
             .RequireAuthorization();
 
-        app.MapPut("/api/recipes/{recipeId:guid}/steps/reorder", async (
+        stepEndpoints.MapPut("/reorder", async (
                 Guid recipeId,
                 [FromBody] ReorderRecipeStepsRequest request,
                 ClaimsPrincipal user,

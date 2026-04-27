@@ -10,7 +10,7 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this WebApplication app)
     {
-        var authEndpoints = app.MapGroup("/auth");
+        var authEndpoints = app.MapGroup("/auth").WithTags("Auth");
 
         authEndpoints.MapPost("/register", async Task<IResult> (
                 [FromForm] RegisterUserRequest request,
