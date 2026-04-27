@@ -1,5 +1,4 @@
-using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerUI;
+using Microsoft.OpenApi;
 
 namespace Recipes.API.ServiceCollectionExtension;
 
@@ -29,7 +28,11 @@ public static class SwaggerServiceCollectionExtension
 
     public static IApplicationBuilder UseSwaggerWithAuth(this IApplicationBuilder app)
     {
-        app.UseSwagger();
+        app.UseSwagger(options =>
+        {
+            options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_1;
+        });
+
         app.UseSwaggerUI(options =>
         {
             options.OAuthClientId("swagger-ui-client");

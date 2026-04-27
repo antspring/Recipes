@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Recipes.API;
@@ -23,8 +23,8 @@ public class MultipartFormDataOperationFilter : IOperationFilter
         if (properties.Length == 0)
             return;
 
-        operation.RequestBody ??= new OpenApiRequestBody();
-        operation.RequestBody.Content[MultipartFormData] = new OpenApiMediaType
+        var requestBody = operation.RequestBody ??= new OpenApiRequestBody();
+        requestBody.Content![MultipartFormData] = new OpenApiMediaType
         {
             Schema = CreateSchema(properties)
         };
@@ -64,8 +64,8 @@ public class MultipartFormDataOperationFilter : IOperationFilter
     {
         var schema = new OpenApiSchema
         {
-            Type = "object",
-            Properties = new Dictionary<string, OpenApiSchema>(),
+            Type = JsonSchemaType.Object,
+            Properties = new Dictionary<string, IOpenApiSchema>(),
             Required = new HashSet<string>()
         };
 
@@ -90,7 +90,7 @@ public class MultipartFormDataOperationFilter : IOperationFilter
         {
             return new OpenApiSchema
             {
-                Type = "array",
+                Type = JsonSchemaType.Array,
                 Items = CreateFileSchema()
             };
         }
@@ -99,7 +99,7 @@ public class MultipartFormDataOperationFilter : IOperationFilter
         {
             return new OpenApiSchema
             {
-                Type = "string",
+                Type = JsonSchemaType.String,
                 Description = "JSON string.",
                 Example = CreateJsonStringExample(property.Name)
             };
@@ -112,7 +112,7 @@ public class MultipartFormDataOperationFilter : IOperationFilter
     {
         return new OpenApiSchema
         {
-            Type = "string",
+            Type = JsonSchemaType.String,
             Format = "binary"
         };
     }
@@ -124,16 +124,16 @@ public class MultipartFormDataOperationFilter : IOperationFilter
                    || property.Name.Equals("ImageIdsToDelete", StringComparison.OrdinalIgnoreCase));
     }
 
-    private static IOpenApiAny? CreateJsonStringExample(string propertyName)
+    private static JsonNode? CreateJsonStringExample(string propertyName)
     {
         if (propertyName.Equals("IngredientsJson", StringComparison.OrdinalIgnoreCase))
         {
-            return new OpenApiString(
+            return JsonValue.Create(
                 "[{\"ingredientId\":\"00000000-0000-0000-0000-000000000000\",\"weight\":100,\"alternativeWeight\":\"1 cup\"}]");
         }
 
         if (propertyName.Equals("ImageIdsToDelete", StringComparison.OrdinalIgnoreCase))
-            return new OpenApiString("[\"00000000-0000-0000-0000-000000000000\"]");
+            return JsonValue.Create("[\"00000000-0000-0000-0000-000000000000\"]");
 
         return null;
     }
@@ -143,23 +143,25 @@ public class MultipartFormDataOperationFilter : IOperationFilter
         var type = Nullable.GetUnderlyingType(propertyType) ?? propertyType;
 
         if (type == typeof(bool))
-            return new OpenApiSchema { Type = "boolean" };
+            return new OpenApiSchema { Type = JsonSchemaType.Boolean };
 
         if (type == typeof(int) || type == typeof(long))
-            return new OpenApiSchema { Type = "integer", Format = type == typeof(long) ? "int64" : "int32" };
+            return new OpenApiSchema
+                { Type = JsonSchemaType.Integer, Format = type == typeof(long) ? "int64" : "int32" };
 
         if (type == typeof(float) || type == typeof(double) || type == typeof(decimal))
-            return new OpenApiSchema { Type = "number", Format = type == typeof(float) ? "float" : "double" };
+            return new OpenApiSchema
+                { Type = JsonSchemaType.Number, Format = type == typeof(float) ? "float" : "double" };
 
         if (type == typeof(Guid))
-            return new OpenApiSchema { Type = "string", Format = "uuid" };
+            return new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" };
 
         if (type == typeof(DateTime) || type == typeof(DateTimeOffset))
-            return new OpenApiSchema { Type = "string", Format = "date-time" };
+            return new OpenApiSchema { Type = JsonSchemaType.String, Format = "date-time" };
 
         if (type == typeof(TimeSpan))
-            return new OpenApiSchema { Type = "string", Example = new OpenApiString("00:30:00") };
+            return new OpenApiSchema { Type = JsonSchemaType.String, Example = JsonValue.Create("00:30:00") };
 
-        return new OpenApiSchema { Type = "string" };
+        return new OpenApiSchema { Type = JsonSchemaType.String };
     }
 }
