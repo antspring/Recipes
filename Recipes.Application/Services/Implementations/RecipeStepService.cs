@@ -78,7 +78,7 @@ public class RecipeStepService(
         await DeleteImageAsync(step);
 
         recipe.Steps.Remove(step);
-        NormalizeOrders(recipe.Steps);
+        NormalizeOrders(GetOrderedSteps(recipe));
 
         await recipeStepRepository.DeleteAsync(step);
         await unitOfWork.SaveChangesAsync();
@@ -159,7 +159,7 @@ public class RecipeStepService(
     private static void NormalizeOrders(IEnumerable<RecipeStep> steps)
     {
         var order = 0;
-        foreach (var step in steps.OrderBy(rs => rs.Order))
+        foreach (var step in steps)
         {
             step.Order = order++;
         }
