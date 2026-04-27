@@ -30,4 +30,5 @@ public class Recipe
     public List<Image> Images { get; init; } = new();
     public List<RecipeIngredient> RecipeIngredients { get; set; } = new();
     public List<RecipeImage> RecipeImages { get; set; } = new();
+    public List<RecipeStep> Steps { get; set; } = new();
 }
