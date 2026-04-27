@@ -6,6 +6,7 @@ namespace Recipes.Application.Repositories.Interfaces;
 public interface IRecipeInteractionRepository
 {
     Task<Like?> GetLikeAsync(Guid recipeId, Guid userId);
+    Task<Dictionary<Guid, int>> GetLikeCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds);
     Task AddLikeAsync(Like like);
     Task RemoveLikeAsync(Like like);
     Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId);

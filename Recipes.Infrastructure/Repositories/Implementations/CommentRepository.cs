@@ -46,6 +46,14 @@ public class CommentRepository(BaseDbContext context) : ICommentRepository
         };
     }
 
+    public Task<Dictionary<Guid, int>> GetCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds)
+    {
+        return context.Comments
+            .Where(c => recipeIds.Contains(c.RecipeId))
+            .GroupBy(c => c.RecipeId)
+            .ToDictionaryAsync(g => g.Key, g => g.Count());
+    }
+
     public Task AddAsync(Comment comment)
     {
         return context.Comments.AddAsync(comment).AsTask();

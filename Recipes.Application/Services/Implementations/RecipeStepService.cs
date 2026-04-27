@@ -1,3 +1,4 @@
+using Recipes.Application.Common;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
@@ -104,7 +105,7 @@ public class RecipeStepService(
 
     private async Task<Recipe> GetRequiredRecipeAsync(Guid recipeId)
     {
-        var recipe = await recipeRepository.GetByIdAsync(recipeId);
+        var recipe = await recipeRepository.GetByIdAsync(recipeId, RecipeIncludes.Steps);
         if (recipe == null)
             throw new ArgumentException($"Recipe with id {recipeId} not found");
 
