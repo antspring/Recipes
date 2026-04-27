@@ -6,6 +6,6 @@ public static class AllergenEndpoints
 {
     public static void MapAllergenEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapUserIngredientRelationEndpoints<Allergens>("/api/allergens");
+        app.MapUserIngredientRelationEndpoints<Allergens>("/api/allergens", "Allergens");
     }
 }

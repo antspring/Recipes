@@ -23,7 +23,8 @@ public static class RecipeStepEndpoints
             {
                 return EndpointErrorHelper.NotFoundOrBadRequest(ex);
             }
-        });
+        })
+        .WithTags("Recipe steps");
 
         app.MapPost("/api/recipes/{recipeId:guid}/steps", async (
                 Guid recipeId,
@@ -57,7 +58,8 @@ public static class RecipeStepEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Recipe steps");
 
         app.MapPut("/api/recipes/{recipeId:guid}/steps/{stepId:guid}", async (
                 Guid recipeId,
@@ -96,7 +98,8 @@ public static class RecipeStepEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Recipe steps");
 
         app.MapDelete("/api/recipes/{recipeId:guid}/steps/{stepId:guid}", async (
                 Guid recipeId,
@@ -123,7 +126,8 @@ public static class RecipeStepEndpoints
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Recipe steps");
 
         app.MapPut("/api/recipes/{recipeId:guid}/steps/reorder", async (
                 Guid recipeId,
@@ -152,6 +156,7 @@ public static class RecipeStepEndpoints
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Recipe steps");
     }
 }

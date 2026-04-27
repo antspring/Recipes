@@ -21,6 +21,7 @@ public static class SwaggerServiceCollectionExtension
             });
 
             options.OperationFilter<AuthorizeCheckOperationFilter>();
+            options.OperationFilter<MultipartFormDataOperationFilter>();
         });
 
         return services;

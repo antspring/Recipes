@@ -40,7 +40,8 @@ public static class RecipeEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Recipes");
 
         app.MapGet("/api/recipes/{id:guid}", async (
             Guid id,
@@ -59,7 +60,8 @@ public static class RecipeEndpoints
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
-        });
+        })
+        .WithTags("Recipes");
 
         app.MapGet("/api/recipes", async (
             [FromQuery] string? include,
@@ -75,7 +77,8 @@ public static class RecipeEndpoints
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
-        });
+        })
+        .WithTags("Recipes");
 
         app.MapGet("/api/recipes/creator/{creatorId:guid}", async (
             Guid creatorId,
@@ -92,7 +95,8 @@ public static class RecipeEndpoints
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
-        });
+        })
+        .WithTags("Recipes");
 
         app.MapPut("/api/recipes/{id:guid}", async (
                 Guid id,
@@ -128,7 +132,8 @@ public static class RecipeEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Recipes");
 
         app.MapDelete("/api/recipes/{id:guid}", async (
                 Guid id,
@@ -154,7 +159,8 @@ public static class RecipeEndpoints
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Recipes");
 
         app.MapPut("/api/recipes/{recipeId:guid}/like", async (
                 Guid recipeId,
@@ -177,7 +183,8 @@ public static class RecipeEndpoints
                     return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Recipes");
 
         app.MapPut("/api/recipes/{recipeId:guid}/favorite", async (
                 Guid recipeId,
@@ -200,6 +207,7 @@ public static class RecipeEndpoints
                     return EndpointErrorHelper.NotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Recipes");
     }
 }

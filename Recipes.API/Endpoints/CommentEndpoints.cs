@@ -27,7 +27,8 @@ public static class CommentEndpoints
             {
                 return EndpointErrorHelper.BadRequest(ex);
             }
-        });
+        })
+        .WithTags("Comments");
 
         app.MapPost("/api/recipes/{recipeId:guid}/comments", async (
                 Guid recipeId,
@@ -58,7 +59,8 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Comments");
 
         app.MapPut("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
@@ -93,7 +95,8 @@ public static class CommentEndpoints
                 }
             })
             .RequireAuthorization()
-            .DisableAntiforgery();
+            .DisableAntiforgery()
+            .WithTags("Comments");
 
         app.MapDelete("/api/recipes/comments/{commentId:guid}", async (
                 Guid commentId,
@@ -119,6 +122,7 @@ public static class CommentEndpoints
                     return EndpointErrorHelper.ForbiddenNotFoundOrBadRequest(ex);
                 }
             })
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .WithTags("Comments");
     }
 }
