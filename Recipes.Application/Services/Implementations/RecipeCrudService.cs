@@ -1,4 +1,5 @@
 using AutoMapper;
+using Recipes.Application.Common;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
@@ -9,6 +10,8 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeCrudService(
     IRecipeRepository recipeRepository,
+    ICommentRepository commentRepository,
+    IRecipeInteractionRepository recipeInteractionRepository,
     IUnitOfWork unitOfWork,
     IImageUrlProvider imageUrlProvider,
     IRecipeImageService imageService,
@@ -34,27 +37,27 @@ public class RecipeCrudService(
         return await GetRequiredRecipeDtoAsync(recipe.Id);
     }
 
-    public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id)
+    public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id, RecipeIncludes? includes = null)
     {
-        var recipe = await recipeRepository.GetByIdAsync(id);
-        return recipe == null ? null : ToRecipeDto(recipe);
+        var recipe = await recipeRepository.GetByIdAsync(id, GetReadIncludes(includes));
+        return recipe == null ? null : await ToRecipeDtoAsync(recipe);
     }
 
-    public async Task<List<RecipeDto>> GetAllRecipesAsync()
+    public async Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null)
     {
-        var recipes = await recipeRepository.GetAllAsync();
-        return ToRecipeDtos(recipes);
+        var recipes = await recipeRepository.GetAllAsync(GetReadIncludes(includes));
+        return await ToRecipeDtosAsync(recipes);
     }
 
-    public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId)
+    public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null)
     {
-        var recipes = await recipeRepository.GetByCreatorIdAsync(creatorId);
-        return ToRecipeDtos(recipes);
+        var recipes = await recipeRepository.GetByCreatorIdAsync(creatorId, GetReadIncludes(includes));
+        return await ToRecipeDtosAsync(recipes);
     }
 
     public async Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto)
     {
-        var recipe = await GetRequiredRecipeAsync(updateRecipeDto.Id);
+        var recipe = await GetRequiredRecipeAsync(updateRecipeDto.Id, RecipeIncludes.Ingredients | RecipeIncludes.Images);
         EnsureRecipeAuthor(recipe, updateRecipeDto.ActorUserId, "update");
 
         mapper.Map(updateRecipeDto, recipe);
@@ -72,7 +75,7 @@ public class RecipeCrudService(
 
     public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
     {
-        var recipe = await GetRequiredRecipeAsync(id);
+        var recipe = await GetRequiredRecipeAsync(id, RecipeIncludes.Images);
         EnsureRecipeAuthor(recipe, actorUserId, "delete");
 
         if (recipe.RecipeImages.Count > 0)
@@ -84,9 +87,9 @@ public class RecipeCrudService(
         await unitOfWork.SaveChangesAsync();
     }
 
-    private async Task<Recipe> GetRequiredRecipeAsync(Guid recipeId)
+    private async Task<Recipe> GetRequiredRecipeAsync(Guid recipeId, RecipeIncludes includes)
     {
-        var recipe = await recipeRepository.GetByIdAsync(recipeId);
+        var recipe = await recipeRepository.GetByIdAsync(recipeId, includes);
         if (recipe == null)
             throw new ArgumentException("Recipe not found");
 
@@ -138,23 +141,53 @@ public class RecipeCrudService(
 
     private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId)
     {
-        var recipe = await recipeRepository.GetByIdAsync(recipeId);
+        var recipe = await recipeRepository.GetByIdAsync(recipeId, RecipeIncludes.Full);
         if (recipe == null)
             throw new InvalidOperationException("Recipe not found after save");
 
-        return ToRecipeDto(recipe);
+        return await ToRecipeDtoAsync(recipe);
     }
 
-    private RecipeDto ToRecipeDto(Recipe recipe)
+    private static RecipeIncludes GetReadIncludes(RecipeIncludes? includes)
+    {
+        return includes ?? RecipeIncludes.Full;
+    }
+
+    private async Task<RecipeDto> ToRecipeDtoAsync(Recipe recipe)
     {
         var dto = RecipeDto.FromRecipe(recipe);
         ApplyImageUrls(dto);
+        await ApplyCountersAsync([dto]);
         return dto;
     }
 
-    private List<RecipeDto> ToRecipeDtos(IEnumerable<Recipe> recipes)
+    private async Task<List<RecipeDto>> ToRecipeDtosAsync(IEnumerable<Recipe> recipes)
     {
-        return recipes.Select(ToRecipeDto).ToList();
+        var dtos = recipes.Select(recipe =>
+        {
+            var dto = RecipeDto.FromRecipe(recipe);
+            ApplyImageUrls(dto);
+            return dto;
+        }).ToList();
+
+        await ApplyCountersAsync(dtos);
+        return dtos;
+    }
+
+    private async Task ApplyCountersAsync(IReadOnlyCollection<RecipeDto> recipes)
+    {
+        if (recipes.Count == 0)
+            return;
+
+        var recipeIds = recipes.Select(recipe => recipe.Id).ToList();
+        var commentCounts = await commentRepository.GetCountsByRecipeIdsAsync(recipeIds);
+        var likeCounts = await recipeInteractionRepository.GetLikeCountsByRecipeIdsAsync(recipeIds);
+
+        foreach (var recipe in recipes)
+        {
+            recipe.CommentsCount = commentCounts.GetValueOrDefault(recipe.Id);
+            recipe.LikesCount = likeCounts.GetValueOrDefault(recipe.Id);
+        }
     }
 
     private void ApplyImageUrls(RecipeDto recipe)

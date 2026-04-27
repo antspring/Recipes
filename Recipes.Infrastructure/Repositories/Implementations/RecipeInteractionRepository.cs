@@ -12,6 +12,14 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
         return context.Likes.FirstOrDefaultAsync(l => l.RecipeId == recipeId && l.UserId == userId);
     }
 
+    public Task<Dictionary<Guid, int>> GetLikeCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds)
+    {
+        return context.Likes
+            .Where(l => recipeIds.Contains(l.RecipeId))
+            .GroupBy(l => l.RecipeId)
+            .ToDictionaryAsync(g => g.Key, g => g.Count());
+    }
+
     public Task AddLikeAsync(Like like)
     {
         return context.Likes.AddAsync(like).AsTask();

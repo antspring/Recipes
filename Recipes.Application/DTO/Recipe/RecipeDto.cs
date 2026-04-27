@@ -34,20 +34,25 @@ public class RecipeDto
             Fats = recipe.Fats,
             Carbohydrates = recipe.Carbohydrates,
             CreatorId = recipe.CreatorId,
-            CreatorName = recipe.Creator.Name,
+            CreatorName = recipe.Creator?.Name ?? string.Empty,
             CreatedAt = recipe.CreatedAt,
             UpdatedAt = recipe.UpdatedAt,
             CookingTime = recipe.CookingTime,
             DishType = recipe.DishType,
             MealType = recipe.MealType,
-            Ingredients = recipe.RecipeIngredients?.Select(ri => new RecipeIngredientDto
+            Ingredients = recipe.RecipeIngredients?
+                .Where(ri => ri.Ingredient != null)
+                .Select(ri => new RecipeIngredientDto
             {
                 IngredientId = ri.IngredientId,
                 IngredientTitle = ri.Ingredient.Title,
                 Weight = ri.Weight,
                 AlternativeWeight = ri.AlternativeWeight
             }).ToList() ?? new(),
-            Images = recipe.RecipeImages?.OrderBy(ri => ri.Order).Select(ri => new ImageDto
+            Images = recipe.RecipeImages?
+                .Where(ri => ri.Image != null)
+                .OrderBy(ri => ri.Order)
+                .Select(ri => new ImageDto
             {
                 Id = ri.ImageId,
                 FileName = ri.Image.FileName,

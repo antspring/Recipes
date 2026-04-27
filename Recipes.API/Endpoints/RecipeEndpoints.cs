@@ -44,26 +44,54 @@ public static class RecipeEndpoints
 
         app.MapGet("/api/recipes/{id:guid}", async (
             Guid id,
+            [FromQuery] string? include,
             IRecipeCrudService recipeCrudService) =>
         {
-            var recipe = await recipeCrudService.GetRecipeByIdAsync(id);
-            if (recipe == null) return Results.NotFound();
+            try
+            {
+                var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
+                var recipe = await recipeCrudService.GetRecipeByIdAsync(id, recipeIncludes);
+                if (recipe == null) return Results.NotFound();
 
-            return Results.Ok(recipe);
+                return Results.Ok(recipe);
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.BadRequest(ex);
+            }
         });
 
-        app.MapGet("/api/recipes", async (IRecipeCrudService recipeCrudService) =>
+        app.MapGet("/api/recipes", async (
+            [FromQuery] string? include,
+            IRecipeCrudService recipeCrudService) =>
         {
-            var recipes = await recipeCrudService.GetAllRecipesAsync();
-            return Results.Ok(recipes);
+            try
+            {
+                var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
+                var recipes = await recipeCrudService.GetAllRecipesAsync(recipeIncludes);
+                return Results.Ok(recipes);
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.BadRequest(ex);
+            }
         });
 
         app.MapGet("/api/recipes/creator/{creatorId:guid}", async (
             Guid creatorId,
+            [FromQuery] string? include,
             IRecipeCrudService recipeCrudService) =>
         {
-            var recipes = await recipeCrudService.GetRecipesByCreatorIdAsync(creatorId);
-            return Results.Ok(recipes);
+            try
+            {
+                var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
+                var recipes = await recipeCrudService.GetRecipesByCreatorIdAsync(creatorId, recipeIncludes);
+                return Results.Ok(recipes);
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.BadRequest(ex);
+            }
         });
 
         app.MapPut("/api/recipes/{id:guid}", async (
