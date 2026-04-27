@@ -1,6 +1,7 @@
 using MiniValidation;
 using Recipes.API.DTO.Responses.User;
 using Recipes.Application.DTO.User;
+using Recipes.Application.Services.Interfaces;
 
 namespace Recipes.API.Helpers;
 
@@ -30,9 +31,12 @@ public static class AuthEndpointHelper
         return httpContext.Request.Headers.UserAgent.ToString();
     }
 
-    public static IResult OkWithRefreshToken(HttpContext httpContext, UserAuthDto userAuthDto)
+    public static IResult OkWithRefreshToken(
+        HttpContext httpContext,
+        UserAuthDto userAuthDto,
+        IImageUrlProvider imageUrlProvider)
     {
-        var userResponse = new UserResponse(userAuthDto);
+        var userResponse = new UserResponse(userAuthDto, imageUrlProvider);
 
         httpContext.Response.Cookies.Append(RefreshTokenCookieName, userResponse.RefreshToken, new CookieOptions
         {
