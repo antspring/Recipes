@@ -163,5 +163,10 @@ public class RecipeCrudService(
         {
             image.Url = imageUrlProvider.GetImageUrl(image.FileName);
         }
+
+        foreach (var step in recipe.Steps.Where(step => step.Image != null))
+        {
+            step.Image!.Url = imageUrlProvider.GetImageUrl(step.Image.FileName);
+        }
     }
 }

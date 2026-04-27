@@ -15,6 +15,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<Comment> Comments { get; set; }
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+    public DbSet<RecipeStep> RecipeSteps { get; set; }
     public DbSet<Image> Images { get; set; }
     public DbSet<RecipeImage> RecipeImages { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -37,6 +38,22 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         {
             entity.Property(r => r.Title).HasColumnType("varchar(150)");
             entity.Property(r => r.Description).HasColumnType("varchar(1000)");
+        });
+
+        modelBuilder.Entity<RecipeStep>(entity =>
+        {
+            entity.ToTable("RecipeSteps");
+            entity.Property(rs => rs.Description).HasColumnType("varchar(1000)");
+
+            entity.HasOne(rs => rs.Recipe)
+                .WithMany(r => r.Steps)
+                .HasForeignKey(rs => rs.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rs => rs.Image)
+                .WithMany()
+                .HasForeignKey(rs => rs.ImageId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Comment>(entity => { entity.Property(c => c.Value).HasColumnType("varchar(1000)"); });

@@ -18,6 +18,7 @@ public class RecipeDto
     public string? MealType { get; set; }
     public List<RecipeIngredientDto> Ingredients { get; set; } = new();
     public List<ImageDto> Images { get; set; } = new();
+    public List<RecipeStepDto> Steps { get; set; } = new();
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
 
@@ -52,6 +53,7 @@ public class RecipeDto
                 FileName = ri.Image.FileName,
                 CreatedAt = ri.Image.CreatedAt
             }).ToList() ?? new(),
+            Steps = recipe.Steps?.OrderBy(rs => rs.Order).Select(RecipeStepDto.FromRecipeStep).ToList() ?? new(),
             LikesCount = recipe.Likes?.Count ?? 0,
             CommentsCount = recipe.Comments?.Count ?? 0
         };

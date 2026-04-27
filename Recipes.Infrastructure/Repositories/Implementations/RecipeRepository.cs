@@ -14,6 +14,8 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
             .ThenInclude(ri => ri.Image)
+            .Include(r => r.Steps)
+            .ThenInclude(rs => rs.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -27,6 +29,8 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
             .ThenInclude(ri => ri.Image)
+            .Include(r => r.Steps)
+            .ThenInclude(rs => rs.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .ToListAsync();
@@ -41,6 +45,8 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ThenInclude(ri => ri.Ingredient)
             .Include(r => r.RecipeImages)
             .ThenInclude(ri => ri.Image)
+            .Include(r => r.Steps)
+            .ThenInclude(rs => rs.Image)
             .Include(r => r.Likes)
             .Include(r => r.Comments)
             .ToListAsync();
