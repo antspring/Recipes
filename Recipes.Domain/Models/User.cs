@@ -28,4 +28,6 @@ public class User
     public List<Comment> Comments { get; init; } = new();
     public List<UnwantedIngredients> UnwantedIngredients { get; init; } = new();
     public List<Allergens> Allergens { get; init; } = new();
+    public List<UserSubscription> Following { get; init; } = new();
+    public List<UserSubscription> Followers { get; init; } = new();
 }
