@@ -39,11 +39,15 @@ public class RecipeDtoFactory(
         var recipeIds = recipes.Select(recipe => recipe.Id).ToList();
         var commentCounts = await commentRepository.GetCountsByRecipeIdsAsync(recipeIds);
         var likeCounts = await recipeInteractionRepository.GetLikeCountsByRecipeIdsAsync(recipeIds);
+        var ratingStats = await recipeInteractionRepository.GetRatingStatsByRecipeIdsAsync(recipeIds);
 
         foreach (var recipe in recipes)
         {
             recipe.CommentsCount = commentCounts.GetValueOrDefault(recipe.Id);
             recipe.LikesCount = likeCounts.GetValueOrDefault(recipe.Id);
+            var stats = ratingStats.GetValueOrDefault(recipe.Id);
+            recipe.AverageRating = stats.AverageRating;
+            recipe.RatingsCount = stats.RatingsCount;
         }
     }
 

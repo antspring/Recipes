@@ -9,6 +9,11 @@ public interface IRecipeInteractionRepository
     Task<Dictionary<Guid, int>> GetLikeCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds);
     Task AddLikeAsync(Like like);
     Task RemoveLikeAsync(Like like);
+    Task<RecipeRating?> GetRatingAsync(Guid recipeId, Guid userId);
+    Task<Dictionary<Guid, (double AverageRating, int RatingsCount)>> GetRatingStatsByRecipeIdsAsync(
+        IReadOnlyCollection<Guid> recipeIds);
+    Task AddRatingAsync(RecipeRating rating);
+    Task RemoveRatingAsync(RecipeRating rating);
     Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId);
     Task AddFavoriteAsync(Favorite favorite);
     Task RemoveFavoriteAsync(Favorite favorite);

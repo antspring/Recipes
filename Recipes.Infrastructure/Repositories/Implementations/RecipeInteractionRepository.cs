@@ -31,6 +31,33 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
         return Task.CompletedTask;
     }
 
+    public Task<RecipeRating?> GetRatingAsync(Guid recipeId, Guid userId)
+    {
+        return context.RecipeRatings.FirstOrDefaultAsync(r => r.RecipeId == recipeId && r.UserId == userId);
+    }
+
+    public Task<Dictionary<Guid, (double AverageRating, int RatingsCount)>> GetRatingStatsByRecipeIdsAsync(
+        IReadOnlyCollection<Guid> recipeIds)
+    {
+        return context.RecipeRatings
+            .Where(r => recipeIds.Contains(r.RecipeId))
+            .GroupBy(r => r.RecipeId)
+            .ToDictionaryAsync(
+                g => g.Key,
+                g => ((double)g.Average(r => r.Value), g.Count()));
+    }
+
+    public Task AddRatingAsync(RecipeRating rating)
+    {
+        return context.RecipeRatings.AddAsync(rating).AsTask();
+    }
+
+    public Task RemoveRatingAsync(RecipeRating rating)
+    {
+        context.RecipeRatings.Remove(rating);
+        return Task.CompletedTask;
+    }
+
     public Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId)
     {
         return context.Favorites.FirstOrDefaultAsync(f => f.RecipeId == recipeId && f.UserId == userId);

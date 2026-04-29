@@ -21,6 +21,8 @@ public class RecipeDto
     public List<RecipeStepDto> Steps { get; set; } = new();
     public int LikesCount { get; set; }
     public int CommentsCount { get; set; }
+    public double AverageRating { get; set; }
+    public int RatingsCount { get; set; }
 
     public static RecipeDto FromRecipe(Domain.Models.Recipe recipe)
     {
@@ -60,7 +62,9 @@ public class RecipeDto
             }).ToList() ?? new(),
             Steps = recipe.Steps?.OrderBy(rs => rs.Order).Select(RecipeStepDto.FromRecipeStep).ToList() ?? new(),
             LikesCount = recipe.Likes?.Count ?? 0,
-            CommentsCount = recipe.Comments?.Count ?? 0
+            CommentsCount = recipe.Comments?.Count ?? 0,
+            AverageRating = recipe.Ratings?.Count > 0 ? recipe.Ratings.Average(r => r.Value) : 0,
+            RatingsCount = recipe.Ratings?.Count ?? 0
         };
     }
 
