@@ -24,6 +24,7 @@ public class User
 
     public List<Recipe> Recipes { get; init; } = new();
     public List<Like> Likes { get; init; } = new();
+    public List<RecipeRating> RecipeRatings { get; init; } = new();
     public List<Favorite> Favorites { get; init; } = new();
     public List<Comment> Comments { get; init; } = new();
     public List<UnwantedIngredients> UnwantedIngredients { get; init; } = new();

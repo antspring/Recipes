@@ -26,6 +26,7 @@ public class Recipe
     public string? MealType { get; set; }
 
     public List<Like> Likes { get; init; } = new();
+    public List<RecipeRating> Ratings { get; init; } = new();
     public List<Comment> Comments { get; init; } = new();
     public List<Image> Images { get; init; } = new();
     public List<RecipeIngredient> RecipeIngredients { get; set; } = new();

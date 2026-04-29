@@ -16,6 +16,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<Ingredient> Ingredients { get; set; }
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
     public DbSet<RecipeStep> RecipeSteps { get; set; }
+    public DbSet<RecipeRating> RecipeRatings { get; set; }
     public DbSet<Image> Images { get; set; }
     public DbSet<RecipeImage> RecipeImages { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -64,6 +65,24 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         modelBuilder.Entity<Like>().HasKey(l => new { l.RecipeId, l.UserId });
         modelBuilder.Entity<Favorite>().HasKey(f => new { f.RecipeId, f.UserId });
         modelBuilder.Entity<RecipeImage>().HasKey(ri => new { ri.RecipeId, ri.ImageId });
+
+        modelBuilder.Entity<RecipeRating>(entity =>
+        {
+            entity.HasKey(rr => new { rr.RecipeId, rr.UserId });
+            entity.ToTable("RecipeRatings");
+
+            entity.HasIndex(rr => rr.UserId);
+
+            entity.HasOne(rr => rr.Recipe)
+                .WithMany(r => r.Ratings)
+                .HasForeignKey(rr => rr.RecipeId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(rr => rr.User)
+                .WithMany(u => u.RecipeRatings)
+                .HasForeignKey(rr => rr.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<RecipeIngredient>(entity =>
         {
