@@ -41,6 +41,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRecipeStepService, RecipeStepService>();
         services.AddScoped<ICommentImageService, CommentImageService>();
         services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
+        services.AddScoped<IIngredientService, IngredientService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
         services.AddScoped<IUserPublicProfileService, UserPublicProfileService>();
