@@ -33,11 +33,16 @@ public static class AuthRequestMapper
     {
         return new UpdateUserDto
         {
-            UserName = request.UserName,
-            Email = request.Email,
-            Name = request.Name,
-            Description = request.Description,
+            UserName = NormalizeOptionalText(request.UserName),
+            Email = NormalizeOptionalText(request.Email),
+            Name = NormalizeOptionalText(request.Name),
+            Description = NormalizeOptionalText(request.Description),
             Avatar = request.Avatar != null ? await ImageUploadFactory.CreateAsync(request.Avatar) : null
         };
+    }
+
+    private static string? NormalizeOptionalText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 }
