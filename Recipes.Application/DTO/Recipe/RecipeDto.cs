@@ -20,6 +20,7 @@ public class RecipeDto
     public List<ImageDto> Images { get; set; } = new();
     public List<RecipeStepDto> Steps { get; set; } = new();
     public int LikesCount { get; set; }
+    public int FavoritesCount { get; set; }
     public int CommentsCount { get; set; }
     public double AverageRating { get; set; }
     public int RatingsCount { get; set; }
