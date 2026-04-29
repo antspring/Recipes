@@ -43,6 +43,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
+        services.AddScoped<IUserPublicProfileService, UserPublicProfileService>();
         services.AddScoped<IClaimsProvider, ClaimsProvider>();
         services
             .AddScoped<IUserIngredientRelationService<UnwantedIngredients>,
