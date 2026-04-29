@@ -10,12 +10,10 @@ namespace Recipes.Application.Services.Implementations;
 
 public class RecipeCrudService(
     IRecipeRepository recipeRepository,
-    ICommentRepository commentRepository,
-    IRecipeInteractionRepository recipeInteractionRepository,
     IUnitOfWork unitOfWork,
-    IImageUrlProvider imageUrlProvider,
     IRecipeImageService imageService,
     IRecipeIngredientService ingredientService,
+    IRecipeDtoFactory recipeDtoFactory,
     IMapper mapper,
     IClock clock) : IRecipeCrudService
 {
@@ -40,7 +38,7 @@ public class RecipeCrudService(
     public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id, RecipeIncludes? includes = null)
     {
         var recipe = await recipeRepository.GetByIdAsync(id, GetReadIncludes(includes));
-        return recipe == null ? null : await ToRecipeDtoAsync(recipe);
+        return recipe == null ? null : await recipeDtoFactory.CreateAsync(recipe);
     }
 
     public async Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null)
@@ -145,7 +143,7 @@ public class RecipeCrudService(
         if (recipe == null)
             throw new InvalidOperationException("Recipe not found after save");
 
-        return await ToRecipeDtoAsync(recipe);
+        return await recipeDtoFactory.CreateAsync(recipe);
     }
 
     private static RecipeIncludes GetReadIncludes(RecipeIncludes? includes)
@@ -153,53 +151,8 @@ public class RecipeCrudService(
         return includes ?? RecipeIncludes.Full;
     }
 
-    private async Task<RecipeDto> ToRecipeDtoAsync(Recipe recipe)
-    {
-        var dto = RecipeDto.FromRecipe(recipe);
-        ApplyImageUrls(dto);
-        await ApplyCountersAsync([dto]);
-        return dto;
-    }
-
     private async Task<List<RecipeDto>> ToRecipeDtosAsync(IEnumerable<Recipe> recipes)
     {
-        var dtos = recipes.Select(recipe =>
-        {
-            var dto = RecipeDto.FromRecipe(recipe);
-            ApplyImageUrls(dto);
-            return dto;
-        }).ToList();
-
-        await ApplyCountersAsync(dtos);
-        return dtos;
-    }
-
-    private async Task ApplyCountersAsync(IReadOnlyCollection<RecipeDto> recipes)
-    {
-        if (recipes.Count == 0)
-            return;
-
-        var recipeIds = recipes.Select(recipe => recipe.Id).ToList();
-        var commentCounts = await commentRepository.GetCountsByRecipeIdsAsync(recipeIds);
-        var likeCounts = await recipeInteractionRepository.GetLikeCountsByRecipeIdsAsync(recipeIds);
-
-        foreach (var recipe in recipes)
-        {
-            recipe.CommentsCount = commentCounts.GetValueOrDefault(recipe.Id);
-            recipe.LikesCount = likeCounts.GetValueOrDefault(recipe.Id);
-        }
-    }
-
-    private void ApplyImageUrls(RecipeDto recipe)
-    {
-        foreach (var image in recipe.Images)
-        {
-            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
-        }
-
-        foreach (var step in recipe.Steps.Where(step => step.Image != null))
-        {
-            step.Image!.Url = imageUrlProvider.GetImageUrl(step.Image.FileName);
-        }
+        return await recipeDtoFactory.CreateManyAsync(recipes);
     }
 }

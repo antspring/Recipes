@@ -34,6 +34,8 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IUserUniquenessService, UserUniquenessService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IRecipeCrudService, RecipeCrudService>();
+        services.AddScoped<IRecipeSearchService, RecipeSearchService>();
+        services.AddScoped<IRecipeDtoFactory, RecipeDtoFactory>();
         services.AddScoped<IRecipeInteractionService, RecipeInteractionService>();
         services.AddScoped<IRecipeImageService, RecipeImageService>();
         services.AddScoped<IRecipeStepService, RecipeStepService>();
