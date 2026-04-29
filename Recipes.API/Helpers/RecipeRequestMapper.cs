@@ -32,14 +32,17 @@ public static class RecipeRequestMapper
         Guid actorUserId,
         IMapper mapper)
     {
-        var ingredients = DeserializeRequired<List<UpdateRecipeIngredientRequest>>(
+        var ingredients = DeserializeOptional<List<UpdateRecipeIngredientRequest>>(
             request.IngredientsJson,
             "Invalid ingredients JSON");
 
         var dto = mapper.Map<UpdateRecipeDto>(request);
         dto.Id = recipeId;
         dto.ActorUserId = actorUserId;
-        dto.Ingredients = ingredients.Select(ToRecipeIngredientInputDto).ToList();
+        dto.CookingTime = ParseOptionalCookingTime(request.CookingTime);
+        dto.Ingredients = ingredients?
+            .Select(ToRecipeIngredientInputDto)
+            .ToList();
 
         dto.ImageIdsToDelete = DeserializeOptional<List<Guid>>(
             request.ImageIdsToDelete,
@@ -114,6 +117,20 @@ public static class RecipeRequestMapper
         {
             throw new InvalidOperationException(errorMessage, ex);
         }
+    }
+
+    private static TimeSpan? ParseOptionalCookingTime(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (!TimeSpan.TryParse(value, out var cookingTime))
+            throw new InvalidOperationException("Invalid cooking time");
+
+        if (cookingTime < TimeSpan.Zero || cookingTime >= TimeSpan.FromDays(1))
+            throw new InvalidOperationException("CookingTime must be between 00:00:00 and 23:59:59");
+
+        return cookingTime;
     }
 
     private static string? NormalizeSearchText(string? value)

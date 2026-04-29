@@ -4,33 +4,25 @@ namespace Recipes.API.DTO.Requests.Recipe;
 
 public class UpdateRecipeWithFilesRequest
 {
-    [Required(ErrorMessage = "Title is required")]
     [StringLength(150, MinimumLength = 3, ErrorMessage = "Title must be between 3 and 150 characters")]
-    public string Title { get; set; } = null!;
+    public string? Title { get; set; }
 
-    [Required(ErrorMessage = "Description is required")]
     [StringLength(1000, MinimumLength = 3, ErrorMessage = "Description must be between 3 and 1000 characters")]
-    public string Description { get; set; } = null!;
+    public string? Description { get; set; }
 
-    [Required(ErrorMessage = "CaloricValue is required")]
     [Range(0, int.MaxValue, ErrorMessage = "CaloricValue must be non-negative")]
-    public int CaloricValue { get; set; }
+    public int? CaloricValue { get; set; }
 
-    [Required(ErrorMessage = "Proteins is required")]
     [Range(0, double.MaxValue, ErrorMessage = "Proteins must be non-negative")]
-    public double Proteins { get; set; }
+    public double? Proteins { get; set; }
 
-    [Required(ErrorMessage = "Fats is required")]
     [Range(0, double.MaxValue, ErrorMessage = "Fats must be non-negative")]
-    public double Fats { get; set; }
+    public double? Fats { get; set; }
 
-    [Required(ErrorMessage = "Carbohydrates is required")]
     [Range(0, double.MaxValue, ErrorMessage = "Carbohydrates must be non-negative")]
-    public double Carbohydrates { get; set; }
+    public double? Carbohydrates { get; set; }
 
-    [Range(typeof(TimeSpan), "00:00:00", "23:59:59",
-        ErrorMessage = "CookingTime must be between 00:00:00 and 23:59:59")]
-    public TimeSpan? CookingTime { get; set; }
+    public string? CookingTime { get; set; }
 
     [StringLength(100, ErrorMessage = "DishType must be between 0 and 100 characters")]
     public string? DishType { get; set; }
@@ -38,9 +30,8 @@ public class UpdateRecipeWithFilesRequest
     [StringLength(100, ErrorMessage = "MealType must be between 0 and 100 characters")]
     public string? MealType { get; set; }
 
-    [Required(ErrorMessage = "Ingredients are required")]
     [MinLength(1, ErrorMessage = "At least one ingredient is required")]
-    public string IngredientsJson { get; set; } = null!; // JSON string of UpdateRecipeIngredientRequest[]
+    public string? IngredientsJson { get; set; } // JSON string of UpdateRecipeIngredientRequest[]
 
     public IFormFileCollection? Images { get; set; }
 
