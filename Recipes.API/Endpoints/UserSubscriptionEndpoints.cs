@@ -13,6 +13,27 @@ public static class UserSubscriptionEndpoints
     {
         var userEndpoints = app.MapGroup("/api/users").WithTags("Users");
 
+        userEndpoints.MapGet("/{userId:guid}", async (
+            Guid userId,
+            ClaimsPrincipal user,
+            IUserPublicProfileService userPublicProfileService,
+            IImageUrlProvider imageUrlProvider) =>
+        {
+            try
+            {
+                var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
+                    ? actorUserId
+                    : (Guid?)null;
+                var profile = await userPublicProfileService.GetProfileAsync(userId, currentUserId);
+
+                return Results.Ok(new PublicUserProfileResponse(profile, imageUrlProvider));
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.NotFoundOrBadRequest(ex);
+            }
+        });
+
         userEndpoints.MapPut("/{userId:guid}/subscription", async (
                 Guid userId,
                 [FromBody] ToggleUserSubscriptionRequest request,
