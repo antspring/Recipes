@@ -21,6 +21,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UnwantedIngredients> UnwantedIngredients { get; set; }
     public DbSet<Allergens> Allergens { get; set; }
+    public DbSet<UserSubscription> UserSubscriptions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,6 +128,24 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
             entity.HasOne(al => al.Ingredient)
                 .WithMany(i => i.UsersAllergens)
                 .HasForeignKey(al => al.IngredientId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserSubscription>(entity =>
+        {
+            entity.HasKey(us => new { us.SubscriberId, us.SubscribedToId });
+            entity.ToTable("UserSubscriptions");
+
+            entity.HasIndex(us => us.SubscribedToId);
+
+            entity.HasOne(us => us.Subscriber)
+                .WithMany(u => u.Following)
+                .HasForeignKey(us => us.SubscriberId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(us => us.SubscribedTo)
+                .WithMany(u => u.Followers)
+                .HasForeignKey(us => us.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

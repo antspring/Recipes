@@ -41,5 +41,6 @@ app.MapUnwantedIngredientsEndpoints();
 app.MapAllergenEndpoints();
 app.MapCommentEndpoints();
 app.MapRecipeStepEndpoints();
+app.MapUserSubscriptionEndpoints();
 
 app.Run();
