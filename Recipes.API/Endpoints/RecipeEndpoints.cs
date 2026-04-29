@@ -44,6 +44,29 @@ public static class RecipeEndpoints
             .RequireAuthorization()
             .DisableAntiforgery();
 
+        recipeEndpoints.MapGet("/search", async (
+            [AsParameters] RecipeSearchRequest request,
+            [FromQuery] string? include,
+            ClaimsPrincipal user,
+            IRecipeSearchService recipeSearchService) =>
+        {
+            try
+            {
+                var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
+                var actorUserId = EndpointUserHelper.TryGetUserId(user, out var userId)
+                    ? userId
+                    : (Guid?)null;
+                var filter = RecipeRequestMapper.ToRecipeSearchFilterDto(request);
+                var recipes = await recipeSearchService.SearchAsync(filter, recipeIncludes, actorUserId);
+
+                return Results.Ok(recipes);
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.BadRequest(ex);
+            }
+        });
+
         recipeEndpoints.MapGet("/{id:guid}", async (
             Guid id,
             [FromQuery] string? include,

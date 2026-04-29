@@ -51,6 +51,22 @@ public static class RecipeRequestMapper
         return dto;
     }
 
+    public static RecipeSearchFilterDto ToRecipeSearchFilterDto(RecipeSearchRequest request)
+    {
+        return new RecipeSearchFilterDto
+        {
+            Title = NormalizeSearchText(request.Title),
+            MealType = NormalizeSearchText(request.MealType),
+            DishType = NormalizeSearchText(request.DishType),
+            MaxCookingTime = request.MaxCookingTime,
+            MinCalories = request.MinCalories,
+            MaxCalories = request.MaxCalories,
+            ExcludeUserAllergens = request.ExcludeUserAllergens ?? false,
+            ContainsIngredientIds = NormalizeIngredientIds(request.ContainsIngredientIds),
+            ExcludedIngredientIds = NormalizeIngredientIds(request.ExcludedIngredientIds)
+        };
+    }
+
     private static T DeserializeRequired<T>(string json, string errorMessage) where T : class
     {
         try
@@ -98,5 +114,21 @@ public static class RecipeRequestMapper
         {
             throw new InvalidOperationException(errorMessage, ex);
         }
+    }
+
+    private static string? NormalizeSearchText(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private static IReadOnlyCollection<Guid> NormalizeIngredientIds(Guid[]? values)
+    {
+        if (values == null || values.Length == 0)
+            return [];
+
+        return values
+            .Where(id => id != Guid.Empty)
+            .Distinct()
+            .ToList();
     }
 }
