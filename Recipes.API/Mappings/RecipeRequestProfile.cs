@@ -14,6 +14,7 @@ public class RecipeRequestProfile : Profile
             .ForMember(d => d.ImageUploads, opt => opt.Ignore());
 
         CreateMap<UpdateRecipeWithFilesRequest, UpdateRecipeDto>()
+            .ForMember(d => d.CookingTime, opt => opt.Ignore())
             .ForMember(d => d.Ingredients, opt => opt.Ignore())
             .ForMember(d => d.ImageUploads, opt => opt.Ignore())
             .ForMember(d => d.ImageIdsToDelete, opt => opt.Ignore());
