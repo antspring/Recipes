@@ -63,6 +63,14 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
         return context.Favorites.FirstOrDefaultAsync(f => f.RecipeId == recipeId && f.UserId == userId);
     }
 
+    public Task<Dictionary<Guid, int>> GetFavoriteCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds)
+    {
+        return context.Favorites
+            .Where(f => recipeIds.Contains(f.RecipeId))
+            .GroupBy(f => f.RecipeId)
+            .ToDictionaryAsync(g => g.Key, g => g.Count());
+    }
+
     public Task AddFavoriteAsync(Favorite favorite)
     {
         return context.Favorites.AddAsync(favorite).AsTask();

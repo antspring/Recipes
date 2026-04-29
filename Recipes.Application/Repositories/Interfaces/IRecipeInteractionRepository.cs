@@ -15,6 +15,7 @@ public interface IRecipeInteractionRepository
     Task AddRatingAsync(RecipeRating rating);
     Task RemoveRatingAsync(RecipeRating rating);
     Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId);
+    Task<Dictionary<Guid, int>> GetFavoriteCountsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds);
     Task AddFavoriteAsync(Favorite favorite);
     Task RemoveFavoriteAsync(Favorite favorite);
 }
