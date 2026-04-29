@@ -226,5 +226,54 @@ public static class RecipeEndpoints
                 }
             })
             .RequireAuthorization();
+
+        recipeEndpoints.MapPut("/{recipeId:guid}/rating", async (
+                Guid recipeId,
+                [FromBody] SetRecipeRatingRequest request,
+                ClaimsPrincipal user,
+                IRecipeInteractionService recipeInteractionService) =>
+            {
+                try
+                {
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    await recipeInteractionService.SetRatingAsync(recipeId, userId, request.Value);
+                    return Results.NoContent();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return EndpointErrorHelper.BadRequest(ex);
+                }
+                catch (ArgumentException ex)
+                {
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
+                }
+            })
+            .RequireAuthorization();
+
+        recipeEndpoints.MapDelete("/{recipeId:guid}/rating", async (
+                Guid recipeId,
+                ClaimsPrincipal user,
+                IRecipeInteractionService recipeInteractionService) =>
+            {
+                try
+                {
+                    if (!EndpointUserHelper.TryGetUserId(user, out var userId))
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    await recipeInteractionService.DeleteRatingAsync(recipeId, userId);
+                    return Results.NoContent();
+                }
+                catch (ArgumentException ex)
+                {
+                    return EndpointErrorHelper.NotFoundOrBadRequest(ex);
+                }
+            })
+            .RequireAuthorization();
     }
 }

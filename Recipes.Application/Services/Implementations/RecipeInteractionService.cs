@@ -60,9 +60,56 @@ public class RecipeInteractionService(
         await unitOfWork.SaveChangesAsync();
     }
 
+    public async Task SetRatingAsync(Guid recipeId, Guid userId, int value)
+    {
+        EnsureValidRating(value);
+        await EnsureRecipeExistsAsync(recipeId);
+
+        var existingRating = await recipeInteractionRepository.GetRatingAsync(recipeId, userId);
+        var now = clock.UtcNow;
+
+        if (existingRating == null)
+        {
+            await recipeInteractionRepository.AddRatingAsync(new RecipeRating
+            {
+                RecipeId = recipeId,
+                UserId = userId,
+                Value = value,
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+        }
+        else
+        {
+            existingRating.Value = value;
+            existingRating.UpdatedAt = now;
+        }
+
+        await unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task DeleteRatingAsync(Guid recipeId, Guid userId)
+    {
+        await EnsureRecipeExistsAsync(recipeId);
+
+        var existingRating = await recipeInteractionRepository.GetRatingAsync(recipeId, userId);
+        if (existingRating != null)
+        {
+            await recipeInteractionRepository.RemoveRatingAsync(existingRating);
+        }
+
+        await unitOfWork.SaveChangesAsync();
+    }
+
     private async Task EnsureRecipeExistsAsync(Guid recipeId)
     {
         if (!await recipeExistenceRepository.ExistsAsync(recipeId))
             throw new ArgumentException("Recipe not found");
+    }
+
+    private static void EnsureValidRating(int value)
+    {
+        if (value is < 1 or > 5)
+            throw new InvalidOperationException("Rating value must be between 1 and 5");
     }
 }
