@@ -45,6 +45,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
         services.AddScoped<IUserPublicProfileService, UserPublicProfileService>();
+        services.AddScoped<IUserRatingService, UserRatingService>();
         services.AddScoped<IClaimsProvider, ClaimsProvider>();
         services
             .AddScoped<IUserIngredientRelationService<UnwantedIngredients>,
@@ -82,6 +83,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
+        services.AddScoped<IUserRatingRepository, UserRatingRepository>();
         services.AddScoped(typeof(IUserIngredientRelationRepository<>), typeof(UserIngredientRelationRepository<>));
     }
 
