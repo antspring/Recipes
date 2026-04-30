@@ -43,6 +43,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IRecipeIngredientService, RecipeIngredientService>();
         services.AddScoped<IIngredientService, IngredientService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IEmailVerificationService, EmailVerificationService>();
         services.AddScoped<IUserSubscriptionService, UserSubscriptionService>();
         services.AddScoped<IUserPublicProfileService, UserPublicProfileService>();
         services.AddScoped<IUserRatingService, UserRatingService>();
@@ -58,6 +59,7 @@ public static class DependencyInjectionsServiceCollectionExtension
     private static void AddInfrastructureServices(this IServiceCollection services)
     {
         services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<IUserAvatarService, UserAvatarService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddImageStorageServices();
@@ -82,6 +84,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IIngredientRepository, IngredientRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
         services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
         services.AddScoped<IUserRatingRepository, UserRatingRepository>();
         services.AddScoped(typeof(IUserIngredientRelationRepository<>), typeof(UserIngredientRelationRepository<>));
@@ -93,5 +96,7 @@ public static class DependencyInjectionsServiceCollectionExtension
             sp.GetRequiredService<IOptions<JwtOptions>>().Value);
         services.AddSingleton<IObjectStorageOptions>(sp =>
             sp.GetRequiredService<IOptions<ObjectStorageOptions>>().Value);
+        services.AddSingleton<ISmtpOptions>(sp =>
+            sp.GetRequiredService<IOptions<SmtpOptions>>().Value);
     }
 }

@@ -30,4 +30,8 @@ public class RegisterUserRequest
     [Required(ErrorMessage = "ConfirmPassword is required")]
     [Compare("Password", ErrorMessage = "Passwords do not match")]
     public string ConfirmPassword { get; set; } = null!;
+
+    [Required(ErrorMessage = "EmailVerificationCode is required")]
+    [StringLength(6, MinimumLength = 6, ErrorMessage = "EmailVerificationCode must be 6 characters")]
+    public string EmailVerificationCode { get; set; } = null!;
 }

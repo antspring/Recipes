@@ -14,7 +14,8 @@ public static class AuthRequestMapper
             Name = request.Name,
             Description = request.Description,
             Avatar = request.Avatar != null ? await ImageUploadFactory.CreateAsync(request.Avatar) : null,
-            Password = request.Password
+            Password = request.Password,
+            EmailVerificationCode = request.EmailVerificationCode
         };
     }
 

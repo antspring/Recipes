@@ -10,4 +10,5 @@ public class CreateUserDto
     public string? Description { get; set; }
     public ImageUpload? Avatar { get; set; }
     public string Password { get; set; } = null!;
+    public string EmailVerificationCode { get; set; } = null!;
 }
