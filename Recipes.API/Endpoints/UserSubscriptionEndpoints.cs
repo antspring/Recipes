@@ -13,6 +13,19 @@ public static class UserSubscriptionEndpoints
     {
         var userEndpoints = app.MapGroup("/api/users").WithTags("Users");
 
+        userEndpoints.MapGet("/rating/top", async (
+            ClaimsPrincipal user,
+            IUserRatingService userRatingService,
+            IImageUrlProvider imageUrlProvider) =>
+        {
+            var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
+                ? actorUserId
+                : (Guid?)null;
+            var topUsers = await userRatingService.GetTopAsync(currentUserId);
+
+            return Results.Ok(topUsers.Select(topUser => new UserRatingResponse(topUser, imageUrlProvider)));
+        });
+
         userEndpoints.MapGet("/{userId:guid}", async (
             Guid userId,
             ClaimsPrincipal user,
