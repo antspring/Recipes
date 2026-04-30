@@ -12,6 +12,25 @@ public static class AuthEndpoints
     {
         var authEndpoints = app.MapGroup("/auth").WithTags("Auth");
 
+        authEndpoints.MapPost("/register/email-code", async Task<IResult> (
+                [FromBody] SendRegistrationEmailCodeRequest request,
+                IEmailVerificationService emailVerificationService) =>
+            {
+                if (!AuthEndpointHelper.TryValidate(request, out var validationResult))
+                    return validationResult!;
+
+                try
+                {
+                    await emailVerificationService.SendRegistrationCodeAsync(request.Email);
+                    return Results.NoContent();
+                }
+                catch (ArgumentException ex)
+                {
+                    return AuthEndpointErrorHelper.BadRequest(ex);
+                }
+            })
+            .AllowAnonymous();
+
         authEndpoints.MapPost("/register", async Task<IResult> (
                 [FromForm] RegisterUserRequest request,
                 IAuthService authService,

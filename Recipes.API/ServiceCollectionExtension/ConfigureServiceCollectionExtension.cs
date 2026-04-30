@@ -12,5 +12,8 @@ public static class ConfigureServiceCollectionExtension
 
         services.Configure<ObjectStorageOptions>(
             configuration.GetSection("ObjectStorage"));
+
+        services.Configure<SmtpOptions>(
+            configuration.GetSection("Smtp"));
     }
 }
