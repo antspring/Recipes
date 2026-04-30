@@ -20,6 +20,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<Image> Images { get; set; }
     public DbSet<RecipeImage> RecipeImages { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<EmailVerificationCode> EmailVerificationCodes { get; set; }
     public DbSet<UnwantedIngredients> UnwantedIngredients { get; set; }
     public DbSet<Allergens> Allergens { get; set; }
     public DbSet<UserSubscription> UserSubscriptions { get; set; }
@@ -117,6 +118,13 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         });
 
         modelBuilder.Entity<RefreshToken>(entity => { entity.HasIndex(e => e.Token).IsUnique(); });
+
+        modelBuilder.Entity<EmailVerificationCode>(entity =>
+        {
+            entity.HasIndex(e => e.Email);
+            entity.Property(e => e.Email).HasColumnType("varchar(254)");
+            entity.Property(e => e.CodeHash).HasColumnType("varchar(100)");
+        });
 
         modelBuilder.Entity<UnwantedIngredients>(entity =>
         {
