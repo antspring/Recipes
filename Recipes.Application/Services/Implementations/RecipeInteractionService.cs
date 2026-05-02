@@ -1,3 +1,5 @@
+using Recipes.Application.Common;
+using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Application.Services.Interfaces;
 using Recipes.Application.UnitOfWork.Interfaces;
@@ -9,9 +11,22 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeInteractionService(
     IRecipeInteractionRepository recipeInteractionRepository,
     IRecipeExistenceRepository recipeExistenceRepository,
+    IRecipeDtoFactory recipeDtoFactory,
     IUnitOfWork unitOfWork,
     IClock clock) : IRecipeInteractionService
 {
+    public async Task<List<RecipeDto>> GetLikedRecipesAsync(Guid userId)
+    {
+        var recipes = await recipeInteractionRepository.GetLikedRecipesByUserIdAsync(userId, RecipeIncludes.Full);
+        return await recipeDtoFactory.CreateManyAsync(recipes);
+    }
+
+    public async Task<List<RecipeDto>> GetFavoriteRecipesAsync(Guid userId)
+    {
+        var recipes = await recipeInteractionRepository.GetFavoriteRecipesByUserIdAsync(userId, RecipeIncludes.Full);
+        return await recipeDtoFactory.CreateManyAsync(recipes);
+    }
+
     public async Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked)
     {
         await EnsureRecipeExistsAsync(recipeId);

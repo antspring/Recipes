@@ -119,6 +119,34 @@ public static class RecipeEndpoints
             }
         });
 
+        recipeEndpoints.MapGet("/liked", async (
+                ClaimsPrincipal user,
+                IRecipeInteractionService recipeInteractionService) =>
+            {
+                if (!EndpointUserHelper.TryGetUserId(user, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var recipes = await recipeInteractionService.GetLikedRecipesAsync(userId);
+                return Results.Ok(recipes);
+            })
+            .RequireAuthorization();
+
+        recipeEndpoints.MapGet("/favorites", async (
+                ClaimsPrincipal user,
+                IRecipeInteractionService recipeInteractionService) =>
+            {
+                if (!EndpointUserHelper.TryGetUserId(user, out var userId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                var recipes = await recipeInteractionService.GetFavoriteRecipesAsync(userId);
+                return Results.Ok(recipes);
+            })
+            .RequireAuthorization();
+
         recipeEndpoints.MapPut("/{id:guid}", async (
                 Guid id,
                 [FromForm] UpdateRecipeWithFilesRequest request,
