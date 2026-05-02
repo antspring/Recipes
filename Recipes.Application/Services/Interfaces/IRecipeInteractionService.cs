@@ -1,7 +1,11 @@
+using Recipes.Application.DTO.Recipe;
+
 namespace Recipes.Application.Services.Interfaces;
 
 public interface IRecipeInteractionService
 {
+    Task<List<RecipeDto>> GetLikedRecipesAsync(Guid userId);
+    Task<List<RecipeDto>> GetFavoriteRecipesAsync(Guid userId);
     Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked);
     Task ToggleFavoriteAsync(Guid recipeId, Guid userId, bool isFavorite);
     Task SetRatingAsync(Guid recipeId, Guid userId, int value);
