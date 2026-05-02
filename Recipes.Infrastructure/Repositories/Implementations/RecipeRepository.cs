@@ -3,6 +3,7 @@ using Recipes.Application.Common;
 using Recipes.Application.DTO.Recipe;
 using Recipes.Application.Repositories.Interfaces;
 using Recipes.Domain.Models;
+using Recipes.Infrastructure.Repositories.Extensions;
 
 namespace Recipes.Infrastructure.Repositories.Implementations;
 
@@ -10,19 +11,19 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
 {
     public Task<Recipe?> GetByIdAsync(Guid id, RecipeIncludes includes)
     {
-        return ApplyIncludes(context.Recipes, includes)
+        return context.Recipes.ApplyIncludes(includes)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
     public Task<List<Recipe>> GetAllAsync(RecipeIncludes includes)
     {
-        return ApplyIncludes(context.Recipes, includes)
+        return context.Recipes.ApplyIncludes(includes)
             .ToListAsync();
     }
 
     public Task<List<Recipe>> GetByCreatorIdAsync(Guid creatorId, RecipeIncludes includes)
     {
-        return ApplyIncludes(context.Recipes, includes)
+        return context.Recipes.ApplyIncludes(includes)
             .Where(r => r.CreatorId == creatorId)
             .ToListAsync();
     }
@@ -31,7 +32,7 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
     {
         var query = ApplySearchFilters(context.Recipes, filter, actorUserId);
 
-        return ApplyIncludes(query, includes)
+        return query.ApplyIncludes(includes)
             .ToListAsync();
     }
 
@@ -50,29 +51,6 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
     {
         context.Recipes.Remove(recipe);
         return Task.CompletedTask;
-    }
-
-    private static IQueryable<Recipe> ApplyIncludes(IQueryable<Recipe> query, RecipeIncludes includes)
-    {
-        if (includes.HasFlag(RecipeIncludes.Creator))
-            query = query.Include(r => r.Creator);
-
-        if (includes.HasFlag(RecipeIncludes.Ingredients))
-            query = query
-                .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient);
-
-        if (includes.HasFlag(RecipeIncludes.Images))
-            query = query
-                .Include(r => r.RecipeImages)
-                .ThenInclude(ri => ri.Image);
-
-        if (includes.HasFlag(RecipeIncludes.Steps))
-            query = query
-                .Include(r => r.Steps)
-                .ThenInclude(rs => rs.Image);
-
-        return query;
     }
 
     private static IQueryable<Recipe> ApplySearchFilters(
