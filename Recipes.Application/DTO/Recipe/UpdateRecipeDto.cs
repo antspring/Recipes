@@ -10,6 +10,7 @@ public class UpdateRecipeDto
     public double? Proteins { get; set; }
     public double? Fats { get; set; }
     public double? Carbohydrates { get; set; }
+    public int? PortionsCount { get; set; }
     public TimeSpan? CookingTime { get; set; }
     public string? DishType { get; set; }
     public string? MealType { get; set; }

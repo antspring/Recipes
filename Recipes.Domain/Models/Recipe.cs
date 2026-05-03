@@ -14,6 +14,7 @@ public class Recipe
     public double Proteins { get; set; }
     public double Fats { get; set; }
     public double Carbohydrates { get; set; }
+    public int PortionsCount { get; set; }
 
     public Guid CreatorId { get; init; }
     public User Creator { get; init; } = null!;

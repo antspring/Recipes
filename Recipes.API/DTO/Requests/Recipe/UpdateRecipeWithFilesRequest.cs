@@ -22,6 +22,9 @@ public class UpdateRecipeWithFilesRequest
     [Range(0, double.MaxValue, ErrorMessage = "Carbohydrates must be non-negative")]
     public double? Carbohydrates { get; set; }
 
+    [Range(1, int.MaxValue, ErrorMessage = "PortionsCount must be positive")]
+    public int? PortionsCount { get; set; }
+
     public string? CookingTime { get; set; }
 
     [StringLength(100, ErrorMessage = "DishType must be between 0 and 100 characters")]

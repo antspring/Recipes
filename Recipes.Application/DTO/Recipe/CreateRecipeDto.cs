@@ -8,6 +8,7 @@ public class CreateRecipeDto
     public double Proteins { get; set; }
     public double Fats { get; set; }
     public double Carbohydrates { get; set; }
+    public int PortionsCount { get; set; }
     public Guid CreatorId { get; set; }
     public TimeSpan? CookingTime { get; set; }
     public string? DishType { get; set; }
