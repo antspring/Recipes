@@ -7,5 +7,7 @@ public class CreateCommentRequest
     [Required]
     public string Value { get; set; } = null!;
 
+    public Guid? ParentCommentId { get; set; }
+
     public IFormFileCollection? Images { get; set; }
 }

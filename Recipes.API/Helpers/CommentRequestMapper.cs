@@ -15,6 +15,7 @@ public static class CommentRequestMapper
         {
             RecipeId = recipeId,
             CommentatorId = commentatorId,
+            ParentCommentId = request.ParentCommentId,
             Value = request.Value
         };
 

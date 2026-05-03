@@ -6,6 +6,7 @@ public class CreateCommentDto
 {
     public Guid RecipeId { get; set; }
     public Guid CommentatorId { get; set; }
+    public Guid? ParentCommentId { get; set; }
     public string Value { get; set; } = null!;
     public List<ImageUpload> Images { get; set; } = new();
 }

@@ -12,6 +12,10 @@ public class Comment
     public Guid RecipeId { get; init; }
     public Recipe Recipe { get; init; } = null!;
 
+    public Guid? ParentCommentId { get; init; }
+    public Comment? ParentComment { get; init; }
+    public List<Comment> Replies { get; init; } = new();
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

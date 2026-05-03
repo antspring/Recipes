@@ -205,6 +205,11 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 .WithMany(r => r.Comments)
                 .HasForeignKey(c => c.RecipeId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(c => c.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
