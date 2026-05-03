@@ -36,7 +36,8 @@ public class RecipeStepService(
             Id = Guid.NewGuid(),
             RecipeId = createStepDto.RecipeId,
             Description = createStepDto.Description,
-            Order = insertIndex
+            Order = insertIndex,
+            CookingTime = createStepDto.CookingTime
         };
 
         step.Image = await UploadImageAsync(createStepDto.ImageUpload);
@@ -54,6 +55,7 @@ public class RecipeStepService(
 
         var step = GetRequiredRecipeStep(recipe, updateStepDto.StepId);
         step.Description = updateStepDto.Description;
+        step.CookingTime = updateStepDto.CookingTime;
 
         if (updateStepDto.Order.HasValue)
             MoveStep(recipe, step, updateStepDto.Order.Value);
