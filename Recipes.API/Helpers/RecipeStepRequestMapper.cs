@@ -16,6 +16,7 @@ public static class RecipeStepRequestMapper
             ActorUserId = actorUserId,
             Description = request.Description,
             Order = request.Order,
+            CookingTime = request.CookingTime,
             ImageUpload = request.Image == null
                 ? null
                 : await ImageUploadFactory.CreateAsync(request.Image)
@@ -35,6 +36,7 @@ public static class RecipeStepRequestMapper
             ActorUserId = actorUserId,
             Description = request.Description,
             Order = request.Order,
+            CookingTime = request.CookingTime,
             ImageUpload = request.Image == null
                 ? null
                 : await ImageUploadFactory.CreateAsync(request.Image),

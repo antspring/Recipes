@@ -6,5 +6,6 @@ public class CreateRecipeStepDto
     public Guid ActorUserId { get; set; }
     public string Description { get; set; } = null!;
     public int? Order { get; set; }
+    public TimeSpan? CookingTime { get; set; }
     public ImageUpload? ImageUpload { get; set; }
 }

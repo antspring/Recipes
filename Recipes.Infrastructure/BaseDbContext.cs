@@ -47,6 +47,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         {
             entity.ToTable("RecipeSteps");
             entity.Property(rs => rs.Description).HasColumnType("varchar(1000)");
+            entity.Property(rs => rs.CookingTime).HasColumnType("interval");
 
             entity.HasOne(rs => rs.Recipe)
                 .WithMany(r => r.Steps)

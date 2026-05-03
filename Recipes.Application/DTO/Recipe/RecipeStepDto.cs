@@ -6,6 +6,7 @@ public class RecipeStepDto
     public Guid RecipeId { get; set; }
     public string Description { get; set; } = null!;
     public int Order { get; set; }
+    public TimeSpan? CookingTime { get; set; }
     public ImageDto? Image { get; set; }
 
     public static RecipeStepDto FromRecipeStep(Domain.Models.RecipeStep step)
@@ -16,6 +17,7 @@ public class RecipeStepDto
             RecipeId = step.RecipeId,
             Description = step.Description,
             Order = step.Order,
+            CookingTime = step.CookingTime,
             Image = step.Image == null
                 ? null
                 : new ImageDto

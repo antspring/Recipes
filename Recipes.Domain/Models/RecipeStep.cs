@@ -9,6 +9,7 @@ public class RecipeStep
 
     public string Description { get; set; } = null!;
     public int Order { get; set; }
+    public TimeSpan? CookingTime { get; set; }
 
     public Guid? ImageId { get; set; }
     public Image? Image { get; set; }
