@@ -20,12 +20,16 @@ public class CommentService(
         if (!await recipeExistenceRepository.ExistsAsync(createCommentDto.RecipeId))
             throw new ArgumentException($"Recipe with id {createCommentDto.RecipeId} not found");
 
+        if (createCommentDto.ParentCommentId.HasValue)
+            await EnsureParentCommentBelongsToRecipeAsync(createCommentDto.ParentCommentId.Value, createCommentDto.RecipeId);
+
         var now = clock.UtcNow;
         var comment = new Comment
         {
             Id = Guid.NewGuid(),
             RecipeId = createCommentDto.RecipeId,
             CommentatorId = createCommentDto.CommentatorId,
+            ParentCommentId = createCommentDto.ParentCommentId,
             Value = createCommentDto.Value,
             CreatedAt = now,
             UpdatedAt = now
@@ -43,12 +47,22 @@ public class CommentService(
         int pageSize = 20, DateTime? from = null, DateTime? to = null)
     {
         var pagedResult = await commentRepository.GetByRecipeIdPagedAsync(recipeId, page, pageSize, from, to);
-        var dtos = ToCommentDtos(pagedResult.Items);
+        var rootComments = pagedResult.Items
+            .Where(comment => comment.ParentCommentId == null)
+            .OrderByDescending(comment => comment.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        var repliesByParentId = pagedResult.Items
+            .Where(comment => comment.ParentCommentId.HasValue)
+            .GroupBy(comment => comment.ParentCommentId!.Value)
+            .ToDictionary(group => group.Key, group => group.OrderBy(comment => comment.CreatedAt).ToList());
+        var dtos = rootComments.Select(comment => ToCommentDto(comment, repliesByParentId)).ToList();
 
         return new PagedResult<CommentDto>
         {
             Items = dtos,
-            TotalCount = pagedResult.TotalCount,
+            TotalCount = pagedResult.Items.Count(comment => comment.ParentCommentId == null),
             Page = pagedResult.Page,
             PageSize = pagedResult.PageSize
         };
@@ -77,7 +91,16 @@ public class CommentService(
         var comment = await GetRequiredCommentAsync(commentId);
         EnsureCommentAuthor(comment, userId, "delete");
 
-        await commentImageService.DeleteAllImagesAsync(comment);
+        var comments = await commentRepository.GetByRecipeIdAsync(comment.RecipeId);
+        var repliesByParentId = comments
+            .Where(c => c.ParentCommentId.HasValue)
+            .GroupBy(c => c.ParentCommentId!.Value)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        foreach (var commentToDelete in GetCommentBranch(comment.Id, comments, repliesByParentId))
+        {
+            await commentImageService.DeleteAllImagesAsync(commentToDelete);
+        }
 
         await commentRepository.DeleteAsync(comment);
         await unitOfWork.SaveChangesAsync();
@@ -90,6 +113,33 @@ public class CommentService(
             throw new ArgumentException($"Comment with id {commentId} not found");
 
         return comment;
+    }
+
+    private async Task EnsureParentCommentBelongsToRecipeAsync(Guid parentCommentId, Guid recipeId)
+    {
+        var parentComment = await GetRequiredCommentAsync(parentCommentId);
+        if (parentComment.RecipeId != recipeId)
+            throw new ArgumentException($"Parent comment with id {parentCommentId} not found");
+    }
+
+    private static IEnumerable<Comment> GetCommentBranch(
+        Guid commentId,
+        IReadOnlyCollection<Comment> comments,
+        IReadOnlyDictionary<Guid, List<Comment>> repliesByParentId)
+    {
+        var comment = comments.FirstOrDefault(c => c.Id == commentId);
+        if (comment == null)
+            yield break;
+
+        yield return comment;
+
+        if (!repliesByParentId.TryGetValue(commentId, out var replies))
+            yield break;
+
+        foreach (var reply in replies.SelectMany(reply => GetCommentBranch(reply.Id, comments, repliesByParentId)))
+        {
+            yield return reply;
+        }
     }
 
     private static void EnsureCommentAuthor(Comment comment, Guid userId, string action)
@@ -107,16 +157,23 @@ public class CommentService(
         return ToCommentDto(comment);
     }
 
-    private CommentDto ToCommentDto(Comment comment)
+    private CommentDto ToCommentDto(
+        Comment comment,
+        IReadOnlyDictionary<Guid, List<Comment>>? repliesByParentId = null)
     {
         var dto = CommentDto.FromComment(comment);
+        if (repliesByParentId != null && repliesByParentId.TryGetValue(comment.Id, out var replies))
+        {
+            dto.Replies = replies.Select(reply => ToCommentDto(reply, repliesByParentId)).ToList();
+        }
+
         ApplyImageUrls(dto);
         return dto;
     }
 
     private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
     {
-        return comments.Select(ToCommentDto).ToList();
+        return comments.Select(comment => ToCommentDto(comment)).ToList();
     }
 
     private void ApplyImageUrls(CommentDto comment)
