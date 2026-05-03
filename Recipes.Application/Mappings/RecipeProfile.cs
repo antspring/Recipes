@@ -39,6 +39,11 @@ public class RecipeProfile : Profile
                 opt.PreCondition(s => s.Carbohydrates.HasValue);
                 opt.MapFrom(s => s.Carbohydrates!.Value);
             })
+            .ForMember(d => d.PortionsCount, opt =>
+            {
+                opt.PreCondition(s => s.PortionsCount.HasValue);
+                opt.MapFrom(s => s.PortionsCount!.Value);
+            })
             .ForAllMembers(opt => opt.Condition((_, _, sourceMember) => sourceMember != null));
     }
 }

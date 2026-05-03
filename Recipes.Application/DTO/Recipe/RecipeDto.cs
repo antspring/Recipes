@@ -9,6 +9,7 @@ public class RecipeDto
     public double Proteins { get; set; }
     public double Fats { get; set; }
     public double Carbohydrates { get; set; }
+    public int PortionsCount { get; set; }
     public Guid CreatorId { get; set; }
     public string CreatorName { get; set; } = null!;
     public DateTime CreatedAt { get; set; }
@@ -36,6 +37,7 @@ public class RecipeDto
             Proteins = recipe.Proteins,
             Fats = recipe.Fats,
             Carbohydrates = recipe.Carbohydrates,
+            PortionsCount = recipe.PortionsCount,
             CreatorId = recipe.CreatorId,
             CreatorName = recipe.Creator?.Name ?? string.Empty,
             CreatedAt = recipe.CreatedAt,

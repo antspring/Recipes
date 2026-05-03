@@ -41,6 +41,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
         {
             entity.Property(r => r.Title).HasColumnType("varchar(150)");
             entity.Property(r => r.Description).HasColumnType("varchar(1000)");
+            entity.Property(r => r.PortionsCount).HasDefaultValue(1);
         });
 
         modelBuilder.Entity<RecipeStep>(entity =>

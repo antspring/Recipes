@@ -28,6 +28,10 @@ public class CreateRecipeWithFilesRequest
     [Range(0, double.MaxValue, ErrorMessage = "Carbohydrates must be non-negative")]
     public double Carbohydrates { get; set; }
 
+    [Required(ErrorMessage = "PortionsCount is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "PortionsCount must be positive")]
+    public int PortionsCount { get; set; }
+
     [Range(typeof(TimeSpan), "00:00:00", "23:59:59",
         ErrorMessage = "CookingTime must be between 00:00:00 and 23:59:59")]
     public TimeSpan? CookingTime { get; set; }
