@@ -7,6 +7,11 @@ namespace Recipes.API.Helpers;
 
 public static class RecipeRequestMapper
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     public static async Task<CreateRecipeDto> ToCreateRecipeDtoAsync(
         CreateRecipeWithFilesRequest request,
         Guid creatorId,
@@ -74,7 +79,7 @@ public static class RecipeRequestMapper
     {
         try
         {
-            return JsonSerializer.Deserialize<T>(json)
+            return JsonSerializer.Deserialize<T>(json, JsonOptions)
                    ?? throw new InvalidOperationException(errorMessage);
         }
         catch (JsonException ex)
@@ -85,6 +90,8 @@ public static class RecipeRequestMapper
 
     private static RecipeIngredientInputDto ToRecipeIngredientInputDto(CreateRecipeIngredientRequest request)
     {
+        EnsureValidIngredientId(request.IngredientId);
+
         return new RecipeIngredientInputDto
         {
             IngredientId = request.IngredientId,
@@ -95,6 +102,8 @@ public static class RecipeRequestMapper
 
     private static RecipeIngredientInputDto ToRecipeIngredientInputDto(UpdateRecipeIngredientRequest request)
     {
+        EnsureValidIngredientId(request.IngredientId);
+
         return new RecipeIngredientInputDto
         {
             IngredientId = request.IngredientId,
@@ -110,7 +119,7 @@ public static class RecipeRequestMapper
 
         try
         {
-            return JsonSerializer.Deserialize<T>(json)
+            return JsonSerializer.Deserialize<T>(json, JsonOptions)
                    ?? throw new InvalidOperationException(errorMessage);
         }
         catch (JsonException ex)
@@ -147,5 +156,11 @@ public static class RecipeRequestMapper
             .Where(id => id != Guid.Empty)
             .Distinct()
             .ToList();
+    }
+
+    private static void EnsureValidIngredientId(Guid ingredientId)
+    {
+        if (ingredientId == Guid.Empty)
+            throw new InvalidOperationException("IngredientId is required");
     }
 }
