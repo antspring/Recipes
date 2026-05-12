@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Recipes.Infrastructure;
@@ -11,9 +12,11 @@ using Recipes.Infrastructure;
 namespace Recipes.Infrastructure.Migrations
 {
     [DbContext(typeof(BaseDbContext))]
-    partial class BaseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260512121423_AddUserRole")]
+    partial class AddUserRole
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -282,60 +285,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.ToTable("RecipeRatings", (string)null);
                 });
 
-            modelBuilder.Entity("Recipes.Domain.Models.Reports.Report", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CustomReason")
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<Guid?>("ModeratorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<Guid>("ReporterId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ResolutionComment")
-                        .HasColumnType("varchar(1000)");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<Guid>("TargetId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TargetType")
-                        .IsRequired()
-                        .HasColumnType("varchar(30)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModeratorId");
-
-                    b.HasIndex("ReporterId");
-
-                    b.HasIndex("Status");
-
-                    b.HasIndex("TargetType", "TargetId");
-
-                    b.ToTable("Reports");
-                });
-
             modelBuilder.Entity("Recipes.Domain.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -344,12 +293,6 @@ namespace Recipes.Infrastructure.Migrations
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
-
-                    b.Property<DateTime?>("BlockedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("BlockedByModeratorId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -360,11 +303,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("varchar(254)");
-
-                    b.Property<bool>("IsBlocked")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -668,24 +606,6 @@ namespace Recipes.Infrastructure.Migrations
                     b.Navigation("Recipe");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Recipes.Domain.Models.Reports.Report", b =>
-                {
-                    b.HasOne("Recipes.Domain.Models.User", "Moderator")
-                        .WithMany()
-                        .HasForeignKey("ModeratorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Recipes.Domain.Models.User", "Reporter")
-                        .WithMany()
-                        .HasForeignKey("ReporterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Moderator");
-
-                    b.Navigation("Reporter");
                 });
 
             modelBuilder.Entity("Recipes.Domain.Models.UserRelations.Allergens", b =>

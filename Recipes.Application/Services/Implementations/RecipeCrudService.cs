@@ -76,6 +76,17 @@ public class RecipeCrudService(
         var recipe = await GetRequiredRecipeAsync(id, RecipeIncludes.Images);
         EnsureRecipeAuthor(recipe, actorUserId, "delete");
 
+        await DeleteRecipeAsync(recipe);
+    }
+
+    public async Task DeleteRecipeByModeratorAsync(Guid id)
+    {
+        var recipe = await GetRequiredRecipeAsync(id, RecipeIncludes.Images);
+        await DeleteRecipeAsync(recipe);
+    }
+
+    private async Task DeleteRecipeAsync(Recipe recipe)
+    {
         if (recipe.RecipeImages.Count > 0)
         {
             await imageService.DeleteImagesAsync(recipe.RecipeImages.ToList(), recipe);

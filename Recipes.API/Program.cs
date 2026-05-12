@@ -43,5 +43,7 @@ app.MapCommentEndpoints();
 app.MapRecipeStepEndpoints();
 app.MapUserSubscriptionEndpoints();
 app.MapIngredientEndpoints();
+app.MapReportEndpoints();
+app.MapModerationEndpoints();
 
 app.Run();

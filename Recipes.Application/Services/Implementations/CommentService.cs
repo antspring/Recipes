@@ -91,6 +91,17 @@ public class CommentService(
         var comment = await GetRequiredCommentAsync(commentId);
         EnsureCommentAuthor(comment, userId, "delete");
 
+        await DeleteCommentBranchAsync(comment);
+    }
+
+    public async Task DeleteCommentByModeratorAsync(Guid commentId)
+    {
+        var comment = await GetRequiredCommentAsync(commentId);
+        await DeleteCommentBranchAsync(comment);
+    }
+
+    private async Task DeleteCommentBranchAsync(Comment comment)
+    {
         var comments = await commentRepository.GetByRecipeIdAsync(comment.RecipeId);
         var repliesByParentId = comments
             .Where(c => c.ParentCommentId.HasValue)

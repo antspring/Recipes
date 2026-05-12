@@ -7,4 +7,5 @@ public interface IUserProfileService
 {
     Task<User> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto);
     Task<User> DeleteAvatarAsync(Guid userId);
+    Task BlockByModeratorAsync(Guid userId, Guid moderatorId);
 }

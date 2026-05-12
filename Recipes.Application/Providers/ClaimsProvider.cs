@@ -12,7 +12,8 @@ public class ClaimsProvider : IClaimsProvider
             new(ClaimTypes.Name, user.Name),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.UserData, user.UserName),
-            new(ClaimTypes.NameIdentifier, user.Id.ToString())
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new(ClaimTypes.Role, user.Role.ToString())
         };
 
         return claims;
