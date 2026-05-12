@@ -14,15 +14,13 @@ public class PublicUserResponse
     public int FollowingCount { get; init; }
     public bool IsSubscribedByCurrentUser { get; init; }
 
-    public PublicUserResponse(PublicUserDto user, IImageUrlProvider imageUrlProvider)
+    public PublicUserResponse(PublicUserDto user, IImageUrlMapper imageUrlMapper)
     {
         Id = user.Id;
         UserName = user.UserName;
         Name = user.Name;
         Description = user.Description;
-        AvatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
-            ? null
-            : imageUrlProvider.GetImageUrl(user.AvatarUrl);
+        AvatarUrl = imageUrlMapper.ToImageUrl(user.AvatarUrl);
         FollowersCount = user.FollowersCount;
         FollowingCount = user.FollowingCount;
         IsSubscribedByCurrentUser = user.IsSubscribedByCurrentUser;

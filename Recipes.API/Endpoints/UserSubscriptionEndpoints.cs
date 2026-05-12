@@ -16,21 +16,21 @@ public static class UserSubscriptionEndpoints
         userEndpoints.MapGet("/rating/top", async (
             ClaimsPrincipal user,
             IUserRatingService userRatingService,
-            IImageUrlProvider imageUrlProvider) =>
+            IImageUrlMapper imageUrlMapper) =>
         {
             var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
                 ? actorUserId
                 : (Guid?)null;
             var topUsers = await userRatingService.GetTopAsync(currentUserId);
 
-            return Results.Ok(topUsers.Select(topUser => new UserRatingResponse(topUser, imageUrlProvider)));
+            return Results.Ok(topUsers.Select(topUser => new UserRatingResponse(topUser, imageUrlMapper)));
         });
 
         userEndpoints.MapGet("/{userId:guid}", async (
             Guid userId,
             ClaimsPrincipal user,
             IUserPublicProfileService userPublicProfileService,
-            IImageUrlProvider imageUrlProvider) =>
+            IImageUrlMapper imageUrlMapper) =>
         {
             try
             {
@@ -39,7 +39,7 @@ public static class UserSubscriptionEndpoints
                     : (Guid?)null;
                 var profile = await userPublicProfileService.GetProfileAsync(userId, currentUserId);
 
-                return Results.Ok(new PublicUserProfileResponse(profile, imageUrlProvider));
+                return Results.Ok(new PublicUserProfileResponse(profile, imageUrlMapper));
             }
             catch (ArgumentException ex)
             {
@@ -82,7 +82,7 @@ public static class UserSubscriptionEndpoints
             Guid userId,
             ClaimsPrincipal user,
             IUserSubscriptionService userSubscriptionService,
-            IImageUrlProvider imageUrlProvider) =>
+            IImageUrlMapper imageUrlMapper) =>
         {
             try
             {
@@ -91,7 +91,7 @@ public static class UserSubscriptionEndpoints
                     : (Guid?)null;
                 var followers = await userSubscriptionService.GetFollowersAsync(userId, currentUserId);
 
-                return Results.Ok(followers.Select(f => new PublicUserResponse(f, imageUrlProvider)));
+                return Results.Ok(followers.Select(f => new PublicUserResponse(f, imageUrlMapper)));
             }
             catch (ArgumentException ex)
             {
@@ -103,7 +103,7 @@ public static class UserSubscriptionEndpoints
             Guid userId,
             ClaimsPrincipal user,
             IUserSubscriptionService userSubscriptionService,
-            IImageUrlProvider imageUrlProvider) =>
+            IImageUrlMapper imageUrlMapper) =>
         {
             try
             {
@@ -112,7 +112,7 @@ public static class UserSubscriptionEndpoints
                     : (Guid?)null;
                 var following = await userSubscriptionService.GetFollowingAsync(userId, currentUserId);
 
-                return Results.Ok(following.Select(f => new PublicUserResponse(f, imageUrlProvider)));
+                return Results.Ok(following.Select(f => new PublicUserResponse(f, imageUrlMapper)));
             }
             catch (ArgumentException ex)
             {

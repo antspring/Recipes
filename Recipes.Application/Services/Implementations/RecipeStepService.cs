@@ -12,7 +12,7 @@ public class RecipeStepService(
     IRecipeStepRepository recipeStepRepository,
     IImageRepository imageRepository,
     IImageStorageService imageStorageService,
-    IImageUrlProvider imageUrlProvider,
+    IImageUrlMapper imageUrlMapper,
     IUnitOfWork unitOfWork,
     IClock clock) : IRecipeStepService
 {
@@ -232,13 +232,7 @@ public class RecipeStepService(
     private RecipeStepDto ToRecipeStepDto(RecipeStep step)
     {
         var dto = RecipeStepDto.FromRecipeStep(step);
-        ApplyImageUrl(dto);
+        imageUrlMapper.ApplyUrl(dto.Image, image => image.FileName, (image, url) => image.Url = url);
         return dto;
-    }
-
-    private void ApplyImageUrl(RecipeStepDto step)
-    {
-        if (step.Image != null)
-            step.Image.Url = imageUrlProvider.GetImageUrl(step.Image.FileName);
     }
 }

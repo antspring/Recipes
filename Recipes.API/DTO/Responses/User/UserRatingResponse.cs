@@ -13,13 +13,11 @@ public class UserRatingResponse
     public int Rating { get; init; }
     public bool IsSubscribedByCurrentUser { get; init; }
 
-    public UserRatingResponse(UserRatingDto user, IImageUrlProvider imageUrlProvider)
+    public UserRatingResponse(UserRatingDto user, IImageUrlMapper imageUrlMapper)
     {
         Id = user.Id;
         UserName = user.UserName;
-        AvatarUrl = string.IsNullOrWhiteSpace(user.AvatarUrl)
-            ? null
-            : imageUrlProvider.GetImageUrl(user.AvatarUrl);
+        AvatarUrl = imageUrlMapper.ToImageUrl(user.AvatarUrl);
         RecipesCount = user.RecipesCount;
         FollowersCount = user.FollowersCount;
         Rating = user.Rating;

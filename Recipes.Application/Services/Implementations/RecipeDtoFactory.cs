@@ -8,24 +8,18 @@ namespace Recipes.Application.Services.Implementations;
 public class RecipeDtoFactory(
     ICommentRepository commentRepository,
     IRecipeInteractionRepository recipeInteractionRepository,
-    IImageUrlProvider imageUrlProvider) : IRecipeDtoFactory
+    IImageUrlMapper imageUrlMapper) : IRecipeDtoFactory
 {
     public async Task<RecipeDto> CreateAsync(Recipe recipe)
     {
-        var dto = RecipeDto.FromRecipe(recipe);
-        ApplyImageUrls(dto);
+        var dto = ToRecipeDto(recipe);
         await ApplyCountersAsync([dto]);
         return dto;
     }
 
     public async Task<List<RecipeDto>> CreateManyAsync(IEnumerable<Recipe> recipes)
     {
-        var dtos = recipes.Select(recipe =>
-        {
-            var dto = RecipeDto.FromRecipe(recipe);
-            ApplyImageUrls(dto);
-            return dto;
-        }).ToList();
+        var dtos = recipes.Select(ToRecipeDto).ToList();
 
         await ApplyCountersAsync(dtos);
         return dtos;
@@ -53,16 +47,16 @@ public class RecipeDtoFactory(
         }
     }
 
-    private void ApplyImageUrls(RecipeDto recipe)
+    private RecipeDto ToRecipeDto(Recipe recipe)
     {
-        foreach (var image in recipe.Images)
+        var dto = RecipeDto.FromRecipe(recipe);
+        imageUrlMapper.ApplyUrls(dto.Images, image => image.FileName, (image, url) => image.Url = url);
+
+        foreach (var step in dto.Steps)
         {
-            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
+            imageUrlMapper.ApplyUrl(step.Image, image => image.FileName, (image, url) => image.Url = url);
         }
 
-        foreach (var step in recipe.Steps.Where(step => step.Image != null))
-        {
-            step.Image!.Url = imageUrlProvider.GetImageUrl(step.Image.FileName);
-        }
+        return dto;
     }
 }
