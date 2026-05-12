@@ -52,4 +52,19 @@ public class UserProfileService(
 
         return user;
     }
+
+    public async Task BlockByModeratorAsync(Guid userId, Guid moderatorId)
+    {
+        if (userId == moderatorId)
+            throw new InvalidOperationException("Moderator cannot block own profile");
+
+        var user = await userAccessService.GetRequiredUserAsync(userId);
+        user.IsBlocked = true;
+        user.BlockedAt = clock.UtcNow;
+        user.BlockedByModeratorId = moderatorId;
+        user.UpdatedAt = clock.UtcNow;
+
+        await userRepository.UpdateAsync(user);
+        await unitOfWork.SaveChangesAsync();
+    }
 }

@@ -20,6 +20,9 @@ public class User
     public string Password { get; set; } = null!;
 
     public UserRole Role { get; set; } = UserRole.User;
+    public bool IsBlocked { get; set; }
+    public DateTime? BlockedAt { get; set; }
+    public Guid? BlockedByModeratorId { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

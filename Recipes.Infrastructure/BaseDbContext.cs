@@ -41,6 +41,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 .HasConversion<string>()
                 .HasColumnType("varchar(20)")
                 .HasDefaultValue(UserRole.User);
+            entity.Property(u => u.IsBlocked).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Recipe>(entity =>

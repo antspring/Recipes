@@ -9,4 +9,5 @@ public interface IModerationReportService
     Task<PagedResult<ModerationReportDto>> GetReportsAsync(ReportStatus? status, int page, int pageSize);
     Task<ModerationReportDetailsDto> GetReportAsync(Guid reportId, Guid moderatorId);
     Task DismissAsync(Guid reportId, Guid moderatorId, string? resolutionComment);
+    Task TakeActionAsync(Guid reportId, Guid moderatorId, string? resolutionComment);
 }

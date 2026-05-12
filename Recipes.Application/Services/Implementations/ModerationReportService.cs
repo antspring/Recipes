@@ -15,6 +15,9 @@ public class ModerationReportService(
     IRecipeDtoFactory recipeDtoFactory,
     ICommentRepository commentRepository,
     IUserPublicProfileService userPublicProfileService,
+    IRecipeCrudService recipeCrudService,
+    ICommentService commentService,
+    IUserProfileService userProfileService,
     IImageUrlProvider imageUrlProvider,
     IUnitOfWork unitOfWork,
     IClock clock) : IModerationReportService
@@ -56,6 +59,22 @@ public class ModerationReportService(
         await unitOfWork.SaveChangesAsync();
     }
 
+    public async Task TakeActionAsync(Guid reportId, Guid moderatorId, string? resolutionComment)
+    {
+        var report = await GetRequiredReportAsync(reportId);
+        EnsurePending(report);
+
+        await ApplyActionAsync(report, moderatorId);
+
+        report.Status = ReportStatus.ActionTaken;
+        report.ModeratorId = moderatorId;
+        report.ResolutionComment = NormalizeResolutionComment(resolutionComment);
+        report.ResolvedAt = clock.UtcNow;
+
+        await reportRepository.UpdateAsync(report);
+        await unitOfWork.SaveChangesAsync();
+    }
+
     private async Task<Report> GetRequiredReportAsync(Guid reportId)
     {
         var report = await reportRepository.GetByIdAsync(reportId);
@@ -74,6 +93,24 @@ public class ModerationReportService(
             ReportTargetType.UserProfile => await GetUserProfileTargetAsync(report.TargetId, moderatorId),
             _ => null
         };
+    }
+
+    private async Task ApplyActionAsync(Report report, Guid moderatorId)
+    {
+        switch (report.TargetType)
+        {
+            case ReportTargetType.Recipe:
+                await recipeCrudService.DeleteRecipeByModeratorAsync(report.TargetId);
+                break;
+            case ReportTargetType.Comment:
+                await commentService.DeleteCommentByModeratorAsync(report.TargetId);
+                break;
+            case ReportTargetType.UserProfile:
+                await userProfileService.BlockByModeratorAsync(report.TargetId, moderatorId);
+                break;
+            default:
+                throw new InvalidOperationException("Unsupported report target type");
+        }
     }
 
     private async Task<object?> GetRecipeTargetAsync(Guid recipeId)

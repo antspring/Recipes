@@ -77,5 +77,31 @@ public static class ModerationEndpoints
                 return EndpointErrorHelper.NotFoundOrBadRequest(ex);
             }
         });
+
+        moderationEndpoints.MapPost("/reports/{reportId:guid}/take-action", async (
+            Guid reportId,
+            [FromBody] TakeActionReportRequest request,
+            ClaimsPrincipal user,
+            IModerationReportService moderationReportService) =>
+        {
+            try
+            {
+                if (!EndpointUserHelper.TryGetUserId(user, out var moderatorId))
+                {
+                    return Results.Unauthorized();
+                }
+
+                await moderationReportService.TakeActionAsync(reportId, moderatorId, request.ResolutionComment);
+                return Results.NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return EndpointErrorHelper.BadRequest(ex);
+            }
+            catch (ArgumentException ex)
+            {
+                return EndpointErrorHelper.NotFoundOrBadRequest(ex);
+            }
+        });
     }
 }

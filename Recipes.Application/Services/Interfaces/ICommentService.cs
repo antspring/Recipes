@@ -13,4 +13,5 @@ public interface ICommentService
     Task<CommentDto> UpdateCommentAsync(UpdateCommentDto updateCommentDto);
 
     Task DeleteCommentAsync(Guid commentId, Guid userId);
+    Task DeleteCommentByModeratorAsync(Guid commentId);
 }

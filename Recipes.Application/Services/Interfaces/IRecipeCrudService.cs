@@ -11,4 +11,5 @@ public interface IRecipeCrudService
     Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null);
     Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto);
     Task DeleteRecipeAsync(Guid id, Guid actorUserId);
+    Task DeleteRecipeByModeratorAsync(Guid id);
 }

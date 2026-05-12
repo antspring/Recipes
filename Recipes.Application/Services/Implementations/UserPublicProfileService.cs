@@ -14,7 +14,7 @@ public class UserPublicProfileService(
     public async Task<PublicUserProfileDto> GetProfileAsync(Guid userId, Guid? currentUserId)
     {
         var user = await userRepository.GetByIdAsync(userId);
-        if (user == null)
+        if (user == null || user.IsBlocked)
             throw new ArgumentException("User not found");
 
         var followersCount = await userSubscriptionRepository.GetFollowersCountAsync(userId);
