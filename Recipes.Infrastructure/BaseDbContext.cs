@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Recipes.Domain.Models;
 using Recipes.Domain.Models.RecipesRelations;
+using Recipes.Domain.Models.Reports;
 using Recipes.Domain.Models.UserRelations;
 using Recipes.Infrastructure.Models;
 
@@ -24,6 +25,7 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
     public DbSet<UnwantedIngredients> UnwantedIngredients { get; set; }
     public DbSet<Allergens> Allergens { get; set; }
     public DbSet<UserSubscription> UserSubscriptions { get; set; }
+    public DbSet<Report> Reports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -180,6 +182,38 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
                 .WithMany(u => u.Followers)
                 .HasForeignKey(us => us.SubscribedToId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Report>(entity =>
+        {
+            entity.Property(r => r.TargetType)
+                .HasConversion<string>()
+                .HasColumnType("varchar(30)");
+
+            entity.Property(r => r.Reason)
+                .HasConversion<string>()
+                .HasColumnType("varchar(50)");
+
+            entity.Property(r => r.Status)
+                .HasConversion<string>()
+                .HasColumnType("varchar(20)")
+                .HasDefaultValue(ReportStatus.Pending);
+
+            entity.Property(r => r.CustomReason).HasColumnType("varchar(1000)");
+            entity.Property(r => r.ResolutionComment).HasColumnType("varchar(1000)");
+
+            entity.HasIndex(r => r.Status);
+            entity.HasIndex(r => new { r.TargetType, r.TargetId });
+
+            entity.HasOne(r => r.Reporter)
+                .WithMany()
+                .HasForeignKey(r => r.ReporterId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.Moderator)
+                .WithMany()
+                .HasForeignKey(r => r.ModeratorId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Comment>(entity =>

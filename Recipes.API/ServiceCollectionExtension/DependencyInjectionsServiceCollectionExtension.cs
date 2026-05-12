@@ -87,6 +87,7 @@ public static class DependencyInjectionsServiceCollectionExtension
         services.AddScoped<IEmailVerificationCodeRepository, EmailVerificationCodeRepository>();
         services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
         services.AddScoped<IUserRatingRepository, UserRatingRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped(typeof(IUserIngredientRelationRepository<>), typeof(UserIngredientRelationRepository<>));
     }
 
