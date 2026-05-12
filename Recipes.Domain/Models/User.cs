@@ -19,6 +19,8 @@ public class User
 
     public string Password { get; set; } = null!;
 
+    public UserRole Role { get; set; } = UserRole.User;
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

@@ -13,7 +13,9 @@ public static class JwtAuthenticationServiceCollectionExtension
         var audience = GetRequiredJwtOption(jwtSection, "Audience");
         var key = GetRequiredJwtOption(jwtSection, "Key");
 
-        services.AddAuthorization();
+        services.AddAuthorizationBuilder()
+            .AddPolicy("Moderator", policy => policy.RequireRole("Moderator"));
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.TokenValidationParameters = new TokenValidationParameters

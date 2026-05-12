@@ -8,6 +8,7 @@ public class UserAuthDto
     public string Name { get; set; }
     public string? Description { get; set; }
     public string? AvatarUrl { get; set; }
+    public string Role { get; set; }
     public string AccessToken { get; set; }
     public string RefreshToken { get; set; }
 
@@ -19,6 +20,7 @@ public class UserAuthDto
         Name = user.Name;
         Description = user.Description;
         AvatarUrl = user.AvatarUrl;
+        Role = user.Role.ToString();
         AccessToken = accessToken;
         RefreshToken = refreshToken;
     }

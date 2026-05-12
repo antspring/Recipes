@@ -35,6 +35,10 @@ public class BaseDbContext(DbContextOptions<BaseDbContext> options) : DbContext(
             entity.Property(u => u.Name).HasColumnType("varchar(100)");
             entity.Property(u => u.Description).HasColumnType("varchar(1000)");
             entity.Property(u => u.Password).HasColumnType("varchar(100)");
+            entity.Property(u => u.Role)
+                .HasConversion<string>()
+                .HasColumnType("varchar(20)")
+                .HasDefaultValue(UserRole.User);
         });
 
         modelBuilder.Entity<Recipe>(entity =>

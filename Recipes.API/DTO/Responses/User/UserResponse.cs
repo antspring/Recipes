@@ -9,6 +9,7 @@ public class UserResponse
     public string Name { get; set; }
     public string? Description { get; set; }
     public string? AvatarUrl { get; set; }
+    public string Role { get; set; }
     public string AccessToken { get; set; }
     public string RefreshToken { get; set; }
 
@@ -25,6 +26,7 @@ public class UserResponse
         AvatarUrl = imageUrlProvider == null
             ? user.AvatarUrl
             : ToFullAvatarUrl(user.AvatarUrl, imageUrlProvider);
+        Role = user.Role.ToString();
         AccessToken = accessToken;
         RefreshToken = refreshToken;
     }
@@ -36,6 +38,7 @@ public class UserResponse
         Name = userAuthDto.Name;
         Description = userAuthDto.Description;
         AvatarUrl = ToFullAvatarUrl(userAuthDto.AvatarUrl, imageUrlProvider);
+        Role = userAuthDto.Role;
         AccessToken = userAuthDto.AccessToken;
         RefreshToken = userAuthDto.RefreshToken;
     }
