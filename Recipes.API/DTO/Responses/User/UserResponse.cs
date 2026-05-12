@@ -17,36 +17,30 @@ public class UserResponse
         Recipes.Domain.Models.User user,
         string accessToken = "",
         string refreshToken = "",
-        IImageUrlProvider? imageUrlProvider = null)
+        IImageUrlMapper? imageUrlMapper = null)
     {
         UserName = user.UserName;
         Email = user.Email;
         Name = user.Name;
         Description = user.Description;
-        AvatarUrl = imageUrlProvider == null
+        AvatarUrl = imageUrlMapper == null
             ? user.AvatarUrl
-            : ToFullAvatarUrl(user.AvatarUrl, imageUrlProvider);
+            : imageUrlMapper.ToImageUrl(user.AvatarUrl);
         Role = user.Role.ToString();
         AccessToken = accessToken;
         RefreshToken = refreshToken;
     }
 
-    public UserResponse(Recipes.Application.DTO.User.UserAuthDto userAuthDto, IImageUrlProvider imageUrlProvider)
+    public UserResponse(Recipes.Application.DTO.User.UserAuthDto userAuthDto, IImageUrlMapper imageUrlMapper)
     {
         UserName = userAuthDto.UserName;
         Email = userAuthDto.Email;
         Name = userAuthDto.Name;
         Description = userAuthDto.Description;
-        AvatarUrl = ToFullAvatarUrl(userAuthDto.AvatarUrl, imageUrlProvider);
+        AvatarUrl = imageUrlMapper.ToImageUrl(userAuthDto.AvatarUrl);
         Role = userAuthDto.Role;
         AccessToken = userAuthDto.AccessToken;
         RefreshToken = userAuthDto.RefreshToken;
     }
 
-    private static string? ToFullAvatarUrl(string? fileName, IImageUrlProvider imageUrlProvider)
-    {
-        return string.IsNullOrWhiteSpace(fileName)
-            ? null
-            : imageUrlProvider.GetImageUrl(fileName);
-    }
 }

@@ -34,9 +34,9 @@ public static class AuthEndpointHelper
     public static IResult OkWithRefreshToken(
         HttpContext httpContext,
         UserAuthDto userAuthDto,
-        IImageUrlProvider imageUrlProvider)
+        IImageUrlMapper imageUrlMapper)
     {
-        var userResponse = new UserResponse(userAuthDto, imageUrlProvider);
+        var userResponse = new UserResponse(userAuthDto, imageUrlMapper);
 
         httpContext.Response.Cookies.Append(RefreshTokenCookieName, userResponse.RefreshToken, new CookieOptions
         {

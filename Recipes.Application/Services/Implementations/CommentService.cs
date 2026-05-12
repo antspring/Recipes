@@ -12,7 +12,7 @@ public class CommentService(
     ICommentRepository commentRepository,
     IUnitOfWork unitOfWork,
     ICommentImageService commentImageService,
-    IImageUrlProvider imageUrlProvider,
+    IImageUrlMapper imageUrlMapper,
     IClock clock) : ICommentService
 {
     public async Task<CommentDto> CreateCommentAsync(CreateCommentDto createCommentDto)
@@ -178,24 +178,8 @@ public class CommentService(
             dto.Replies = replies.Select(reply => ToCommentDto(reply, repliesByParentId)).ToList();
         }
 
-        ApplyImageUrls(dto);
+        dto.CommentatorAvatarUrl = imageUrlMapper.ToImageUrl(dto.CommentatorAvatarUrl);
+        imageUrlMapper.ApplyUrls(dto.Images, image => image.FileName, (image, url) => image.Url = url);
         return dto;
-    }
-
-    private List<CommentDto> ToCommentDtos(IEnumerable<Comment> comments)
-    {
-        return comments.Select(comment => ToCommentDto(comment)).ToList();
-    }
-
-    private void ApplyImageUrls(CommentDto comment)
-    {
-        comment.CommentatorAvatarUrl = string.IsNullOrWhiteSpace(comment.CommentatorAvatarUrl)
-            ? null
-            : imageUrlProvider.GetImageUrl(comment.CommentatorAvatarUrl);
-
-        foreach (var image in comment.Images)
-        {
-            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
-        }
     }
 }

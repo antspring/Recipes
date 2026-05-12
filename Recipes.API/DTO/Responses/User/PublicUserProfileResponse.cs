@@ -16,15 +16,13 @@ public class PublicUserProfileResponse
     public bool IsSubscribedByCurrentUser { get; init; }
     public List<RecipeDto> Recipes { get; init; } = new();
 
-    public PublicUserProfileResponse(PublicUserProfileDto profile, IImageUrlProvider imageUrlProvider)
+    public PublicUserProfileResponse(PublicUserProfileDto profile, IImageUrlMapper imageUrlMapper)
     {
         Id = profile.Id;
         UserName = profile.UserName;
         Name = profile.Name;
         Description = profile.Description;
-        AvatarUrl = string.IsNullOrWhiteSpace(profile.AvatarUrl)
-            ? null
-            : imageUrlProvider.GetImageUrl(profile.AvatarUrl);
+        AvatarUrl = imageUrlMapper.ToImageUrl(profile.AvatarUrl);
         FollowersCount = profile.FollowersCount;
         FollowingCount = profile.FollowingCount;
         IsSubscribedByCurrentUser = profile.IsSubscribedByCurrentUser;

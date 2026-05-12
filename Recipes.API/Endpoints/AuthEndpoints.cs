@@ -34,7 +34,7 @@ public static class AuthEndpoints
         authEndpoints.MapPost("/register", async Task<IResult> (
                 [FromForm] RegisterUserRequest request,
                 IAuthService authService,
-                IImageUrlProvider imageUrlProvider,
+                IImageUrlMapper imageUrlMapper,
                 HttpContext httpContext) =>
             {
                 if (!AuthEndpointHelper.TryValidate(request, out var validationResult))
@@ -45,7 +45,7 @@ public static class AuthEndpoints
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
                     var createUserDto = await AuthRequestMapper.ToCreateUserDtoAsync(request);
                     var userAuthDto = await authService.Register(createUserDto, userAgent);
-                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlProvider);
+                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlMapper);
                 }
                 catch (ArgumentException ex)
                 {
@@ -58,7 +58,7 @@ public static class AuthEndpoints
         authEndpoints.MapPost("/login", async Task<IResult> (
                 [FromBody] LoginUserRequest request,
                 IAuthService authService,
-                IImageUrlProvider imageUrlProvider,
+                IImageUrlMapper imageUrlMapper,
                 HttpContext httpContext) =>
             {
                 if (!AuthEndpointHelper.TryValidate(request, out var validationResult))
@@ -69,7 +69,7 @@ public static class AuthEndpoints
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
                     var loginUserDto = AuthRequestMapper.ToLoginUserDto(request, userAgent);
                     var userAuthDto = await authService.Login(loginUserDto);
-                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlProvider);
+                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlMapper);
                 }
                 catch (ArgumentException ex)
                 {
@@ -80,7 +80,7 @@ public static class AuthEndpoints
 
         authEndpoints.MapPost("/refresh", async Task<IResult> (
                 IAuthService authService,
-                IImageUrlProvider imageUrlProvider,
+                IImageUrlMapper imageUrlMapper,
                 HttpContext httpContext) =>
             {
                 var refreshToken = AuthEndpointHelper.GetRefreshToken(httpContext);
@@ -93,7 +93,7 @@ public static class AuthEndpoints
                 {
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
                     var userAuthDto = await authService.UpdateToken(refreshToken, userAgent);
-                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlProvider);
+                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlMapper);
                 }
                 catch (ArgumentException ex)
                 {
@@ -105,7 +105,7 @@ public static class AuthEndpoints
         authEndpoints.MapPatch("/profile", async Task<IResult> (
                 [FromForm] UpdateUserRequest request,
                 IAuthService authService,
-                IImageUrlProvider imageUrlProvider,
+                IImageUrlMapper imageUrlMapper,
                 HttpContext httpContext) =>
             {
                 if (!EndpointUserHelper.TryGetUserId(httpContext.User, out var userId))
@@ -118,7 +118,7 @@ public static class AuthEndpoints
                     var userAgent = AuthEndpointHelper.GetUserAgent(httpContext);
                     var updateUserDto = await AuthRequestMapper.ToUpdateUserDtoAsync(request);
                     var userAuthDto = await authService.UpdateUserAsync(userId, updateUserDto, userAgent);
-                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlProvider);
+                    return AuthEndpointHelper.OkWithRefreshToken(httpContext, userAuthDto, imageUrlMapper);
                 }
                 catch (ArgumentException ex)
                 {
@@ -130,7 +130,7 @@ public static class AuthEndpoints
 
         authEndpoints.MapDelete("/avatar", async Task<IResult> (
                 IAuthService authService,
-                IImageUrlProvider imageUrlProvider,
+                IImageUrlMapper imageUrlMapper,
                 HttpContext httpContext) =>
             {
                 if (!EndpointUserHelper.TryGetUserId(httpContext.User, out var userId))
@@ -141,7 +141,7 @@ public static class AuthEndpoints
                 try
                 {
                     var user = await authService.DeleteAvatarAsync(userId);
-                    return Results.Ok(new UserResponse(user, imageUrlProvider: imageUrlProvider));
+                    return Results.Ok(new UserResponse(user, imageUrlMapper: imageUrlMapper));
                 }
                 catch (ArgumentException ex)
                 {

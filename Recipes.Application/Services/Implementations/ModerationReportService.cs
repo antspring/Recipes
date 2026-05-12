@@ -18,7 +18,7 @@ public class ModerationReportService(
     IRecipeCrudService recipeCrudService,
     ICommentService commentService,
     IUserProfileService userProfileService,
-    IImageUrlProvider imageUrlProvider,
+    IImageUrlMapper imageUrlMapper,
     IUnitOfWork unitOfWork,
     IClock clock) : IModerationReportService
 {
@@ -144,16 +144,8 @@ public class ModerationReportService(
     private CommentDto ToCommentDto(Comment comment)
     {
         var dto = CommentDto.FromComment(comment);
-
-        dto.CommentatorAvatarUrl = string.IsNullOrWhiteSpace(dto.CommentatorAvatarUrl)
-            ? null
-            : imageUrlProvider.GetImageUrl(dto.CommentatorAvatarUrl);
-
-        foreach (var image in dto.Images)
-        {
-            image.Url = imageUrlProvider.GetImageUrl(image.FileName);
-        }
-
+        dto.CommentatorAvatarUrl = imageUrlMapper.ToImageUrl(dto.CommentatorAvatarUrl);
+        imageUrlMapper.ApplyUrls(dto.Images, image => image.FileName, (image, url) => image.Url = url);
         return dto;
     }
 
