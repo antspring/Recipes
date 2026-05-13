@@ -10,4 +10,5 @@ public interface IAuthService
     public Task<UserAuthDto> UpdateToken(string refreshToken, string? userAgent);
     public Task<UserAuthDto> UpdateUserAsync(Guid userId, UpdateUserDto updateUserDto, string? userAgent);
     public Task<User> DeleteAvatarAsync(Guid userId);
+    public Task LogoutAsync(string refreshToken);
 }
