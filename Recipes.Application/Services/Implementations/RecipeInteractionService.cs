@@ -18,13 +18,13 @@ public class RecipeInteractionService(
     public async Task<List<RecipeDto>> GetLikedRecipesAsync(Guid userId)
     {
         var recipes = await recipeInteractionRepository.GetLikedRecipesByUserIdAsync(userId, RecipeIncludes.Full);
-        return await recipeDtoFactory.CreateManyAsync(recipes);
+        return await recipeDtoFactory.CreateManyAsync(recipes, userId);
     }
 
     public async Task<List<RecipeDto>> GetFavoriteRecipesAsync(Guid userId)
     {
         var recipes = await recipeInteractionRepository.GetFavoriteRecipesByUserIdAsync(userId, RecipeIncludes.Full);
-        return await recipeDtoFactory.CreateManyAsync(recipes);
+        return await recipeDtoFactory.CreateManyAsync(recipes, userId);
     }
 
     public async Task ToggleLikeAsync(Guid recipeId, Guid userId, bool isLiked)

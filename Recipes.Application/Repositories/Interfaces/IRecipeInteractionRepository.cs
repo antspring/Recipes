@@ -15,6 +15,7 @@ public interface IRecipeInteractionRepository
     Task<RecipeRating?> GetRatingAsync(Guid recipeId, Guid userId);
     Task<Dictionary<Guid, (double AverageRating, int RatingsCount)>> GetRatingStatsByRecipeIdsAsync(
         IReadOnlyCollection<Guid> recipeIds);
+    Task<Dictionary<Guid, int>> GetRatingsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds, Guid userId);
     Task AddRatingAsync(RecipeRating rating);
     Task RemoveRatingAsync(RecipeRating rating);
     Task<Favorite?> GetFavoriteAsync(Guid recipeId, Guid userId);

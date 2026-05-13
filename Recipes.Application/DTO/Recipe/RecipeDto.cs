@@ -25,6 +25,7 @@ public class RecipeDto
     public int CommentsCount { get; set; }
     public double AverageRating { get; set; }
     public int RatingsCount { get; set; }
+    public int? CurrentUserRating { get; set; }
 
     public static RecipeDto FromRecipe(Domain.Models.Recipe recipe)
     {

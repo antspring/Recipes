@@ -17,7 +17,7 @@ public class RecipeSearchService(
         ValidateCaloriesRange(filter);
 
         var recipes = await recipeRepository.SearchAsync(filter, GetReadIncludes(includes), actorUserId);
-        return await recipeDtoFactory.CreateManyAsync(recipes);
+        return await recipeDtoFactory.CreateManyAsync(recipes, actorUserId);
     }
 
     private static void ValidateCaloriesRange(RecipeSearchFilterDto filter)

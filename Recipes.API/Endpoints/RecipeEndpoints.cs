@@ -70,12 +70,16 @@ public static class RecipeEndpoints
         recipeEndpoints.MapGet("/{id:guid}", async (
             Guid id,
             [FromQuery] string? include,
+            ClaimsPrincipal user,
             IRecipeCrudService recipeCrudService) =>
         {
             try
             {
                 var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
-                var recipe = await recipeCrudService.GetRecipeByIdAsync(id, recipeIncludes);
+                var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
+                    ? actorUserId
+                    : (Guid?)null;
+                var recipe = await recipeCrudService.GetRecipeByIdAsync(id, recipeIncludes, currentUserId);
                 if (recipe == null) return Results.NotFound();
 
                 return Results.Ok(recipe);
@@ -88,12 +92,16 @@ public static class RecipeEndpoints
 
         recipeEndpoints.MapGet(string.Empty, async (
             [FromQuery] string? include,
+            ClaimsPrincipal user,
             IRecipeCrudService recipeCrudService) =>
         {
             try
             {
                 var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
-                var recipes = await recipeCrudService.GetAllRecipesAsync(recipeIncludes);
+                var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
+                    ? actorUserId
+                    : (Guid?)null;
+                var recipes = await recipeCrudService.GetAllRecipesAsync(recipeIncludes, currentUserId);
                 return Results.Ok(recipes);
             }
             catch (ArgumentException ex)
@@ -105,12 +113,16 @@ public static class RecipeEndpoints
         recipeEndpoints.MapGet("/creator/{creatorId:guid}", async (
             Guid creatorId,
             [FromQuery] string? include,
+            ClaimsPrincipal user,
             IRecipeCrudService recipeCrudService) =>
         {
             try
             {
                 var recipeIncludes = RecipeIncludesRequestParser.Parse(include);
-                var recipes = await recipeCrudService.GetRecipesByCreatorIdAsync(creatorId, recipeIncludes);
+                var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
+                    ? actorUserId
+                    : (Guid?)null;
+                var recipes = await recipeCrudService.GetRecipesByCreatorIdAsync(creatorId, recipeIncludes, currentUserId);
                 return Results.Ok(recipes);
             }
             catch (ArgumentException ex)
