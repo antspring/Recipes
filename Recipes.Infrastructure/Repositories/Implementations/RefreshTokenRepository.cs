@@ -28,4 +28,9 @@ public class RefreshTokenRepository(BaseDbContext dbContext) : IRefreshTokenRepo
     {
         return dbContext.RefreshTokens.Where(r => r.Id == id).ExecuteDeleteAsync();
     }
+
+    public Task RemoveAsync(string refreshToken)
+    {
+        return dbContext.RefreshTokens.Where(r => r.Token == refreshToken).ExecuteDeleteAsync();
+    }
 }

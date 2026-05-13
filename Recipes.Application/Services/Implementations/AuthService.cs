@@ -43,6 +43,11 @@ public class AuthService(
         return userProfileService.DeleteAvatarAsync(userId);
     }
 
+    public Task LogoutAsync(string refreshToken)
+    {
+        return refreshTokenService.RevokeAsync(refreshToken);
+    }
+
     private Task<UserAuthDto> IssueTokensAsync(User user, string? userAgent)
     {
         return userAuthTokenService.IssueTokensAsync(user, userAgent);

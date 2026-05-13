@@ -102,6 +102,21 @@ public static class AuthEndpoints
             })
             .AllowAnonymous();
 
+        authEndpoints.MapPost("/logout", async Task<IResult> (
+                IAuthService authService,
+                HttpContext httpContext) =>
+            {
+                var refreshToken = AuthEndpointHelper.GetRefreshToken(httpContext);
+                if (!string.IsNullOrWhiteSpace(refreshToken))
+                {
+                    await authService.LogoutAsync(refreshToken);
+                }
+
+                AuthEndpointHelper.DeleteRefreshToken(httpContext);
+                return Results.NoContent();
+            })
+            .AllowAnonymous();
+
         authEndpoints.MapPatch("/profile", async Task<IResult> (
                 [FromForm] UpdateUserRequest request,
                 IAuthService authService,

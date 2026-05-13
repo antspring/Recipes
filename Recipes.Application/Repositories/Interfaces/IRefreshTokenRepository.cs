@@ -7,4 +7,5 @@ public interface IRefreshTokenRepository
     public Task<StoredRefreshToken?> GetAsync(string refreshToken);
     public Task CreateAsync(GeneratedRefreshToken refreshToken);
     public Task RemoveAsync(Guid id);
+    public Task RemoveAsync(string refreshToken);
 }

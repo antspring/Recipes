@@ -38,13 +38,23 @@ public static class AuthEndpointHelper
     {
         var userResponse = new UserResponse(userAuthDto, imageUrlMapper);
 
-        httpContext.Response.Cookies.Append(RefreshTokenCookieName, userResponse.RefreshToken, new CookieOptions
+        httpContext.Response.Cookies.Append(RefreshTokenCookieName, userResponse.RefreshToken, CreateRefreshTokenCookieOptions());
+
+        return Results.Ok(userResponse);
+    }
+
+    public static void DeleteRefreshToken(HttpContext httpContext)
+    {
+        httpContext.Response.Cookies.Delete(RefreshTokenCookieName);
+    }
+
+    private static CookieOptions CreateRefreshTokenCookieOptions()
+    {
+        return new CookieOptions
         {
             HttpOnly = true,
             SameSite = SameSiteMode.None,
             Secure = true
-        });
-
-        return Results.Ok(userResponse);
+        };
     }
 }

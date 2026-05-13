@@ -24,4 +24,9 @@ public class RefreshTokenService(
     {
         return refreshTokenRepository.RemoveAsync(tokenId);
     }
+
+    public Task RevokeAsync(string refreshToken)
+    {
+        return refreshTokenRepository.RemoveAsync(refreshToken);
+    }
 }
