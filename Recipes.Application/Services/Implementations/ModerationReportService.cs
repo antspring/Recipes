@@ -88,7 +88,7 @@ public class ModerationReportService(
     {
         return report.TargetType switch
         {
-            ReportTargetType.Recipe => await GetRecipeTargetAsync(report.TargetId),
+            ReportTargetType.Recipe => await GetRecipeTargetAsync(report.TargetId, moderatorId),
             ReportTargetType.Comment => await GetCommentTargetAsync(report.TargetId),
             ReportTargetType.UserProfile => await GetUserProfileTargetAsync(report.TargetId, moderatorId),
             _ => null
@@ -113,12 +113,12 @@ public class ModerationReportService(
         }
     }
 
-    private async Task<object?> GetRecipeTargetAsync(Guid recipeId)
+    private async Task<object?> GetRecipeTargetAsync(Guid recipeId, Guid moderatorId)
     {
         var recipe = await recipeRepository.GetByIdAsync(recipeId, RecipeIncludes.Full);
         return recipe == null
             ? null
-            : await recipeDtoFactory.CreateAsync(recipe);
+            : await recipeDtoFactory.CreateAsync(recipe, moderatorId);
     }
 
     private async Task<object?> GetCommentTargetAsync(Guid commentId)

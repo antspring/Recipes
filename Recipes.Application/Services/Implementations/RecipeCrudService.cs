@@ -32,25 +32,25 @@ public class RecipeCrudService(
         await recipeRepository.AddAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
-        return await GetRequiredRecipeDtoAsync(recipe.Id);
+        return await GetRequiredRecipeDtoAsync(recipe.Id, createRecipeDto.CreatorId);
     }
 
-    public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id, RecipeIncludes? includes = null)
+    public async Task<RecipeDto?> GetRecipeByIdAsync(Guid id, RecipeIncludes? includes = null, Guid? currentUserId = null)
     {
         var recipe = await recipeRepository.GetByIdAsync(id, GetReadIncludes(includes));
-        return recipe == null ? null : await recipeDtoFactory.CreateAsync(recipe);
+        return recipe == null ? null : await recipeDtoFactory.CreateAsync(recipe, currentUserId);
     }
 
-    public async Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null)
+    public async Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null, Guid? currentUserId = null)
     {
         var recipes = await recipeRepository.GetAllAsync(GetReadIncludes(includes));
-        return await ToRecipeDtosAsync(recipes);
+        return await ToRecipeDtosAsync(recipes, currentUserId);
     }
 
-    public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null)
+    public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null, Guid? currentUserId = null)
     {
         var recipes = await recipeRepository.GetByCreatorIdAsync(creatorId, GetReadIncludes(includes));
-        return await ToRecipeDtosAsync(recipes);
+        return await ToRecipeDtosAsync(recipes, currentUserId);
     }
 
     public async Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto)
@@ -68,7 +68,7 @@ public class RecipeCrudService(
         await recipeRepository.UpdateAsync(recipe);
         await unitOfWork.SaveChangesAsync();
 
-        return await GetRequiredRecipeDtoAsync(recipe.Id);
+        return await GetRequiredRecipeDtoAsync(recipe.Id, updateRecipeDto.ActorUserId);
     }
 
     public async Task DeleteRecipeAsync(Guid id, Guid actorUserId)
@@ -148,13 +148,13 @@ public class RecipeCrudService(
         await imageService.DeleteImagesAsync(imageIdsToDelete, recipe);
     }
 
-    private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId)
+    private async Task<RecipeDto> GetRequiredRecipeDtoAsync(Guid recipeId, Guid? currentUserId = null)
     {
         var recipe = await recipeRepository.GetByIdAsync(recipeId, RecipeIncludes.Full);
         if (recipe == null)
             throw new InvalidOperationException("Recipe not found after save");
 
-        return await recipeDtoFactory.CreateAsync(recipe);
+        return await recipeDtoFactory.CreateAsync(recipe, currentUserId);
     }
 
     private static RecipeIncludes GetReadIncludes(RecipeIncludes? includes)
@@ -162,8 +162,8 @@ public class RecipeCrudService(
         return includes ?? RecipeIncludes.Full;
     }
 
-    private async Task<List<RecipeDto>> ToRecipeDtosAsync(IEnumerable<Recipe> recipes)
+    private async Task<List<RecipeDto>> ToRecipeDtosAsync(IEnumerable<Recipe> recipes, Guid? currentUserId)
     {
-        return await recipeDtoFactory.CreateManyAsync(recipes);
+        return await recipeDtoFactory.CreateManyAsync(recipes, currentUserId);
     }
 }

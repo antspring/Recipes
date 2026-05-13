@@ -10,22 +10,22 @@ public class RecipeDtoFactory(
     IRecipeInteractionRepository recipeInteractionRepository,
     IImageUrlMapper imageUrlMapper) : IRecipeDtoFactory
 {
-    public async Task<RecipeDto> CreateAsync(Recipe recipe)
+    public async Task<RecipeDto> CreateAsync(Recipe recipe, Guid? currentUserId = null)
     {
         var dto = ToRecipeDto(recipe);
-        await ApplyCountersAsync([dto]);
+        await ApplyCountersAsync([dto], currentUserId);
         return dto;
     }
 
-    public async Task<List<RecipeDto>> CreateManyAsync(IEnumerable<Recipe> recipes)
+    public async Task<List<RecipeDto>> CreateManyAsync(IEnumerable<Recipe> recipes, Guid? currentUserId = null)
     {
         var dtos = recipes.Select(ToRecipeDto).ToList();
 
-        await ApplyCountersAsync(dtos);
+        await ApplyCountersAsync(dtos, currentUserId);
         return dtos;
     }
 
-    private async Task ApplyCountersAsync(IReadOnlyCollection<RecipeDto> recipes)
+    private async Task ApplyCountersAsync(IReadOnlyCollection<RecipeDto> recipes, Guid? currentUserId)
     {
         if (recipes.Count == 0)
             return;
@@ -35,6 +35,9 @@ public class RecipeDtoFactory(
         var likeCounts = await recipeInteractionRepository.GetLikeCountsByRecipeIdsAsync(recipeIds);
         var favoriteCounts = await recipeInteractionRepository.GetFavoriteCountsByRecipeIdsAsync(recipeIds);
         var ratingStats = await recipeInteractionRepository.GetRatingStatsByRecipeIdsAsync(recipeIds);
+        var currentUserRatings = currentUserId.HasValue
+            ? await recipeInteractionRepository.GetRatingsByRecipeIdsAsync(recipeIds, currentUserId.Value)
+            : new Dictionary<Guid, int>();
 
         foreach (var recipe in recipes)
         {
@@ -44,6 +47,9 @@ public class RecipeDtoFactory(
             var stats = ratingStats.GetValueOrDefault(recipe.Id);
             recipe.AverageRating = stats.AverageRating;
             recipe.RatingsCount = stats.RatingsCount;
+            recipe.CurrentUserRating = currentUserRatings.TryGetValue(recipe.Id, out var currentUserRating)
+                ? currentUserRating
+                : null;
         }
     }
 

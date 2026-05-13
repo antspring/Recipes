@@ -61,6 +61,13 @@ public class RecipeInteractionRepository(BaseDbContext context) : IRecipeInterac
                 g => ((double)g.Average(r => r.Value), g.Count()));
     }
 
+    public Task<Dictionary<Guid, int>> GetRatingsByRecipeIdsAsync(IReadOnlyCollection<Guid> recipeIds, Guid userId)
+    {
+        return context.RecipeRatings
+            .Where(r => recipeIds.Contains(r.RecipeId) && r.UserId == userId)
+            .ToDictionaryAsync(r => r.RecipeId, r => r.Value);
+    }
+
     public Task AddRatingAsync(RecipeRating rating)
     {
         return context.RecipeRatings.AddAsync(rating).AsTask();

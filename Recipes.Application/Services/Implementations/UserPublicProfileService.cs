@@ -22,7 +22,7 @@ public class UserPublicProfileService(
         var isSubscribedByCurrentUser = currentUserId.HasValue
             && await userSubscriptionRepository.GetAsync(currentUserId.Value, userId) != null;
         var recipes = await recipeRepository.GetByCreatorIdAsync(userId, RecipeIncludes.Full);
-        var recipeDtos = await recipeDtoFactory.CreateManyAsync(recipes);
+        var recipeDtos = await recipeDtoFactory.CreateManyAsync(recipes, currentUserId);
 
         return new PublicUserProfileDto
         {
