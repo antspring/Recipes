@@ -5,3 +5,10 @@ obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example

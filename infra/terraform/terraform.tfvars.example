@@ -1,0 +1,36 @@
+cloud_id                 = "b1g..."
+folder_id                = "b1g..."
+zone                     = "ru-central1-a"
+service_account_key_file = "./authorized-key.json"
+
+project_name      = "recipes"
+instance_count    = 2
+allowed_ssh_cidrs = "203.0.113.10/32"
+ssh_user          = "ubuntu"
+ssh_public_key    = "ssh-ed25519 AAAA..."
+
+dockerhub_username  = "dockerhub-user"
+dockerhub_token     = "dockerhub-token"
+dockerhub_namespace = "dockerhub-user"
+image_tag           = "latest"
+deployment_version  = "manual-1"
+
+postgresql_connection_string = "Host=...;Port=5432;Database=recipes;Username=...;Password=..."
+
+jwt_issuer  = "recipes"
+jwt_audience = "recipes"
+jwt_key      = "replace-with-long-secret"
+
+object_storage_endpoint   = "https://storage.yandexcloud.net"
+object_storage_bucket     = "recipes-bucket"
+object_storage_access_key = "..."
+object_storage_secret_key = "..."
+object_storage_region     = "ru-central1"
+
+smtp_host       = "smtp.example.com"
+smtp_port       = 587
+smtp_username   = "..."
+smtp_password   = "..."
+smtp_from_email = "noreply@example.com"
+smtp_from_name  = "Recipes"
+smtp_use_ssl    = true
