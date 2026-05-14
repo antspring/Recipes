@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0.100 AS build
+ARG DOTNET_EF_VERSION=10.0.5
+
+WORKDIR /src
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+RUN dotnet tool install --global dotnet-ef --version ${DOTNET_EF_VERSION}
+
+COPY . .
+RUN dotnet build Recipes.Infrastructure/Recipes.Infrastructure.csproj \
+    --configuration Release
+
+RUN dotnet ef migrations bundle \
+    --project Recipes.Infrastructure/Recipes.Infrastructure.csproj \
+    --startup-project Recipes.Infrastructure/Recipes.Infrastructure.csproj \
+    --context BaseDbContext \
+    --configuration Release \
+    --no-build \
+    --output /app/migrate \
+    --force
+
+FROM mcr.microsoft.com/dotnet/runtime:10.0.5 AS runtime
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV DOTNET_EnableDiagnostics=0
+
+COPY --from=build /app/migrate ./migrate
+
+USER $APP_UID
+ENTRYPOINT ["./migrate"]
