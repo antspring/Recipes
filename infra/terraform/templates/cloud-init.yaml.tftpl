@@ -1,0 +1,39 @@
+#cloud-config
+package_update: true
+packages:
+  - docker.io
+write_files:
+  - path: /opt/recipes/.env
+    owner: root:root
+    permissions: "0600"
+    content: |
+%{ for line in split("\n", app_env_content) ~}
+      ${line}
+%{ endfor ~}
+  - path: /opt/recipes/deploy.sh
+    owner: root:root
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      systemctl enable --now docker
+
+      docker_username="$(printf '%s' '${docker_username_b64}' | base64 -d)"
+      docker_token="$(printf '%s' '${docker_token_b64}' | base64 -d)"
+
+      if [ -n "$docker_username" ] && [ -n "$docker_token" ]; then
+        printf '%s' "$docker_token" | docker login --username "$docker_username" --password-stdin
+      fi
+
+      docker pull '${api_image}'
+
+      docker rm -f recipes-api || true
+      docker run -d \
+        --name recipes-api \
+        --restart unless-stopped \
+        --env-file /opt/recipes/.env \
+        -p ${api_port}:8080 \
+        '${api_image}'
+runcmd:
+  - /opt/recipes/deploy.sh
