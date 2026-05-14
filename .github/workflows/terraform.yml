@@ -32,7 +32,7 @@ jobs:
       pull-requests: read
 
     env:
-      YC_SERVICE_ACCOUNT_KEY_FILE: ${{ runner.temp }}/yc-key.json
+      YC_SERVICE_ACCOUNT_KEY_FILE: /tmp/yc-key.json
 
     defaults:
       run:
