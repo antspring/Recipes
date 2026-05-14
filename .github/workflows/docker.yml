@@ -46,8 +46,7 @@ jobs:
           fi
           echo "api_image=${namespace}/${{ env.API_IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
           echo "migrations_image=${namespace}/${{ env.MIGRATIONS_IMAGE_NAME }}" >> "$GITHUB_OUTPUT"
-          echo "run_tag=${tag_prefix}" >> "$GITHUB_OUTPUT"
-          echo "sha_tag=${tag_prefix}-${short_sha}" >> "$GITHUB_OUTPUT"
+          echo "image_tag=${tag_prefix}-${short_sha}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -65,9 +64,10 @@ jobs:
           context: .
           file: Dockerfile.api
           push: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+          provenance: false
           tags: |
-            ${{ steps.meta.outputs.api_image }}:${{ steps.meta.outputs.run_tag }}
-            ${{ steps.meta.outputs.api_image }}:${{ steps.meta.outputs.sha_tag }}
+            ${{ steps.meta.outputs.api_image }}:latest
+            ${{ steps.meta.outputs.api_image }}:${{ steps.meta.outputs.image_tag }}
 
       - name: Build and push migrations image
         uses: docker/build-push-action@v6
@@ -75,6 +75,7 @@ jobs:
           context: .
           file: Dockerfile.migrations
           push: ${{ (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+          provenance: false
           tags: |
-            ${{ steps.meta.outputs.migrations_image }}:${{ steps.meta.outputs.run_tag }}
-            ${{ steps.meta.outputs.migrations_image }}:${{ steps.meta.outputs.sha_tag }}
+            ${{ steps.meta.outputs.migrations_image }}:latest
+            ${{ steps.meta.outputs.migrations_image }}:${{ steps.meta.outputs.image_tag }}
