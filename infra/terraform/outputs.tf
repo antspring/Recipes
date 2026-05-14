@@ -20,10 +20,12 @@ output "target_group_id" {
 
 output "api_image" {
   description = "API image deployed by cloud-init."
-  value       = nonsensitive(local.api_image)
+  value       = local.api_image
+  sensitive   = true
 }
 
 output "migrations_image" {
   description = "Migrations image deployed by cloud-init."
-  value       = nonsensitive(local.migrations_image)
+  value       = local.migrations_image
+  sensitive   = true
 }
