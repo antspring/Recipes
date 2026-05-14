@@ -22,7 +22,6 @@ env:
   TF_IN_AUTOMATION: true
   TF_INPUT: false
   TF_WORKING_DIR: infra/terraform
-  YC_SERVICE_ACCOUNT_KEY_FILE: ${{ runner.temp }}/yc-key.json
 
 jobs:
   terraform:
@@ -31,6 +30,9 @@ jobs:
     permissions:
       contents: read
       pull-requests: read
+
+    env:
+      YC_SERVICE_ACCOUNT_KEY_FILE: ${{ runner.temp }}/yc-key.json
 
     defaults:
       run:
