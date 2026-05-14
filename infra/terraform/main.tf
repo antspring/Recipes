@@ -107,6 +107,12 @@ resource "yandex_resourcemanager_folder_iam_member" "instance_group_lb_editor" {
   member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
 }
 
+resource "yandex_resourcemanager_folder_iam_member" "instance_group_vpc_public_admin" {
+  folder_id = var.folder_id
+  role      = "vpc.publicAdmin"
+  member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
+}
+
 resource "yandex_compute_instance_group" "app" {
   name                = "${var.project_name}-ig"
   folder_id           = var.folder_id
@@ -116,7 +122,8 @@ resource "yandex_compute_instance_group" "app" {
 
   depends_on = [
     yandex_resourcemanager_folder_iam_member.instance_group_compute_editor,
-    yandex_resourcemanager_folder_iam_member.instance_group_lb_editor
+    yandex_resourcemanager_folder_iam_member.instance_group_lb_editor,
+    yandex_resourcemanager_folder_iam_member.instance_group_vpc_public_admin
   ]
 
   instance_template {
@@ -183,8 +190,9 @@ resource "yandex_lb_network_load_balancer" "app" {
   labels = local.labels
 
   listener {
-    name = "http"
-    port = var.lb_listener_port
+    name        = "http"
+    port        = var.lb_listener_port
+    target_port = var.api_port
 
     external_address_spec {
       ip_version = "ipv4"
