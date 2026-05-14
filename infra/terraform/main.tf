@@ -52,11 +52,30 @@ resource "yandex_vpc_network" "app" {
   labels = local.labels
 }
 
+resource "yandex_vpc_gateway" "egress" {
+  name   = "${var.project_name}-egress-gateway"
+  labels = local.labels
+
+  shared_egress_gateway {}
+}
+
+resource "yandex_vpc_route_table" "egress" {
+  name       = "${var.project_name}-egress-routes"
+  network_id = yandex_vpc_network.app.id
+  labels     = local.labels
+
+  static_route {
+    destination_prefix = "0.0.0.0/0"
+    gateway_id         = yandex_vpc_gateway.egress.id
+  }
+}
+
 resource "yandex_vpc_subnet" "app" {
   name           = "${var.project_name}-subnet"
   zone           = var.zone
   network_id     = yandex_vpc_network.app.id
   v4_cidr_blocks = var.subnet_cidr
+  route_table_id = yandex_vpc_route_table.egress.id
   labels         = local.labels
 }
 
@@ -107,9 +126,9 @@ resource "yandex_resourcemanager_folder_iam_member" "instance_group_lb_editor" {
   member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
 }
 
-resource "yandex_resourcemanager_folder_iam_member" "instance_group_vpc_public_admin" {
+resource "yandex_resourcemanager_folder_iam_member" "instance_group_vpc_user" {
   folder_id = var.folder_id
-  role      = "vpc.publicAdmin"
+  role      = "vpc.user"
   member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
 }
 
@@ -123,7 +142,7 @@ resource "yandex_compute_instance_group" "app" {
   depends_on = [
     yandex_resourcemanager_folder_iam_member.instance_group_compute_editor,
     yandex_resourcemanager_folder_iam_member.instance_group_lb_editor,
-    yandex_resourcemanager_folder_iam_member.instance_group_vpc_public_admin
+    yandex_resourcemanager_folder_iam_member.instance_group_vpc_user
   ]
 
   instance_template {
@@ -148,7 +167,7 @@ resource "yandex_compute_instance_group" "app" {
     network_interface {
       network_id         = yandex_vpc_network.app.id
       subnet_ids         = [yandex_vpc_subnet.app.id]
-      nat                = true
+      nat                = false
       security_group_ids = [yandex_vpc_security_group.app.id]
     }
 
