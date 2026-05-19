@@ -37,6 +37,8 @@ locals {
     for key, value in local.app_environment : "${key}=${value}"
   ])
 
+  deployment_fingerprint = substr(sha256(var.deployment_version), 0, 8)
+
   ssh_metadata = var.ssh_public_key == "" ? {} : {
     ssh-keys = "${var.ssh_user}:${var.ssh_public_key}"
   }
@@ -146,6 +148,7 @@ resource "yandex_compute_instance_group" "app" {
   ]
 
   instance_template {
+    name        = "${var.project_name}-app-${local.deployment_fingerprint}-{instance.index}"
     platform_id = var.platform_id
 
     resources {
@@ -195,7 +198,7 @@ resource "yandex_compute_instance_group" "app" {
 
   deploy_policy {
     max_unavailable = 1
-    max_expansion   = 1
+    max_expansion   = 0
   }
 
   load_balancer {
