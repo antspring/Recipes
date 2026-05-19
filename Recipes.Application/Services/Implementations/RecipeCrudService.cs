@@ -41,10 +41,24 @@ public class RecipeCrudService(
         return recipe == null ? null : await recipeDtoFactory.CreateAsync(recipe, currentUserId);
     }
 
-    public async Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null, Guid? currentUserId = null)
+    public async Task<PagedResult<RecipeDto>> GetAllRecipesAsync(
+        RecipeIncludes? includes = null,
+        Guid? currentUserId = null,
+        int page = 1,
+        int pageSize = 20)
     {
-        var recipes = await recipeRepository.GetAllAsync(GetReadIncludes(includes));
-        return await ToRecipeDtosAsync(recipes, currentUserId);
+        PaginationValidator.EnsureValid(page, pageSize);
+
+        var recipes = await recipeRepository.GetPagedAsync(GetReadIncludes(includes), page, pageSize);
+        var dtos = await ToRecipeDtosAsync(recipes.Items, currentUserId);
+
+        return new PagedResult<RecipeDto>
+        {
+            Items = dtos,
+            TotalCount = recipes.TotalCount,
+            Page = recipes.Page,
+            PageSize = recipes.PageSize
+        };
     }
 
     public async Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null, Guid? currentUserId = null)
@@ -166,4 +180,5 @@ public class RecipeCrudService(
     {
         return await recipeDtoFactory.CreateManyAsync(recipes, currentUserId);
     }
+
 }

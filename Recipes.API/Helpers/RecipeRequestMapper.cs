@@ -71,7 +71,9 @@ public static class RecipeRequestMapper
             MaxCalories = request.MaxCalories,
             ExcludeUserAllergens = request.ExcludeUserAllergens ?? false,
             ContainsIngredientIds = NormalizeIngredientIds(request.ContainsIngredientIds),
-            ExcludedIngredientIds = NormalizeIngredientIds(request.ExcludedIngredientIds)
+            ExcludedIngredientIds = NormalizeIngredientIds(request.ExcludedIngredientIds),
+            Page = request.Page,
+            PageSize = request.PageSize
         };
     }
 

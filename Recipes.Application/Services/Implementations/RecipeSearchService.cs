@@ -9,15 +9,24 @@ public class RecipeSearchService(
     IRecipeRepository recipeRepository,
     IRecipeDtoFactory recipeDtoFactory) : IRecipeSearchService
 {
-    public async Task<List<RecipeDto>> SearchAsync(
+    public async Task<PagedResult<RecipeDto>> SearchAsync(
         RecipeSearchFilterDto filter,
         RecipeIncludes? includes = null,
         Guid? actorUserId = null)
     {
         ValidateCaloriesRange(filter);
+        PaginationValidator.EnsureValid(filter.Page, filter.PageSize);
 
         var recipes = await recipeRepository.SearchAsync(filter, GetReadIncludes(includes), actorUserId);
-        return await recipeDtoFactory.CreateManyAsync(recipes, actorUserId);
+        var dtos = await recipeDtoFactory.CreateManyAsync(recipes.Items, actorUserId);
+
+        return new PagedResult<RecipeDto>
+        {
+            Items = dtos,
+            TotalCount = recipes.TotalCount,
+            Page = recipes.Page,
+            PageSize = recipes.PageSize
+        };
     }
 
     private static void ValidateCaloriesRange(RecipeSearchFilterDto filter)
@@ -39,4 +48,5 @@ public class RecipeSearchService(
     {
         return includes ?? RecipeIncludes.Full;
     }
+
 }
