@@ -1,5 +1,4 @@
 using System.Net;
-using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.Extensions.Logging;
@@ -86,7 +85,7 @@ public class ImageStorageService(IObjectStorageOptions objectStorageOptions, ILo
         return new AmazonS3Config
         {
             ServiceURL = _endpoint,
-            RegionEndpoint = RegionEndpoint.GetBySystemName(_region),
+            AuthenticationRegion = _region,
             ForcePathStyle = true
         };
     }
