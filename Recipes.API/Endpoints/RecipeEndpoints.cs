@@ -92,6 +92,8 @@ public static class RecipeEndpoints
 
         recipeEndpoints.MapGet(string.Empty, async (
             [FromQuery] string? include,
+            [FromQuery] int? page,
+            [FromQuery] int? pageSize,
             ClaimsPrincipal user,
             IRecipeCrudService recipeCrudService) =>
         {
@@ -101,7 +103,11 @@ public static class RecipeEndpoints
                 var currentUserId = EndpointUserHelper.TryGetUserId(user, out var actorUserId)
                     ? actorUserId
                     : (Guid?)null;
-                var recipes = await recipeCrudService.GetAllRecipesAsync(recipeIncludes, currentUserId);
+                var recipes = await recipeCrudService.GetAllRecipesAsync(
+                    recipeIncludes,
+                    currentUserId,
+                    page ?? 1,
+                    pageSize ?? 20);
                 return Results.Ok(recipes);
             }
             catch (ArgumentException ex)

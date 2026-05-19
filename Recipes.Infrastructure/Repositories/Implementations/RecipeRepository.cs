@@ -21,6 +21,11 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ToListAsync();
     }
 
+    public Task<PagedResult<Recipe>> GetPagedAsync(RecipeIncludes includes, int page, int pageSize)
+    {
+        return ToPagedResultAsync(context.Recipes, includes, page, pageSize);
+    }
+
     public Task<List<Recipe>> GetByCreatorIdAsync(Guid creatorId, RecipeIncludes includes)
     {
         return context.Recipes.ApplyIncludes(includes)
@@ -28,12 +33,11 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
             .ToListAsync();
     }
 
-    public Task<List<Recipe>> SearchAsync(RecipeSearchFilterDto filter, RecipeIncludes includes, Guid? actorUserId)
+    public Task<PagedResult<Recipe>> SearchAsync(RecipeSearchFilterDto filter, RecipeIncludes includes, Guid? actorUserId)
     {
         var query = ApplySearchFilters(context.Recipes, filter, actorUserId);
 
-        return query.ApplyIncludes(includes)
-            .ToListAsync();
+        return ToPagedResultAsync(query, includes, filter.Page, filter.PageSize);
     }
 
     public Task AddAsync(Recipe recipe)
@@ -94,5 +98,29 @@ public class RecipeRepository(BaseDbContext context) : IRecipeRepository
     private static string ToContainsPattern(string value)
     {
         return $"%{value.Trim()}%";
+    }
+
+    private static async Task<PagedResult<Recipe>> ToPagedResultAsync(
+        IQueryable<Recipe> query,
+        RecipeIncludes includes,
+        int page,
+        int pageSize)
+    {
+        var totalCount = await query.CountAsync();
+        var items = await query
+            .ApplyIncludes(includes)
+            .OrderByDescending(r => r.CreatedAt)
+            .ThenBy(r => r.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResult<Recipe>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 }

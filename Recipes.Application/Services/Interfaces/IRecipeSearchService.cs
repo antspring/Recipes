@@ -5,7 +5,7 @@ namespace Recipes.Application.Services.Interfaces;
 
 public interface IRecipeSearchService
 {
-    Task<List<RecipeDto>> SearchAsync(
+    Task<PagedResult<RecipeDto>> SearchAsync(
         RecipeSearchFilterDto filter,
         RecipeIncludes? includes = null,
         Guid? actorUserId = null);
