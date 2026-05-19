@@ -37,6 +37,8 @@ locals {
     for key, value in local.app_environment : "${key}=${value}"
   ])
 
+  deployment_fingerprint = substr(sha256(var.deployment_version), 0, 8)
+
   ssh_metadata = var.ssh_public_key == "" ? {} : {
     ssh-keys = "${var.ssh_user}:${var.ssh_public_key}"
   }
@@ -52,11 +54,30 @@ resource "yandex_vpc_network" "app" {
   labels = local.labels
 }
 
+resource "yandex_vpc_gateway" "egress" {
+  name   = "${var.project_name}-egress-gateway"
+  labels = local.labels
+
+  shared_egress_gateway {}
+}
+
+resource "yandex_vpc_route_table" "egress" {
+  name       = "${var.project_name}-egress-routes"
+  network_id = yandex_vpc_network.app.id
+  labels     = local.labels
+
+  static_route {
+    destination_prefix = "0.0.0.0/0"
+    gateway_id         = yandex_vpc_gateway.egress.id
+  }
+}
+
 resource "yandex_vpc_subnet" "app" {
   name           = "${var.project_name}-subnet"
   zone           = var.zone
   network_id     = yandex_vpc_network.app.id
   v4_cidr_blocks = var.subnet_cidr
+  route_table_id = yandex_vpc_route_table.egress.id
   labels         = local.labels
 }
 
@@ -107,6 +128,12 @@ resource "yandex_resourcemanager_folder_iam_member" "instance_group_lb_editor" {
   member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
 }
 
+resource "yandex_resourcemanager_folder_iam_member" "instance_group_vpc_user" {
+  folder_id = var.folder_id
+  role      = "vpc.user"
+  member    = "serviceAccount:${yandex_iam_service_account.instance_group.id}"
+}
+
 resource "yandex_compute_instance_group" "app" {
   name                = "${var.project_name}-ig"
   folder_id           = var.folder_id
@@ -116,10 +143,12 @@ resource "yandex_compute_instance_group" "app" {
 
   depends_on = [
     yandex_resourcemanager_folder_iam_member.instance_group_compute_editor,
-    yandex_resourcemanager_folder_iam_member.instance_group_lb_editor
+    yandex_resourcemanager_folder_iam_member.instance_group_lb_editor,
+    yandex_resourcemanager_folder_iam_member.instance_group_vpc_user
   ]
 
   instance_template {
+    name        = "${var.project_name}-app-${local.deployment_fingerprint}-{instance.index}"
     platform_id = var.platform_id
 
     resources {
@@ -141,7 +170,7 @@ resource "yandex_compute_instance_group" "app" {
     network_interface {
       network_id         = yandex_vpc_network.app.id
       subnet_ids         = [yandex_vpc_subnet.app.id]
-      nat                = true
+      nat                = false
       security_group_ids = [yandex_vpc_security_group.app.id]
     }
 
@@ -169,7 +198,7 @@ resource "yandex_compute_instance_group" "app" {
 
   deploy_policy {
     max_unavailable = 1
-    max_expansion   = 1
+    max_expansion   = 0
   }
 
   load_balancer {
@@ -183,8 +212,9 @@ resource "yandex_lb_network_load_balancer" "app" {
   labels = local.labels
 
   listener {
-    name = "http"
-    port = var.lb_listener_port
+    name        = "http"
+    port        = var.lb_listener_port
+    target_port = var.api_port
 
     external_address_spec {
       ip_version = "ipv4"
