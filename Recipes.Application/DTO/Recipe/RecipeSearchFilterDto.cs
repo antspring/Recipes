@@ -11,4 +11,6 @@ public class RecipeSearchFilterDto
     public bool ExcludeUserAllergens { get; set; }
     public IReadOnlyCollection<Guid> ContainsIngredientIds { get; set; } = [];
     public IReadOnlyCollection<Guid> ExcludedIngredientIds { get; set; } = [];
+    public int Page { get; set; } = 1;
+    public int PageSize { get; set; } = 20;
 }

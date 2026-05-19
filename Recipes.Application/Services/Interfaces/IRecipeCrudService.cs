@@ -7,7 +7,8 @@ public interface IRecipeCrudService
 {
     Task<RecipeDto> CreateRecipeAsync(CreateRecipeDto createRecipeDto);
     Task<RecipeDto?> GetRecipeByIdAsync(Guid id, RecipeIncludes? includes = null, Guid? currentUserId = null);
-    Task<List<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null, Guid? currentUserId = null);
+    Task<PagedResult<RecipeDto>> GetAllRecipesAsync(RecipeIncludes? includes = null, Guid? currentUserId = null,
+        int page = 1, int pageSize = 20);
     Task<List<RecipeDto>> GetRecipesByCreatorIdAsync(Guid creatorId, RecipeIncludes? includes = null, Guid? currentUserId = null);
     Task<RecipeDto> UpdateRecipeAsync(UpdateRecipeDto updateRecipeDto);
     Task DeleteRecipeAsync(Guid id, Guid actorUserId);
